@@ -1,0 +1,52 @@
+/* monachat css */
+
+#text_input {
+    position: absolute;
+    
+    width: 400px;
+    height: 30px;
+    
+    padding-left: 5px;
+    
+    top: 332px;
+    left: 23%;
+}
+#text_input text {
+    left: 20px;
+}
+#room_data {
+    float: right;
+}
+#log_button {
+    width: 60px;
+    height: 30px;
+    background-color: white;
+}
+#log_textarea {
+    position: absolute;
+    
+    width: 600px;
+    height: 200px;
+
+    left: 80px;
+
+    background-color: rgba(255, 255, 255, 0);
+}
+#main_button_table {
+    position: absolute;
+
+    left: 35px;
+    top: 70px;
+}
+.main_room_button {
+    width: 95px;
+    height: 35px;
+}
+.user_div {
+    position: absolute;
+
+    text-align: center;
+}
+.user_div_img {
+    position: relative;
+}

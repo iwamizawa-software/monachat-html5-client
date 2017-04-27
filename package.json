@@ -1,0 +1,17 @@
+{
+    "name": "monachat",
+    "description": "monachat javascript client",
+    "version": "0.1.0",
+    "author": "Alvaro Fernandez",
+    "main": "main.js",
+    
+    "dependencies": {
+    },
+    "devDependencies": {
+        "electron": ">= 1.4.15"
+    },
+    
+     "scripts": {
+        "package-win": "electron-packager . --arch=x64 --platform=win32 --electron-version=1.4.15"
+    }
+}

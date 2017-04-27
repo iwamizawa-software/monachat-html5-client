@@ -1,0 +1,20 @@
+TODO
+-----
+
+---- Add trip searching
+---- Check log() for textarea position algorithm
+---- Add server getter/setter
+---- Add character dragging
+---- Fix character scaling
+---- Add relogging on error
+---- Add send_stat function
+---- Parse special characters
+---- Shorten name and character automatically
+---- Show character stat on screen if it's not normal
+---- Format output
+---- Fix main room button table layout
+---- Add ignore handler and format_event handler
+---- What are the possible set events?
+---- Implement user tag
+---- Fix button click issue - It goes to a compltely unrelated room (probably because the for loop)
+---- Doesn't load correctly main rooms, just when they are updated
