@@ -23,6 +23,8 @@
     background-color: white;
 }
 #log_textarea {
+    cursor: default;
+
     position: absolute;
     
     width: 600px;

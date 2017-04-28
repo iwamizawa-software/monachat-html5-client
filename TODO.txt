@@ -1,20 +1,36 @@
 TODO
 -----
 
----- Add trip searching
+---- Add trip collecting and searching
 ---- Check log() for textarea position algorithm
 ---- Add server getter/setter
 ---- Add character dragging
 ---- Fix character scaling
 ---- Add relogging on error
----- Add send_stat function
+PART Add send_stat function
 ---- Parse special characters
 ---- Shorten name and character automatically
 ---- Show character stat on screen if it's not normal
----- Format output
+PART Format output
 ---- Fix main room button table layout
 ---- Add ignore handler and format_event handler
 ---- What are the possible set events?
 ---- Implement user tag
 ---- Fix button click issue - It goes to a compltely unrelated room (probably because the for loop)
 ---- Doesn't load correctly main rooms, just when they are updated
+---- Implement relogin command
+---- Implement ignore function
+---- Implement default function
+---- Implement profiles
+---- Implement second proxy site
+---- Implement random function
+---- Implement copy function
+---- Implement stalk function ?
+---- Implement local ignore function
+---- Implement nanashi function
+---- Implement save_log function
+---- Implement invisible function
+---- Implement tinyurl function
+---- Implement url click function
+---- Enable y at _send_x_y_scl
+---- Fix automatic reconnection

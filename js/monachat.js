@@ -24,6 +24,16 @@ var room_data;
 var main_button_table;
 
 
+/*******************
+* Global variables
+*******************/
+var canvas = document.createElement('CANVAS');
+var ctx    = canvas.getContext('2d');
+
+canvas.width  = 128;
+canvas.height = 128;
+
+
 function User(xml)
     {
         this.name      = xml.attr.name  || 'nanashi';
@@ -50,6 +60,8 @@ function x_scale(x)
 
 function y_scale(y)
     {
+        y = 400; /** disabled **/
+        
         var [a, b]     = [0, 500];
         var [min, max] = [220, 850];
         
@@ -185,46 +197,91 @@ function append_div(id)
         * Create character image object
         ********************************/
         var img = new Image();
-        img.src = './character/'+user[id].character+'.png';
+        
+        img.onload = function()
+            {
+                var [width, height] = [img.width, img.height];
+                
+                ctx.drawImage(img, 0, 0);
+                var data = ctx.getImageData(0, 0, width, height);
+                
+                
+                if(user[id].r != 100 || user[id].g != 100 || user[id].b != 100)
+                    {
+                        for(var i = 0; i < data.data.length; i += 4)
+                            {
+                                var r = data.data[i];
+                                var g = data.data[i+1];
+                                var b = data.data[i+2]
+                        
+                        
+                                /***********************
+                                * Replace white pixels
+                                ***********************/
+                                if(r == 255 && g == 255 && b == 255)
+                                    {
+                                        data.data[i]   = user[id].r;
+                                        data.data[i+1] = user[id].g;
+                                        data.data[i+2] = user[id].b;
+                                    }
+                            }
+                    }
+
+                
+                /******************************************************
+                * Convert canvas data to img and set it as img source
+                ******************************************************/
+                ctx.putImageData(data, 0, 0);
+                
+                img.onload = '';
+                img.src    = canvas.toDataURL();
+                
+                ctx.clearRect(0, 0, height, width);
+        
                                 
-        $(img).attr('id', 'user_div_'+id+'_img')
-            .attr('class', 'user_div_img')
-            .attr('draggable', false)
-            .css('transform', 'rotatey('+ (user[id].scl == -100 ? 180 : 0) +'deg)');
+                $(img).attr('id', 'user_div_'+id+'_img')
+                    .attr('class', 'user_div_img')
+                    .attr('draggable', false)
+                    .attr('width', img.width)
+                    .attr('height', img.height)
+                    .css('transform', 'rotatey('+ (user[id].scl == -100 ? 180 : 0) +'deg)');
             
 
-        /*******************************
-        * Create user container object
-        *******************************/
-        var div = document.createElement('div');
+                /*******************************
+                * Create user container object
+                *******************************/
+                var div = document.createElement('div');
+                
+                $(div).attr('id', 'user_div_'+id)
+                    .attr('class', 'user_div')
+                    .attr('draggable', false)
+                    .css('left', x_scale(user[id].x || 0  ))
+                    .css('top',  y_scale(user[id].y || 400));
+                
+                
+                /*******************************
+                * Create user data text object
+                *******************************/
+                var user_data = document.createElement('text');
+                
+                $(user_data).attr('class', 'user_div_data');
+                
+                user_data.innerHTML = '<br>' + (user[id].name || 'nanashi')
+                    + '<br>' + user[id].ihash.substr(-6);
         
-        $(div).attr('id', 'user_div_'+id)
-            .attr('class', 'user_div')
-            .attr('draggable', false)
-            .css('left', x_scale(user[id].x || 0  ))
-            .css('top',  y_scale(user[id].y || 400));
+                if(user[id].trip) { user_data.innerHTML = user_data.innerHTML + '<br>' + user[id].trip; }
+                
+                
+                /*************************
+                * Append it to room_view
+                *************************/
+                $(div).append(img)
+                    .append(user_data);
+                
+                $('#room_view').append(div);
+            }
         
-        
-        /*******************************
-        * Create user data text object
-        *******************************/
-        var data = document.createElement('text');
-        
-        $(data).attr('class', 'user_div_data');
-        
-        data.innerHTML = '<br>' + (user[id].name || 'nanashi')
-            + '<br>' + user[id].ihash.substr(-6);
-
-        if(user[id].trip) { data.innerHTML = data.innerHTML + '<br>' + user[id].trip; }
-        
-        
-        /*************************
-        * Append it to room_view
-        *************************/
-        $(div).append(img)
-            .append(data);
-        
-        $('#room_view').append(div);
+        img.src = './character/'+user[id].character+'.png';
     }
 
 function move_div(id)
@@ -511,6 +568,8 @@ window.onload = function()
         {
             log_textarea.toggle();
         });
+
+    log_textarea.attr('edditable', false);
     
     
     /**************************

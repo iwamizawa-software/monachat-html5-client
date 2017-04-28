@@ -45,15 +45,15 @@ function Monachat(callback, data)
         this.proxy_list = [];
         
         
-        this.connect             = connect;
-        this.connect_normal      = connect_normal;
-        this.connect_proxy       = connect_proxy;
+        this.connect             = connect.bind(this);
+        this.connect_normal      = connect_normal.bind(this);
+        this.connect_proxy       = connect_proxy.bind(this);
         this.disconnect          = disconnect;
         this.relogin             = relogin;
         this.set_client_events   = set_client_events;
-        this.ping                = ping;
+        this.ping                = ping.bind(this);
         this.check_proxy_list    = check_proxy_list;
-        this.download_proxy_list = download_proxy_list;
+        this.download_proxy_list = download_proxy_list.bind(this);
         
         this.name      = name;
         this.id        = id;
@@ -99,13 +99,6 @@ module.exports = Monachat;
 
 function connect()
     {
-        this.ping                = ping.bind(this);
-        this.connect             = connect.bind(this);
-        this.connect_normal      = connect_normal.bind(this);
-        this.download_proxy_list = download_proxy_list.bind(this);
-        this.relogin             = relogin.bind(this);
-        
-        
         this._proxy ? this.check_proxy_list() : this.connect_normal();
     }
 
@@ -113,7 +106,17 @@ function connect_normal()
     {
         var that = this;
         
-        this.client = net.connect( {host: ADDR, port: this._port}, function()
+        console.log(this);
+        
+        var options =
+            {
+                host: ADDR,
+                port: this._port,
+                //localAddress: '127.0.0.1',
+                //localPort: 1000
+            }
+        
+        this.client = net.connect( options, function()
             {
                 console.log('Connected to server.');
                 
@@ -235,6 +238,15 @@ function set_client_events()
         this.client.on('error', function(err)
             {
                 console.log('Error:',err);
+                /*
+                that.disconnect();
+                
+                clearInterval(that.ping_timer_id);
+                
+                console.log('Trying to reconnect...');
+                
+                setTimeout( () => connect(that), that._timeout*1000);
+                */
             });
 
         this.client.on('end', function()
@@ -244,7 +256,7 @@ function set_client_events()
                 
                 console.log('Trying to reconnect...');
                 
-                setTimeout( () => connect(that), that._timeout*1000);
+                //setTimeout( () => that.connect(), that._timeout*1000);
             });
     }
 
