@@ -9,15 +9,28 @@
         <div id='main_view' class='container'>
             <table id='main_button_table'>
             </table>
+            
+            <input text id='main_text_input' class='text_input'></input>
         </div>
         
         <div id='room_view' class='container'>
-            <button id='log_button'>Log</button>
+            <button id='log_button' class='room_view_button'>Log</button>
+            <button id='data_button' class='room_view_button'>Data</button>
+            <button id='users_button' class='room_view_button'>Users</button>
+            <button id='stat_button' class='room_view_button'>Status</button>
+            <button id='reenter_button' class='room_view_button'>Reenter</button>
+            <button id='relogin_button' class='room_view_button'>Relogin</button>
+            <button id='proxy_button' class='room_view_button'>Proxy</button>
             
             <text id='room_data'></text>
             
-            <textarea id='log_textarea' readonly></textarea>
-            <input text id='text_input'></input>
+            <div id='log_textarea' readonly></div>
+            <input text id='room_text_input' class='text_input'></input>
+            
+            <button id='config_button' class='room_view_button'>Config</button>
+            <button id='back_button' class='room_view_button'>Back</button>
+            
+            <div id='users_dropdown' class='room_view_dropdown'></div>
         </div>
     </body>
 </html>

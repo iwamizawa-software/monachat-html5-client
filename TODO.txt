@@ -1,36 +1,58 @@
 TODO
 -----
 
----- Add trip collecting and searching
----- Check log() for textarea position algorithm
----- Add server getter/setter
+
+
+0.2.0
+------
+TEST Add server getter/setter
+DONE Add send_stat function
+DONE Parse special characters
+DONE Shorten name and character automatically
+DONE Fix button click issue - It goes to a compltely unrelated room
+DONE Implement relogin command
+DONE Implement default function
+DONE Implement second proxy site
+DONE Implement random function
+DONE Implement copy function
+DONE Implement nanashi function
+DONE Implement invisible function
+DONE Implement tinyurl function
+DONE Implement url click function
+DONE Implement image rendering on log
+DONE Reenter on main dont delete main hash
+DONE Reenter on main causes buttons to reproduce
+DONE Save previous input
+DONE Delete main not when you enter main, but when you enter a room that isn't main
+
+
+
+0.3.0
+------
+---- Log search
+---- Set alarm on filter
+---- Dont reconnect on error if it isn't disconnected
+---- Check the second part of the non-jp part of random()
+---- Add ESC exit event
 ---- Add character dragging
----- Fix character scaling
----- Add relogging on error
-PART Add send_stat function
----- Parse special characters
----- Shorten name and character automatically
+PART Add trip collecting and searching
+    ---- Save trip list on exit and other places (maybe set interval?)
+PART Fix character scaling
+    ---- Fix y_scale scaling
+    ---- Fix x_scale right limit
+---- Add relogging on error and disconnection
 ---- Show character stat on screen if it's not normal
 PART Format output
+    ---- Set format_log stat handler
+    ---- Set format_log ignore handler
 ---- Fix main room button table layout
 ---- Add ignore handler and format_event handler
 ---- What are the possible set events?
 ---- Implement user tag
----- Fix button click issue - It goes to a compltely unrelated room (probably because the for loop)
 ---- Doesn't load correctly main rooms, just when they are updated
----- Implement relogin command
 ---- Implement ignore function
----- Implement default function
 ---- Implement profiles
----- Implement second proxy site
----- Implement random function
----- Implement copy function
----- Implement stalk function ?
+???? Implement stalk function
 ---- Implement local ignore function
----- Implement nanashi function
 ---- Implement save_log function
----- Implement invisible function
----- Implement tinyurl function
----- Implement url click function
----- Enable y at _send_x_y_scl
----- Fix automatic reconnection
+---- Why can't you use twice the same element with log() ?
