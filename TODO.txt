@@ -29,30 +29,53 @@ DONE Delete main not when you enter main, but when you enter a room that isn't m
 
 0.3.0
 ------
----- Log search
----- Set alarm on filter
----- Dont reconnect on error if it isn't disconnected
----- Check the second part of the non-jp part of random()
----- Add ESC exit event
+DONE Set alarm on filter
+    DONE Add possibility to set off the alarm
+DONE Check the second part of the non-jp part of random()
+DONE Add /exit exit event
+DONE Add trip collecting and searching
+    DONE Save trip list on ENTER
+    DONE Save trip list on USER
+DONE Show character stat on screen if it's not normal
+DONE Format output
+    DONE Set format_log stat handler
+    DONE Set format_log ignore handler
+DONE Fix main room button table layout
+DONE Add ignore handler and format_event handler
+DONE Implement USER tag
+DONE Doesn't load correctly main rooms, just when they are updated
+DONE Implement ignore function
+DONE Implement profiles
+DONE Implement local ignore function
+DONE Implement save_log function
+DONE Add command line flags
+DONE Remove character from dropmenu when they exit and when you change room (they should be being removed though?)
+DONE Darken proxy button when proxy is on
+DONE Implement /new function
+
+???? Implement stalk function
+???? Implement user class to maintain code style
+???? Rename log_textarea
+???? Add lines between users in users dropdown menu
+
+BUGS
+-----
+---- Screen doesn't clear when the /proxy command is typed in the middle of proxy search
+DONE Fix ignore stat
+
+
+0.4.0
+------
+---- Implement comment divs
+---- Implement config menu
 ---- Add character dragging
-PART Add trip collecting and searching
-    ---- Save trip list on exit and other places (maybe set interval?)
+---- Add relogging on error and disconnection
 PART Fix character scaling
     ---- Fix y_scale scaling
     ---- Fix x_scale right limit
----- Add relogging on error and disconnection
----- Show character stat on screen if it's not normal
-PART Format output
-    ---- Set format_log stat handler
-    ---- Set format_log ignore handler
----- Fix main room button table layout
----- Add ignore handler and format_event handler
----- What are the possible set events?
----- Implement user tag
----- Doesn't load correctly main rooms, just when they are updated
----- Implement ignore function
----- Implement profiles
-???? Implement stalk function
----- Implement local ignore function
----- Implement save_log function
----- Why can't you use twice the same element with log() ?
+---- Dont reconnect on error if it isn't disconnected
+---- Implement next and prev commands
+---- Add comment sounds
+---- Right click menu
+
+???? Change title font

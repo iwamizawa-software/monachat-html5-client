@@ -1,61 +1,99 @@
 /* monachat css */
 
-.container {
-    overflow-y: none;
-}
 html {
     overflow-x: hidden;
+    //overflow-y: hidden;
+    -webkit-user-select: none;
 }
+text, a, div {
+    font-family: "MS PGothic";
+}
+a {
+    text-decoration: none;
+}
+
+.container { overflow-y: none; }
 .text_input {
     position: absolute;
     
-    width: 400px;
+    font-family: "MS PGothic";
+    font-size: 16px;
+    
+    width: 450px;
     height: 30px;
     
     padding-left: 5px;
+    padding-right: 5px;
     
-    top: 332px;
-    left: 23%;
+    top: 355px;
+    left: 160px;
 }
-#text_input text {
-    left: 20px;
+.log_div {
+    width: 100%;
+    padding: 2px;
+
+    word-wrap: break-word;
 }
-#room_data {
-    float: right;
-}
-#log_button {
-    top: 8px;
-    left: 8px;
-}
-#data_button {
-    top: 45px;
-    left: 8px;
-}
-#reenter_button {
-    top: 82px;
-    left: 8px;
-}
-#relogin_button {
-    top: 119px;;
-    left: 8px;
-}
-#proxy_button {
-    left: 8pxpx;
-    top: 156px;
+.dropdown_el {
+    display: block;
+
+    //width: 100%;
     
-    z-index: 2;
+    background-color: rgb(150, 150, 150);
+
+    padding-left : 10px;
+    padding-right: 20px;
+    padding-top: 2px;
+    padding-bottom: 2px;
 }
-#users_button {
-    top: 330px;
-    left: 8px;
+.user_div {
+    position: absolute;
+
+    text-align: center;
 }
-#stat_button {
-    top: 330px;
-    left: 90px;
-}
-#log_textarea {
+.user_div_img { position: relative; }
+.dropdown_el:hover { background-color: rgb(100, 100, 100); }
+.room_view_dropdown {
     position: absolute;
     cursor: default;
+    
+    display: none;
+
+    border: 1px solid black;
+    opacity: 1;
+
+    z-index: 2;
+}
+.user_div_data {
+    position: relative;
+    top: -5px;
+}
+.user_div_stat {
+    display: none;
+    
+    position: relative;
+
+    background-color: yellow;
+
+    bottom: 65px;
+
+    font-size: 15px;
+    
+    height: 18px;
+    border: 1px solid black;
+    padding-top: 4px;
+    padding-bottom: 2px;
+
+    opacity: 1;
+    z-index: 2;
+}
+#text_input text { left: 20px;   }
+#room_data       { float: right; }
+#log_textarea {
+    -webkit-user-select: auto !important;
+
+    position: absolute;
+    cursor: text;
     
     overflow-y: scroll;
     overflow-x: hidden;
@@ -64,79 +102,30 @@ html {
     height: 200px;
 
     left: 80px;
+    top: 20px;
     
-    font-family: monospace;
+    font-size: 15px;
 
     border: 1px solid black;
-    padding: 5px;
-    padding-bottom: 5px;
 
-    background-color: rgba(255, 255, 255, 0);
+    padding: 5px;
+    padding-bottom: 10px;
+
+    background-color: rgb(200, 200, 200);
 
     //z-index: 2;
 }
-.log_div {
-    width: 100%;
-    //height: 17px;
-    font-size: 14px;
-
-    word-wrap: break-word;
-    white-space: pre;
-}
-a {
-    text-decoration: none;
-}
-#main_button_table {
+#users_dropdown { left: 8px;  }
+#stat_dropdown  { left: 85px; }
+#main_title {
     position: absolute;
-
-    left: 35px;
-    top: 70px;
-}
-#config_button {
-    left: 590px;
-    top: 330px;
-}
-#back_button {
-    left: 670px;
-    top: 330px;
-}
-#users_dropdown {
-    position: absolute;
-    cursor: default;
+    font-size: 25px;
     
-    display: none;
-
-    left: 8px;
-    
-    border: 1px solid black;
-
-    background-color: rgb(150, 150, 150);
-    opacity: 1;
-
-    z-index: 2;
+    left: 220px;
+    top: 35px;
 }
-#users_dropdown a:hover {
-    background-color: rgb(100, 100, 100);
-    display: block;
-}
-
-.main_room_button {
-    width: 95px;
-    height: 35px;
-}
-.room_view_button {
-    position: absolute;
-
-    width: 65px;
-    height: 30px;
-
-    background-color: white;
-}
-.user_div {
-    position: absolute;
-
-    text-align: center;
-}
-.user_div_img {
+#main_button_table_div {
     position: relative;
+    top: 20px;
+    left: 40px;
 }

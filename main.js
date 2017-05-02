@@ -4,6 +4,10 @@ var {app, BrowserWindow} = require('electron');
 var path = require('path');
 var url  = require('url');
 
+
+global.argv = process.argv;
+
+
 /********************************************************************************
 * Declarate window handler so that it's not deleted when createWindow() returns
 ********************************************************************************/
@@ -16,9 +20,9 @@ function createWindow()
         *****************/
         win = new BrowserWindow
             ({
-                width:           770,
-                height:          436
-                //autoHideMenuBar: true
+                width:           788,
+                height:          436,
+                autoHideMenuBar: true
                 //frame:           false
             });
 

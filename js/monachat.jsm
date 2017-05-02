@@ -29,7 +29,7 @@ const PROXY_SITES =
     ];
 
 
-function Monachat(callback, data)
+function Monachat(data, callback)
     {
         if(data == undefined) { data = {}; }
         
@@ -43,27 +43,26 @@ function Monachat(callback, data)
         this._id;
         this._ihash;
         
-        this._name      = data.name      || 'Wednesday';
-        this._character = data.character || 'chotto1';
-        this._stat      = data.stat      || 'normal';
+        this._name      = data.name      || '名無しさん';
+        this._character = data.character || 'mona';
+        this._stat      = data.stat      || '通常';
         this._trip      = data.trip      || '';
-        this._r         = data.r         || '100';
-        this._g         = data.g         || '100';
-        this._b         = data.b         || '100';
-        this._x         = data.x         || '200';
-        this._y         = data.y         || '400';
-        this._scl       = data.scl       || '100';
+        this._r         = data.r         || 100;
+        this._g         = data.g         || 100
+        this._b         = data.b         || 100;
+        this._x         = data.x         || 200;
+        this._y         = data.y         || 400;
+        this._scl       = data.scl       || 100;
         
-        this._attrib = data.attrib || 'no';
-        this._port   = data.port   || '9095';
+        this._port   = data.port   || 9095;
         this._server = data.server || 'MONA8094';
-        this._room   = data.room   || '100';
+        this._room   = data.room   || 100;
         
         this._timeout = data.timeout || 1;
         
-        this._proxy      = 0;
-        this._site       = 1;
-        this.proxy_list = [];
+        this._proxy      = data.proxy || 0;
+        this._site       = data.site  || 1;
+        this.proxy_list  = [];
         
         
         this.connect             = connect.bind(this);
@@ -105,6 +104,7 @@ function Monachat(callback, data)
         this.reenter    = reenter;
         
         
+        this.ignore       = ignore;
         this._send_stat    = _send_stat;
         this._send_x_y_scl = _send_x_y_scl;
         
@@ -116,10 +116,13 @@ function Monachat(callback, data)
         this.nanashi     = nanashi;
         this.copy        = copy;
         this.random      = random;
+        this.profile     = profile;
         
         
         this.signal_handler = signal_handler;
         
+        
+        this._ignored = [];
         
         this._default =
             {
@@ -140,7 +143,7 @@ function Monachat(callback, data)
 module.exports = Monachat;
 
 
-function prase_special_characters(line)
+function parse_special_characters(line)
     {
         line = line.replace(/&/g, '&amp;')
             .replace(/"/g, '&quot;')
@@ -161,7 +164,6 @@ function connect_normal()
     {
         var that = this;
         
-        console.log(this);
         
         var options =
             {
@@ -280,10 +282,12 @@ function set_client_events()
                 data = data.split('\0')
                     .filter( (msg) => msg != '' );
                 
-                //console.log(data);
+                console.log('SOCKET: ', data);
                 
-                for(var i = 0; i < data.length; i++)
+                for(let i = 0; i < data.length; i++)
                     {
+                        data[i] = data[i].match(/.*?(<.+>|\+connect id=\d+)/)[1];
+                        
                         that.callback(data[i]);
                     }
             });
@@ -323,6 +327,7 @@ function disconnect()
 
 function relogin()
     {
+        this._exit_room();
         this.disconnect();
         
         this._proxy ? this.check_proxy_list() : this.connect();
@@ -412,7 +417,7 @@ function _enter_room()
             + 'type="'   + this._character + '" '
             + 'name="'   + this._name      + '" '
             + 'x="'      + this._x         + '" '
-            + 'trip="'   + this._trip      + '" '
+            + (this._trip == '' ? '' : ('trip="'   + this._trip      + '" '))
             + 'attrib="yes" '
             + 'y="'      + this._y         + '" '
             + 'r="'      + this._r         + '" '
@@ -676,14 +681,14 @@ function set_data(data)
             }
     }
 
-function _send_stat(stat)
-    {
-        this.client.write('<SET stat="'+this.stat+'" />\0');
+function _send_stat()
+    {        
+        this.client.write('<SET stat="'+this._stat+'" />\0');
     }
 
 function _send_x_y_scl()
     {
-        this.client.write('<SET x="'+this._x+'" scl="'+this._scl+'" y="'+this._y+'"/>\0');
+        this.client.write('<SET x="'+this._x+'" scl="'+this._scl+'" y="'+this._y+'" />\0');
     }
 
 function proxy()
@@ -715,6 +720,25 @@ function timeout(timeout)
             {
                 this._timeout = timeout;
             }
+    }
+
+function ignore(ihash)
+    {
+        var stat;
+        
+        if(ignore[ihash] == undefined)
+            {
+                stat = 'on';
+                ignore[ihash] = true;
+            }
+        else
+            {
+                stat = 'off';
+                ignore[ihash] = undefined;
+            }
+        
+        
+        this.client.write('<IG ihash="'+ihash+'" stat="'+stat+'" />\0');
     }
 
 function comment(cmt)
@@ -806,24 +830,26 @@ function random(country)
     {
         var that = this;
         
+        if(country == undefined) { country = 'japan'; }
+        
         
         /************
         * Character
         ************/
         var character_list =
-            ('abogado agemona alice anamona aramaki asou bana batu boljoa boljoa3 boljoa4　'
-            + 'charhan chichon chotto1 chotto2 chotto3 coc2 cock dokuo dokuo2 foppa fusa　'
-            + 'fuun gaku gakuri gari gerara giko ging ginu gyouza haa haka hat2 hati hati3　'
-            + 'hati4 hikk hiyoko hokkyoku6 hosh ichi ichi2 ichineko iiajan iyou jien joruju　'
-            + 'joruju2 kabin kagami kamemona kappappa kasiwa kato kikko2 kita koit koya kunoichi　'
-            + 'kuromimi kyaku maji marumimi maturi mina miwa mona monaka mora mosamosa1 mosamosa2　'
-            + 'mosamosa3 mosamosa4 mossari moudamepo mouk mouk1 mouk2 nanyo nezumi nida niku nin3　'
-            + 'niraime niraime2 niramusume niraneko nyog oni oniini oomimi osa papi polygon ppa2　'
-            + 'puru ranta remona riru ri_man sai sens shaitama shak shob shodai sii2 sika sira　'
-            + 'siranaiwa sugoi3 sumaso2 suwarifusa tahara tatigiko taxi tibifusa tibigiko tibisii　'
-            + 'tiraneyo tofu tokei tuu uma unknown2 unko urara usi wachoi welneco2 yamazaki1　'
+            ('abogado agemona alice anamona aramaki asou bana batu boljoa boljoa3 boljoa4 '
+            + 'charhan chichon chotto1 chotto2 chotto3 coc2 cock dokuo dokuo2 foppa fusa '
+            + 'fuun gaku gakuri gari gerara giko ging ginu gyouza haa haka hat2 hati hati3 '
+            + 'hati4 hikk hiyoko hokkyoku6 hosh ichi ichi2 ichineko iiajan iyou jien joruju '
+            + 'joruju2 kabin kagami kamemona kappappa kasiwa kato kikko2 kita koit koya kunoichi '
+            + 'kuromimi kyaku maji marumimi maturi mina miwa mona monaka mora mosamosa1 mosamosa2 '
+            + 'mosamosa3 mosamosa4 mossari moudamepo mouk mouk1 mouk2 nanyo nezumi nida niku nin3 '
+            + 'niraime niraime2 niramusume niraneko nyog oni oniini oomimi osa papi polygon ppa2 '
+            + 'puru ranta remona riru ri_man sai sens shaitama shak shob shodai sii2 sika sira '
+            + 'siranaiwa sugoi3 sumaso2 suwarifusa tahara tatigiko taxi tibifusa tibigiko tibisii '
+            + 'tiraneyo tofu tokei tuu uma unknown2 unko urara usi wachoi welneco2 yamazaki1 '
             + 'yamazaki2 yokan zonu zuza').split(' ');
-            
+        
         var character = character_list[ parseInt(Math.random()*character_list.length) ];
         
         var trip = '';
@@ -899,7 +925,7 @@ function random(country)
 
                         that.set_data
                             ({
-                                name     : name,
+                                name     : name.trim(),
                                 character: character,
                                 stat     : stat,
                                 trip     : trip,
@@ -926,7 +952,9 @@ function random(country)
                         name = Math.random() < 0.5 ? first : last;
                         name = Math.random() < 0.5 ? name  : name.toLowerCase();
                         
-                        if(false)//Math.random() < 0.5)
+                        name = name.trim();
+                        
+                        if(Math.random() < 0.5)
                             {
                                 //Set language code
                                 var lngcode =
@@ -935,25 +963,24 @@ function random(country)
                                     country == 'canada'  ? 'en' :
                                     country == 'france'  ? 'fr' :
                                     country == 'germany' ? 'de' :
-                                                           '';
+                                                           'en';
                                 
                                 //Get kana
                                 var url =
-                                        'https://translate.googleapis.com/translate_a/single?client=gtx&sl=$lngcode'
-                                        + '&tl=ja&dt=t&q='
-                                        + name;
-                                        
+                                    'https://translate.googleapis.com/translate_a/single?client=gtx&sl='
+                                    + lngcode
+                                    + '&tl=ja&dt=t&q='
+                                    + name;
+                                
                                 $.get(url, function(data)
                                     {
-                                        var kana = data.match(/\[\[\["(.+?)",/);
+                                        var kana = data[0][0][0];
                                         
                                         console.log('name: '+name+', kana: '+kana);
                                         
-                                        name = Math.random() < 0.5 ? name : kana;
-                                        
                                         that.set_data
                                             ({
-                                                name     : name,
+                                                name     : kana,
                                                 character: character,
                                                 stat     : stat,
                                                 trip     : trip,
@@ -970,7 +997,7 @@ function random(country)
                             {
                                 that.set_data
                                     ({
-                                        name     : name,
+                                        name     : name.trim(),
                                         character: character,
                                         stat     : stat,
                                         trip     : trip,
@@ -984,4 +1011,8 @@ function random(country)
                             }
                     }
             });
+    }
+function profile(data)
+    {
+        this.set_data(data);
     }
