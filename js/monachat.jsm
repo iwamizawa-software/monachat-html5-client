@@ -47,9 +47,9 @@ function Monachat(data, callback)
         this._character = data.character || 'mona';
         this._stat      = data.stat      || '通常';
         this._trip      = data.trip      || '';
-        this._r         = data.r         || 100;
-        this._g         = data.g         || 100
-        this._b         = data.b         || 100;
+        this._r         = data.r         || 255;
+        this._g         = data.g         || 255;
+        this._b         = data.b         || 255;
         this._x         = data.x         || 200;
         this._y         = data.y         || 400;
         this._scl       = data.scl       || 100;
@@ -153,6 +153,13 @@ function parse_special_characters(line)
 
         return line;
     }
+function reverse_rgb_scale(c)
+    {
+        var [a, b] 　　　= [0, 100];
+        var [min, max] = [0, 255];
+        
+        return parseInt((((b-a)*(c-min))/(max-min)) + a);
+    }
 
 
 function connect()
@@ -181,7 +188,7 @@ function connect_normal()
                 * Send login data
                 ******************/
                 that.client.write('MojaChat\0');
-                that._enter_room();
+                that.room();
                 
                 /****************
                 * Set ping loop
@@ -192,6 +199,8 @@ function connect_normal()
                 * Set socket listening events
                 ******************************/
                 that.set_client_events();
+                
+                if(loader != undefined) { $(loader).css('display', 'none'); }
             });
     }
 
@@ -269,6 +278,9 @@ function connect_proxy()
                         * Set socket listening events
                         ******************************/
                         that.set_client_events();
+                        
+                        
+                        if(loader != undefined) { loader.hide(); }
                     }
             });
     }
@@ -279,32 +291,41 @@ function set_client_events()
         
         this.client.on('data', function(data)
             {
+                                if(loader != undefined) { loader.hide(); }
                 data = data.split('\0')
                     .filter( (msg) => msg != '' );
                 
-                console.log('SOCKET: ', data);
+                //console.log('SOCKET: ', data);
                 
                 for(let i = 0; i < data.length; i++)
                     {
-                        data[i] = data[i].match(/.*?(<.+>|\+connect id=\d+)/)[1];
+                        data[i] = data[i].match(/.*?(<.+>|\+connect id=\d+)/);
                         
-                        that.callback(data[i]);
+                        if(data[i] != undefined)
+                            {
+                                that.callback(data[i][1]);
+                            }
                     }
             });
 
         this.client.on('error', function(err)
             {
-                console.log('Error:',err);
-                /*
-                that.disconnect();
+                console.error(err);
+                //alert(err.code);
                 
-                clearInterval(that.ping_timer_id);
+                if(err.code == 'ECONNRESET' || err.code == 'EPIPE')
+                    {
+                        that.disconnect();
                 
-                console.log('Trying to reconnect...');
+                        clearInterval(that.ping_timer_id);
                 
-                setTimeout( () => connect(that), that._timeout*1000);
-                */
+                        console.log('Trying to reconnect...');
+                
+                        setTimeout( () => that.connect(), that._timeout*1000);
+                    }
             });
+
+        this.client.on('timeout', () => console.log('timeout'));
 
         this.client.on('end', function()
             {
@@ -312,8 +333,12 @@ function set_client_events()
                 
                 clearInterval(that.ping_timer_id);
                 
+                if(loader != undefined) { loader.show(); }
+                
                 /*
                 console.log('Trying to reconnect...');
+                
+                if(clear_screen != undefined) { clear_screen(); }
                 
                 setTimeout( () => that.connect(), that._timeout*1000);
                 */
@@ -410,6 +435,8 @@ function _enter_main()
 
 function _enter_room()
     {
+        //console.log('ENTER RGB', this._r, this._g, this._b);
+        
         var msg =
             '<ENTER '
             + 'room="' + this._server + '/' + this._room + '" '
@@ -420,9 +447,9 @@ function _enter_room()
             + (this._trip == '' ? '' : ('trip="'   + this._trip      + '" '))
             + 'attrib="yes" '
             + 'y="'      + this._y         + '" '
-            + 'r="'      + this._r         + '" '
-            + 'g="'      + this._g         + '" '
-            + 'b="'      + this._b         + '" '
+            + 'r="'      + reverse_rgb_scale(this._r)         + '" '
+            + 'g="'      + reverse_rgb_scale(this._g)         + '" '
+            + 'b="'      + reverse_rgb_scale(this._b)         + '" '
             + 'scl="'    + this._scl       + '" '
             + 'stat="'   + this._stat      + '" '
             + '/>\0';
@@ -490,7 +517,7 @@ function name(name)
             }
         else
             {
-                this._name = name.substr(-20);
+                this._name = name.substr(0, 20);
                 
                 this.reenter();
             }
@@ -529,7 +556,7 @@ function stat(stat)
             }
         else
             {
-                this._stat = stat.substr(-20);
+                this._stat = stat.substr(0, 20);
                 this._send_stat();
             }
     }
@@ -726,15 +753,15 @@ function ignore(ihash)
     {
         var stat;
         
-        if(ignore[ihash] == undefined)
+        if(this._ignored[ihash] == undefined)
             {
                 stat = 'on';
-                ignore[ihash] = true;
+                this._ignored[ihash] = true;
             }
         else
             {
                 stat = 'off';
-                ignore[ihash] = undefined;
+                this._ignored[ihash] = undefined;
             }
         
         
@@ -743,7 +770,7 @@ function ignore(ihash)
 
 function comment(cmt)
     {
-        cmt = parse_special_characters( cmt.substr(-50) );
+        cmt = parse_special_characters( cmt.substr(0, 50) );
         console.log('comment', '<COM cmt="'+cmt+'" />\0');
         
         this.client.write('<COM cmt="' + cmt + '" />\0');
@@ -776,9 +803,9 @@ function nanashi()
                 character: 'mona',
                 stat     : '通常',
                 trip     : '',
-                r        : 100,
-                g        : 100,
-                b        : 100,
+                r        : 255,
+                g        : 255,
+                b        : 255,
                 x        : parseInt(Math.random()*600),
                 y        : parseInt(Math.random()*400),
                 scl      : 100
@@ -862,9 +889,9 @@ function random(country)
         /********
         * Color
         ********/
-        var r = parseInt(Math.random()*100)+1;
-        var g = parseInt(Math.random()*100)+1;
-        var b = parseInt(Math.random()*100)+1;
+        var r = parseInt(Math.random()*255)+1;
+        var g = parseInt(Math.random()*255)+1;
+        var b = parseInt(Math.random()*255)+1;
     
         /***********
         * Position

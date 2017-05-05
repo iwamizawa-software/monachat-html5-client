@@ -2,22 +2,67 @@
     <head>
         <link rel='stylesheet' href='css/monachat.css'/>
         <link rel='stylesheet' href='css/buttons.css'/>
+        <link rel='stylesheet' href='css/config_menu.css'/>
+        <link rel='stylesheet' href='css/main_view.css'/>
+        <link rel='stylesheet' href='css/room_view.css'/>
+        
+        <link rel='stylesheet' href='css/spectrum.css'/>
     
         <script src='js/monachat.js'></script>
     </head>
     
     <body>
         <div id='main_view' class='container'>
-            <div id='main_button_table_div'>
-                <table id='main_button_table'></table>
+            <div id='main_data' class='data_menu'>
+            <div id='main_data_div'>
+                <div class='data_menu_div'>
+                    <label for='main_data_profile' class='data_menu_label'>Profile:</label>
+                    <select text id='main_data_profile' class='data_menu_select'></select>
+                </div>
+                <div id='main_data_character_img_div'>
+                    <img id='main_data_character_img'></img>
+                </div>
+                
+                <br><br>
+                
+                <div class='data_menu_div'>
+                    <label for='main_data_name' class='data_menu_label'>Name:</label>
+                    <input text id='main_data_name' class='data_menu_input'/>
+                </div>
+                <div class='data_menu_div'>
+                    <label for='main_data_character' class='data_menu_label'>Char:</label>
+                    <input text id='main_data_character' class='data_menu_input'/>
+                </div>
+                <div class='data_menu_div'>
+                    <label for='main_data_stat' class='data_menu_label'>Stat:</label>
+                    <input text id='main_data_stat' class='data_menu_input'/>
+                </div>
+                <div class='data_menu_div'>
+                    <label for='main_data_trip' class='data_menu_label'>Trip:</label>
+                    <input text id='main_data_trip' class='data_menu_input'/>
+                </div>
+                <div id='main_data_color_div' class='data_menu_div'>
+                    <label for='main_data_color_picker' class='data_menu_label'>RGB:</label>
+                    <input id="main_data_color_picker"/>
+                </div>
+                </div>
             </div>
             
-            <button id='main_reenter_button' class='room_view_button'>Reenter</button>
-            
-            <input text id='main_text_input' class='text_input'></input>
+            <div id='main_view_button_div'>
+                <text id='main_title'></text>
+                <button id='main_reenter_button' class='room_view_button'>Reenter</button>
+                
+                <table id='main_button_table'></table>
+                
+                <!--<input text id='main_text_input' class='text_input'></input>-->
+                
+                <img src='github_icons/PNG/GitHub-Mark-32px.png' id='github_icon'/>
+            </div>
         </div>
         
         <div id='room_view' class='container'>
+            <div id='character_selection'></div>
+            
             <button id='log_button' class='room_view_button'>Log</button>
             <button id='data_button' class='room_view_button'>Data</button>
             <button id='save_log_button' class='room_view_button'>Save</button>
@@ -29,14 +74,122 @@
             <button id='users_button' class='room_view_button'>Users</button>
             <button id='stat_button' class='room_view_button'>Status</button>
             
-            <div id='log_textarea' readonly></div>
-            <input text id='room_text_input' class='text_input'></input>
-            
             <button id='config_button' class='room_view_button'>Config</button>
             <button id='back_button' class='room_view_button'>Back</button>
             
+            
+            <div id='log_textarea' readonly></div>
+            <input text id='room_text_input' class='text_input'></input>
+            
+            
+            <div id='room_data_menu' class='data_menu'>
+                <div class='room_data_menu_div'>
+                    <label for='room_data_profile' class='data_menu_label'>Prof:</label>
+                    <select text id='room_data_profile' class='data_menu_select'></select>
+                </div>
+                <div class='room_data_menu_div'>
+                    <label for='room_data_name' class='data_menu_label'>Name:</label>
+                    <input text id='room_data_name' class='data_menu_input'/>
+                </div>
+                <div class='room_data_menu_div'>
+                    <label for='room_data_character' class='data_menu_label'>Char:</label>
+                    <input text id='room_data_character' class='data_menu_input'/>
+                </div>
+                <div class='room_data_menu_div'>
+                    <label for='room_data_stat' class='data_menu_label'>Stat:</label>
+                    <input text id='room_data_stat' class='data_menu_input'/>
+                </div>
+                <div class='room_data_menu_div'>
+                    <label for='room_data_trip' class='data_menu_label'>Trip:</label>
+                    <input text id='room_data_trip' class='data_menu_input'/>
+                </div>
+                <div id='data_color_div' class='room_data_menu_div'>
+                    <label for='room_data_color_picker' class='data_menu_label'>RGB:</label>
+                    <input id="room_data_color_picker"/>
+                </div>
+                <div class='room_data_menu_div'>
+                    <label for='room_data_x' class='data_menu_label'>x:</label>
+                    <input text id='room_data_x' class='data_menu_input'/>
+                    <label for='room_data_y' class='data_menu_label'>y:</label>
+                    <input text id='room_data_y' class='data_menu_input'/>
+                </div>
+
+
+                <div id='data_button_div' class='room_data_menu_div'>
+                    <button id='room_data_cancel_button' class='room_view_button'>Cancel</button>
+                    <button id='room_data_accept_button' class='room_view_button'>Accept</button>
+                </div>
+                
+                
+            </div>
+            
+            <div id='loader'></div>
+            
             <div id='users_dropdown' class='room_view_dropdown'></div>
             <div id='stat_dropdown' class='room_view_dropdown'></div>
+
+            <div id='config_menu'>
+                <div id='config_menu_user'>
+                    <text class='config_menu_title'>Login data</text>
+                    
+                    <div class='config_menu_div'>
+                        <label for='config_menu_name'>Name:</label>
+                        <input id="config_menu_name" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_char'>Character:</label>
+                        <input id="config_menu_char" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_stat'>Stat:</label>
+                        <input id="config_menu_stat" class='config_menu_input'/>
+                    </div>  
+                    <div class='config_menu_div'>
+                        <label for='config_menu_trip'>Trip:</label>
+                        <input id="config_menu_trip" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_rgb'>RGB:</label>
+                        <input id="config_menu_rgb" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_x'>x:</label>
+                        <input id="config_menu_x" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_y'>y:</label>
+                        <input id="config_menu_name" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_scl'>Scl:</label>
+                        <input id="config_menu_scl" class='config_menu_input'/>
+                    </div>
+                </div>
+                
+                <div id='config_menu_options'>
+                    <text class='config_menu_title'>Options</text>
+
+                    <div class='config_menu_div'>
+                        <label for='config_menu_proxy'>Proxy:</label>
+                        <input id="config_menu_proxy" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_site'>Site:</label>
+                        <input id="config_menu_site" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_timeout'>Timeout:</label>
+                        <input id="config_menu_timeout" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_popup'>Popup:</label>
+                        <input id="config_menu_popup" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <textarea id='trigger_list'></textarea>
+                    </div>
+                </div>
+            </div>
         </div>
     </body>
 </html>

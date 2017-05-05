@@ -1,16 +1,22 @@
 ﻿// monachat.js
 
-var {app}   = require('electron').remote;
-var {shell} = require('electron');
-var fs      = require('fs');
+const {app}          = require('electron').remote;
+const {Menu, dialog} = require('electron').remote;
+const {shell}        = require('electron');
+const {clipboard}    = require('electron');
 
-var $        = require('jquery');
-var xmldoc   = require('xmldoc');
-var jsonfile = require('jsonfile');
-var notifier = require('node-notifier');
+const fs             = require('fs');
 
-var Monachat = require('./js/monachat.jsm');
-var util     = require('./js/util.js');
+const $        = require('jquery');
+const xmldoc   = require('xmldoc');
+const jsonfile = require('jsonfile');
+const notifier = require('node-notifier');
+const spectrum = require('spectrum-colorpicker');
+
+const Monachat = require('./js/monachat.jsm');
+const util     = require('./js/util.js');
+
+const win    = require('electron').remote.getCurrentWindow();
 
 
 /************
@@ -48,14 +54,23 @@ const DEFAULT_STAT   =
 /****************
 * Global hashes
 ****************/
-var user   = {};
-var room   = {};
-var main   = {};
-var button = {};
-var muted  = {};
+var user        = {};
+var room        = {};
+var main        = {};
+
+var room_button = {};
+var main_button = {};
+
+var data_menu   = {};
+
+var muted       = {};
+var stalk       = {};
+var repeat      = {};
 
 var config     = {};
 var login_data = {};
+
+var ignoring = {};
 
 
 /***********************************
@@ -70,13 +85,21 @@ var text_input;
 var users_dropdown;
 var stat_dropdown;
 
+var room_data_menu;
+var config_menu;
+
+var loader;
+
+var main_title;
 var main_button_table;
+var main_data;
 
 
 /***************
 * Global flags
 ***************/
-var POPUP_ENABLED;
+var POPUP_ENABLED = true;
+var POPUP_ALL     = false;
 
 
 /*******************
@@ -96,17 +119,21 @@ canvas.height = 128;
 
 function User(xml)
     {
-        this.name      = xml.attr.name  || 'nanashi';
-        this.character = xml.attr.type  || 'mona';
-        this.stat      = xml.attr.stat  || 'normal';
-        this.trip      = xml.attr.trip  || '';
-        this.ihash     = xml.attr.ihash || 'no_ihash';
-        this.r         = xml.attr.r     || 100;
-        this.g         = xml.attr.g     || 100;
-        this.b         = xml.attr.b     || 100;
-        this.x         = xml.attr.x     || 0;
-        this.y         = xml.attr.y     || 400;
-        this.scl       = xml.attr.scl   || 100;
+        var user = xml.attr;
+        
+        var full_color = user.r > 100 || user.g > 100 || user.b > 100 ? 1 : 0;
+        
+        this.name      = user.name  || 'nanashi';
+        this.character = user.type  || 'mona';
+        this.stat      = user.stat  || '通常';
+        this.trip      = user.trip  || '';
+        this.ihash     = user.ihash || 'no_ihash';
+        this.r         = rgb_scale(user.r || 100);
+        this.g         = rgb_scale(user.g || 100);
+        this.b         = rgb_scale(user.b || 100);
+        this.x         = user.x     || 0;
+        this.y         = user.y     || 400;
+        this.scl       = user.scl   || 100;
     }
 
 
@@ -118,10 +145,18 @@ function x_scale(x)
         else
             {
                 var [a, b]     = [30, 690];
-                var [min, max] = [60, 770];
+                var [min, max] = [60, 740];
                 
                 return parseInt((((b-a)*(x-min))/(max-min)) + a);
             }
+    }
+
+function reverse_x_scale(x)
+    {
+        var [a, b]     = [60, 740];
+        var [min, max] = [30, 690];
+        
+        return parseInt((((b-a)*(x-min))/(max-min)) + a);
     }
 
 function y_scale(y)
@@ -134,38 +169,24 @@ function y_scale(y)
         return parseInt((((b-a)*(y-min))/(max-min)) + a);
     }
 
+function rgb_scale(c)
+    {
+        var [a, b] 　　　= [0, 255];
+        var [min, max] = [0, 100];
+        
+        return parseInt((((b-a)*(c-min))/(max-min)) + a);
+    }
+
 function log(el_arr)
     {
         //console.log('log', el_arr);
-        
-        /*************************************************************
-        * Change div padding so that every element height is the same
-        *************************************************************/
-        var padding = 4;
-        
-        /*
-        for(var i = 0; i < el_arr.length; i++)
-            {
-                var el = el_arr[i];
-                
-                if(el.nodeType == 'TEXT' || el.nodeType == 'A')
-                    {
-                        if(el.textContent.match(JP_REGEX))
-                            {
-                                padding = 2;
-                                break;
-                            }
-                    }
-            }
-        */
-        
         
         /*********************
         * Create div element
         *********************/
         var div = document.createElement('DIV');
         $(div).attr('class', 'log_div')
-            .css('padding-top', padding);
+            .css('padding-top', 4);
         
         
         for(var i = 0; i < el_arr.length; i++)
@@ -175,7 +196,7 @@ function log(el_arr)
                 /********************************
                 * Change default color to black
                 ********************************/
-                if($(el).css('color') == 'rgb(100, 100, 100)')
+                if($(el).css('color') == 'rgb(255, 255, 255)')
                     {
                         $(el).css('color', 'rgb(0, 0, 0)');
                     }
@@ -210,21 +231,14 @@ function create_text_el(line, r, g, b)
         
         if(r != undefined && g != undefined && b != undefined)
             {
-                $(text_el).css('color', 'rgb('+r+', '+g+', '+b+')');
+                $(text_el).css
+                    (
+                        'color',
+                        'rgb('+r+', '+g+', '+b+')'
+                    );
             }
         
         return text_el;
-    }
-
-function create_dashed_line_el(n)
-    {
-        var dashed_line = '-'.repeat(n);
-        
-        var dashed_line_el = document.createElement('TEXT');
-        $(dashed_line_el).text(dashed_line);
-        
-        
-        return dashed_line_el;
     }
 
 function create_a_el(url)
@@ -273,6 +287,27 @@ function create_img_el(url)
 
 
         return img_el;
+    }
+
+function create_option_el(value)
+    {
+        var option = document.createElement('OPTION');
+        $(option).attr('value', value)
+            .text(value);
+
+        return option;
+    }
+
+function is_ignored(id)
+    {
+        if( user[id] != undefined && session._ignored[user[id].ihash] ) { return true; }
+        else { return false; }
+    }
+
+function is_ignoring(id)
+    {
+        if( user[id] != undefined && ignoring[user[id].ihash] ) { return true; }
+        else { return false; }
     }
 
 function is_muted(id)
@@ -348,21 +383,19 @@ function format_log(type, args)
             {
                 var room = args[0];
                 
-                
-                var first_dashed_line_el  = create_dashed_line_el(73);
-                var second_dashed_line_el = create_dashed_line_el(73);                
+                var first_hr_el  = document.createElement('HR');
+                var second_hr_el = document.createElement('HR');
                 
                 
                 var line = 'ROOM '+ room;
                 var room_el = create_text_el(line);
                     
+                var nbsp_el = create_nbsp_el(55);
                 
-                var nbsp_el = create_nbsp_el(31);
                 
-                
-                log([first_dashed_line_el]);
+                log([first_hr_el]);
                 log([nbsp_el, room_el]);
-                log([second_dashed_line_el]);
+                log([second_hr_el]);
             }
         else if(type == 'stat')
             {
@@ -495,6 +528,21 @@ function format_log(type, args)
                                             log([img_el]);
                                             //log_newline(1);
                                         }
+                                    else if(cmt.match('youtube.com/'))
+                                        {
+                                            var iframe_el = document.createElement('iframe');
+                                            $(iframe_el).attr('width', 373)
+                                                .attr('height', 210)
+                                                .attr('src', cmt.replace('watch?v=', 'embed/'))
+                                                .attr('frameborder', 0)
+                                                .attr('allowfullscreen', 1);
+                                            
+                                            cmt_el = create_a_el(cmt);
+                                            
+                                            log([time_el, user_el, cmt_el]);
+                                            log([iframe_el]);
+                                            //log_newline(1);
+                                        }
                                     else
                                         {
                                             cmt_el = create_a_el(cmt);
@@ -512,6 +560,14 @@ function format_log(type, args)
                 /************************************************************
                 * Send a popup to the OS if the comments contains a trigger
                 ************************************************************/
+                if(POPUP_ALL)
+                    {
+                        popup
+                            (
+                                name + ' ' + WHITE_TRIP_SYM + ihash.substr(-6) + ': ',
+                                cmt
+                            );
+                    }
                 if(POPUP_ENABLED)
                     {
                         for(var i = 0; i < config['popup_trigger'].length; i++)
@@ -532,7 +588,6 @@ function format_log(type, args)
                 var data = args.shift();
                 var id   = args.shift();
                 
-                var dashed_line = create_dashed_line_el(72);
                 
                 var line = 'Trips found for ' + data + ' (id ' + id + '):';
                 var info_el = create_text_el(line);
@@ -626,7 +681,7 @@ function clear_screen()
         if(session.room() == 'main')
             {
                 $('.main_room_button').remove();
-                $('#main_title').remove();
+                //$('#main_title').remove();
             }
         else
             {
@@ -634,20 +689,43 @@ function clear_screen()
             }
     }
 
+function sort_rooms(a, b)
+    {
+        if     (isNaN(a-1)) { return -1; }
+        else if(isNaN(b-1)) { return  1; }
+        return parseInt(a)-parseInt(b);
+    }
+
+function get_sorted_rooms()
+    {
+        var sorted = [];
+        
+        for(var key in main)
+            {
+                if(main[key] != 0) { sorted.push(key); }
+            }
+
+        sorted = sorted.sort(sort_rooms);
+
+        return sorted;
+    }
+
+function get_index(str, arr)
+    {
+        for(var i = 0; i < arr.length; i++)
+            {
+                if(arr[i] == str)
+                    {
+                        return i;
+                    }
+            }
+
+        return false;
+    }
+
 function refresh_main()
     {
-        var sorted_rooms = [];
-        
-        /*****************************
-        * Sort list of rooms in main
-        *****************************/
-        for(var key in main) { sorted_rooms.push(key); }
-        sorted_rooms = sorted_rooms.sort( function(a, b)
-            {
-                if     (isNaN(a-1)) { return -1; }
-                else if(isNaN(b-1)) { return  1; }
-                return parseInt(a)-parseInt(b);
-            });
+        var sorted_rooms = get_sorted_rooms();
         
         
         clear_screen();
@@ -662,11 +740,7 @@ function refresh_main()
             }
 
 
-        var text = create_text_el('Monachat ('+room_n+' rooms, '+total_users+' users)');
-
-        $(text).attr('id', 'main_title');
-
-        main_view.append(text);
+        $('#main_title').text('Monachat ('+room_n+' rooms, '+total_users+' users)');
 
         
         /**************************
@@ -689,12 +763,21 @@ function refresh_main()
                         n = sorted_rooms[i];
                         var button_el = document.createElement('button');
                         
-                        $(button_el).attr('id', 'main_room_button_'+n )
-                            .attr('class', 'main_room_button')
-                            .text( 'Room ' + n + ': ' + c)
+                        $(button_el).attr('class', 'main_room_button')
+                            .text('Room ' + n + ': ' + c)
                             .on('click', function()
                                 {
-                                    format_log('room', [sorted_rooms[i]]);
+                                    session._name      = main_data['name'].val();
+                                    session._character = main_data['character'].val();
+                                    session._stat      = main_data['stat'].val();
+                                    session._trip      = main_data['trip'].val();
+                                    
+                                    var {_r, _g, _b} = main_data['color_picker'].spectrum('get');
+                                    
+                                    session._r = _r;
+                                    session._g = _g;
+                                    session._b = _b;
+                                    
                                     change_room(sorted_rooms[i]);
                                 });
                         
@@ -703,7 +786,7 @@ function refresh_main()
                         $(td).attr('class', 'main_button_table_td');
                         $(td).append(button_el);
                         
-                        if($(last_tr).children().length < 6)
+                        if($(last_tr).children().length < 5)
                             {
                                 $(last_tr).append(td);
                             }
@@ -734,14 +817,13 @@ function append_div(id)
                 var data = ctx.getImageData(0, 0, width, height);
                 
                 
-                if(user[id].r != 100 || user[id].g != 100 || user[id].b != 100)
+                if(user[id].r != 255 || user[id].g != 255 || user[id].b != 255)
                     {
                         for(var i = 0; i < data.data.length; i += 4)
                             {
                                 var r = data.data[i];
                                 var g = data.data[i+1];
-                                var b = data.data[i+2]
-                        
+                                var b = data.data[i+2];
                         
                                 /***********************
                                 * Replace white pixels
@@ -751,6 +833,12 @@ function append_div(id)
                                         data.data[i]   = user[id].r;
                                         data.data[i+1] = user[id].g;
                                         data.data[i+2] = user[id].b;
+                                    }
+                                else
+                                    {
+                                        data.data[i]   = parseInt( (r + user[id].r) / 4 );
+                                        data.data[i+1] = parseInt( (g + user[id].g) / 4 );
+                                        data.data[i+2] = parseInt( (b + user[id].b) / 4 );
                                     }
                             }
                     }
@@ -772,7 +860,10 @@ function append_div(id)
                     .attr('draggable', false)
                     .attr('width', img.width)
                     .attr('height', img.height)
-                    .css('transform', 'rotatey('+ (user[id].scl == -100 ? 180 : 0) +'deg)');
+                    .css('transform', 'rotatey('+ (user[id].scl == -100 ? 180 : 0) +'deg)')
+                    .css('opacity', (is_ignoring(id) || is_ignored(id)) ? 0.5 : 1);
+                    
+                    
 
                 if(id == session.id())
                     {
@@ -790,15 +881,40 @@ function append_div(id)
                 
                 $(div).attr('id', 'user_div_'+id)
                     .attr('class', 'user_div')
-                    .attr('draggable', false)
+                    .attr('draggable', id == session.id())
                     .css('left', x_scale(user[id].x || 0  ))
                     .css('top',  y_scale(user[id].y || 400));
                     
                 /*************************
                 * Allow to click through
                 *************************/
-                if(id != session.id()) { $(div).css('pointer-events', 'none'); }
+                //if(id != session.id()) { $(div).css('pointer-events', 'none'); }
                 
+                div.addEventListener('dragstart', function(e)
+                    {
+                        var img_el = document.createElement('img');
+                        e.dataTransfer.setDragImage(img_el, 1000, 1000);
+                    }, false);
+                $(div).on('dragover', function(e)
+                    {
+                        user[id].x = e.clientX;
+                        move_div(id);
+                        
+                        e.preventDefault();
+                    });
+                $(div).on('drop', function(e)
+                    {
+                        session.x(reverse_x_scale(e.clientX-35));
+                    });
+
+                $(div).on('mousedown', function(e)
+                    {
+                        if(e.which == 3 && id != session.id())
+                            {
+                                e.stopPropagation();
+                                show_user_context_menu(id);
+                            }
+                    });
                 
                 /*******************************
                 * Create user data text object
@@ -820,6 +936,12 @@ function append_div(id)
                 $(stat_div).attr('class', 'user_div_stat')
                     .attr('id', 'user_div_stat_'+id);
                 
+                if(user[id].stat != '通常')
+                    {
+                        $(stat_div).text(user[id].stat);
+                        $(stat_div).css('display', 'block');
+                    }
+                
                 
                 /***************************
                 * Append them to room_view
@@ -832,7 +954,15 @@ function append_div(id)
                 room_view.append(div);
             }
         
-        img.src = './character/'+user[id].character+'.png';
+        
+        var character = user[id].character;
+        
+        if(!fs.existsSync('./character/'+character+'.png'))
+            {
+                character = 'mona';
+            }
+        
+        img.src = './character/'+character+'.png';
     }
 
 function move_div(id)
@@ -847,6 +977,9 @@ function move_div(id)
         div.css('top', y_scale(user[id].y));
         
         img.css('transform', 'rotatey('+ (user[id].scl == -100 ? 180 : 0) +'deg)');
+        
+        
+        $('.comment_div_'+id).css('left', x_scale(user[id].x));
     }
 
 function remove_div(id)
@@ -857,6 +990,59 @@ function remove_div(id)
         * Remove user container div
         ****************************/
         div.remove();
+    }
+
+function add_comment_div(id, cmt)
+    {
+        if(user[id] == undefined)
+            {
+                format_log('error', 'id '+id+' doesnt exist.');
+                return;
+            }
+        else if(is_muted(id))
+            {
+                return;
+            }
+
+
+        var cmt_width = 0;
+        for(var i = 0; i < cmt.length; i++)
+            {
+                if(cmt.match(JP_REGEX)) { cmt_width += 16; }
+                else                    { cmt_width +=  8; }
+            }
+
+            
+        cmt_width = parseInt(cmt_width);
+        
+        var user_width = $('#user_div_'+id).width();
+        
+        var cmt_left   = reverse_x_scale(user[id].x);
+        var cmt_middle = cmt_left + (cmt_width/2);
+        
+        var user_middle = cmt_left + (user_width/2);
+        
+        var diff = cmt_middle - user_middle;
+        
+        var cmt_left = cmt_left - diff - 75;
+        
+        
+        var div = document.createElement('DIV');
+        $(div).addClass('comment_div comment_div_'+id)
+            .text(cmt)
+            .css('width', cmt_width)
+            .css('left', cmt_left)
+            .css('background-color', 'rgb('+user[id].r+', '+user[id].g+', '+user[id].b+')')
+            .on('click', () => clipboard.writeText(cmt) );
+
+        
+        /**********************************
+        * Remove the div after 10 seconds
+        **********************************/
+        setTimeout( () => $(div).remove(), 10000 );
+        
+        
+        room_view.append(div);
     }
 
 function show_users_dropdown()
@@ -872,42 +1058,261 @@ function show_users_dropdown()
                 
                 var {name, ihash} = user[id];
                 
-                var el = create_text_el(name + ' (' + id + ') ' +  WHITE_TRIP_SYM + ihash.substr(-6));
-                $(el).attr('class', 'dropdown_el')
-                    .on('click', () => alert(id));
+                var dropdown_el = create_text_el(name + ' ' + WHITE_TRIP_SYM + ihash.substr(-6) + ' ('+id+')');
+                $(dropdown_el).attr('class', 'dropdown_el')
+                    .css('background-color', (is_muted(id) || is_ignored(id) || is_ignoring(id))
+                            ? 'rgb(255, 0, 0)'
+                            : 'rgb(150, 150, 150)'
+                        )
+                    .on('click', function()
+                        {
+                            mute(id);
+                            
+                            $(this).css
+                                (
+                                    'background-color', $(this).css('background-color') == 'rgb(150, 150, 150)'
+                                        ? 'rgb(255, 0, 0)'     //red
+                                        : 'rgb(150, 150, 150)' //grey
+                                )
+                        });
+
                 
-                users_dropdown.append(el);
                 
-                $(el).append('<br>');
+                users_dropdown.append(dropdown_el);
+                
+                $(dropdown_el).append('<br>');
             }
         
         users_dropdown.css('top', 340-users_dropdown.height());
         
         users_dropdown.toggle();
     }
+
+function refresh_data_menu(data_menu)
+    {
+        var id = session.id();
+        
+        var hash = user[id] == undefined ? session._default : user[id];
+        var {name, character, stat, trip, r, g, b, x, y} = hash;
+        
+        
+        data_menu['name'].val(name);
+        data_menu['character'].val(character);
+        data_menu['stat'].val(stat);
+        data_menu['trip'].val(trip);
+        data_menu['x'].val(x);
+        data_menu['y'].val(y);
+        
+        
+        /********************************
+        * Add profile selection options
+        ********************************/
+        data_menu['profile'].children().remove();
+        
+        var default_el = create_option_el('Default');
+        data_menu['profile'].append(default_el);
+        
+        for(let key in config.profiles)
+            {
+                var option = create_option_el(key);
+                data_menu['profile'].append(option);
+            }
+        
+        data_menu['profile'].on('change', function(e)
+            {
+                var {name, character, stat, trip, r, g, b, x, y} =
+                    e.target.value == 'Default'
+                    ? session._default
+                    : config.profiles[e.target.value];
+                
+                
+                data_menu['name']     .val(name);
+                data_menu['character'].val(character);
+                data_menu['stat']     .val(stat);
+                data_menu['trip']     .val(trip);
+                data_menu['x']        .val(x);
+                data_menu['y']        .val(y);
+                
+                data_menu['color_picker'].spectrum('set', 'rgb('+r+', '+g+', '+b+')');
+            });
+
+        
+        data_menu['color_picker'].spectrum('set', 'rgb('+r+', '+g+', '+b+')');
+    }
+
+function show_user_context_menu(id)
+    {
+        var {name, ihash} = user[id];
+        
+        var template =
+            [
+                { label: name + ' ' + WHITE_TRIP_SYM + ihash + ' (' + id + ')' },
+                { type: 'separator' },
+                { label: 'Copy',        click() { copy(id);                } },
+                { label: 'Ignore',      click() { ignore(id);              } },
+                { label: 'Mute',        click() { mute(id);                } },
+                { label: 'Search trip', click() { search_trip('id', id);   } },
+                { label: 'Search name', click() { search_trip('name', id); } },
+                { label: 'Stalk',       click() { toggle_stalk(id);        } },
+                { label: 'Repeat',      click() { toggle_repeat(id);       } }
+            ];
+            
+        menu = Menu.buildFromTemplate(template);
+        menu.popup(win);
+    }
+
+function show_command_context_menu()
+    {
+        var template =
+            [
+                { label: 'Next room',      click() { next_room();     } },
+                { label: 'Previous room',  click() { previous_room(); } },
+                { type: 'separator' },
+                {
+                    label: 'Profile',
+                    submenu:
+                        [
+                            { label: 'Save profile', click() { add_profile();   } },
+                            { label: 'Default',      click() { set_default();   } },
+                            { label: 'Random',       click() { set_random();    } },
+                            { label: 'Invisible',    click() { set_invisible(); } },
+                            { label: 'Nanashi',      click() { set_nanashi();   } }
+                        ]
+                },
+                { type: 'separator' },
+                {
+                    label: 'Util',
+                    submenu:
+                        [
+                            {
+                                label: 'Upload image',
+                                click()
+                                    {
+                                        dialog.showOpenDialog
+                                            (
+                                                function(path) { util.upload_image(path[0]); }
+                                            );
+                                    }
+                            }
+                        ]
+                },
+                { type: 'separator' },
+                { label: 'Sound on/off', click() {} },
+                { label: 'Popup all', click() { POPUP_ALL = !POPUP_ALL; } },
+                { label: 'New',       click() { new_instance(1); } }
+            ];
+            
+        menu = Menu.buildFromTemplate(template);
+        menu.popup(win);
+    }
     
 function change_room(room)
     {
+        clear_screen();
+        
         if(room == 'main')
             {
                 /**********************************
                 * Clear room and room button list
                 **********************************/
                 
-                clear_screen();
+                /******************************************************
+                * Clear main only if you go to main from another room
+                ******************************************************/
+                if(session.room() != 'main')
+                    {
+                        main = {};
+                    }
+
+                /********************
+                * Refresh main data
+                ********************/
+                refresh_data_menu(main_data);
+                
+                var character = user[session.id()].character;
+                if(!fs.existsSync('./character/'+character+'.png')) { character = 'mona'; }
+                main_data['character_img'].attr('src', './character/'+character+'.png');
                 
                 room_view.hide();
                 main_view.show();
+                
+                //format_log('room', [room]);
             }
         else
             {
-                main = {};
                 main_view.hide();
                 room_view.show();
+                
+                format_log('room', [room]);
             }
         
         
         session.room(room);
+    }
+
+function change_server()
+    {
+        var res = session.server(com[1]);
+        
+        if(!res)
+            {
+                format_log('error', 'Server name not valid.');
+            }
+        else
+            {
+                clear_screen();
+            }
+    }
+
+function copy(id)
+    {
+        if(user[id] == undefined)
+            {
+                format_log('error', ['User with id ' + id + 'doesnt exist.']);
+            }
+        else
+            {
+                clear_screen();
+                session.copy(user[id]);
+            }
+    }
+
+function toggle_stalk(id)
+    {
+        if(user[id] == undefined)
+            {
+                format_log('error', ['User with id ' + id + 'doesnt exist.']);
+            }
+        else
+            {
+                var ihash = user[id].ihash;
+                
+               stalk[ihash] = stalk[ihash] == undefined ? 1 : undefined;
+            }
+    }
+
+function is_stalked(id)
+    {
+        return user[id] != undefined && stalk[user[id].ihash];
+    }
+
+function toggle_repeat(id)
+    {
+        if(user[id] == undefined)
+            {
+                format_log('error', ['User with id ' + id + 'doesnt exist.']);
+            }
+        else
+            {
+                var ihash = user[id].ihash;
+                
+               repeat[ihash] = repeat[ihash] == undefined ? 1 : undefined;
+            }
+    }
+
+function is_repeated(id)
+    {
+        return user[id] != undefined && repeat[user[id].ihash];
     }
 
 function add_trip(id)
@@ -958,14 +1363,7 @@ function search_trip(type, data)
                         return;
                     }
 
-                console.log(trip_list[ihash]);
                 format_log('triplist', [ihash, id].concat(trip_list[ihash]));
-                
-                
-                for(var i = 0; i < trip_list[ihash].length; i++)
-                    {
-                        //search_trip[]
-                    }
             }
         else if(type == 'trip')
             {
@@ -1027,23 +1425,23 @@ function popup(title, msg)
             });
     }
 
-function add_profile(profile_name)
+function add_profile()
     {
         var id = session.id();
         var {name, character, stat, trip, r, g, b, x, y, scl} = user[id];
         
-        config['profiles'][profile_name] =
+        config['profiles'][name] =
             {
-                "name"     : name,
-                "character": character,
-                "stat"     : stat,
-                "trip"     : trip,
-                "r"        : r,
-                "g"        : g,
-                "b"        : b,
-                "x"        : x,
-                "y"        : y,
-                "scl"      : scl
+                'name'     : name,
+                'character': character,
+                'stat'     : stat,
+                'trip'     : trip,
+                'r'        : r,
+                'g'        : g,
+                'b'        : b,
+                'x'        : x,
+                'y'        : y,
+                'scl'      : scl
             };
 
         
@@ -1091,8 +1489,22 @@ function ignore(id)
                 var ihash = user[id].ihash;
                 
                 session.ignore(ihash);
+                
+                ignoring[user[id].ihash] = ignoring[user[id].ihash] ? false : true;
+                
+                $('#user_div_'+id+'_img').css('opacity', is_ignored(id) ? 0.5 : 1);
             }
-    }    
+    }
+
+function mute(id)
+    {
+        if(user[id] == undefined) { return; }
+        var ihash = user[id].ihash;
+                
+        muted[ihash] = muted[ihash] == undefined ? 1 : undefined;
+                
+        if($('#user_div_'+id)) { $('#user_div_'+id).toggle(); }
+    }
 
 function toggle_proxy()
     {
@@ -1100,7 +1512,55 @@ function toggle_proxy()
         
         session.proxy();
         
-        button['proxy'].css('background-color', session._proxy ? 'rgb(100, 100, 100)' : 'white');
+        room_button['proxy'].css('background-color', session._proxy ? 'rgb(100, 100, 100)' : 'white');
+    }
+
+function next_room()
+    {
+        var sorted = get_sorted_rooms();
+        var room   = session.room();
+                
+        var index = get_index(room, sorted);
+        if(index < sorted.length-1) { change_room(sorted[index+1]); }
+    }
+
+function previous_room()
+    {
+        var sorted = get_sorted_rooms();
+        var room   = session.room();
+        
+        var index = get_index(room, sorted);
+        if(index > 0) { change_room(sorted[index-1]); }
+    }
+
+function set_default()
+    {
+        clear_screen();
+        session.set_default();
+    }
+
+function set_invisible()
+    {
+        clear_screen();
+        session.invisible();
+    }
+
+function set_nanashi()
+    {
+        clear_screen();
+        session.nanashi();
+    }
+
+function set_random(country)
+    {
+        clear_screen();
+        session.random(country);
+    }
+
+function relogin()
+    {
+        clear_screen();
+        session.relogin();
     }
 
 function signal_handler(msg)
@@ -1210,7 +1670,7 @@ function signal_handler(msg)
                         add_trip(id);
                         
                         append_div(id);
-                        
+                        console.log('USER', user[id]);
                         console.log('enter', xml.attr);
                         
                         if(id != session.id()) { format_log('enter', [id]); }
@@ -1262,14 +1722,23 @@ function signal_handler(msg)
                             {
                                 user[id].x = xml.attr.x;
                                 move_div(id);
+                                
+                                if(is_stalked(id)) { session.x(xml.attr.x); }
                             }
                         if(xml.attr.y != undefined)
                             {
                                 user[id].y = xml.attr.y;
                                 move_div(id);
+
+                                if(is_stalked(id)) { session.y(xml.attr.y); }
                             }
                         if(xml.attr.scl != undefined)
                             {
+                                if(xml.attr.scl != user[id].scl && is_stalked(id))
+                                    {
+                                        session.scl();
+                                    }
+                                
                                 user[id].scl = xml.attr.scl;
                                 move_div(id);
                             }
@@ -1298,13 +1767,30 @@ function signal_handler(msg)
                         
                         format_log('ig', [id, ihash, stat]);
                         console.log('ig', xml);
+                        
+                        /********************************************************
+                        * Set that user half-invisible if you have been ignored
+                        ********************************************************/
+                        
+                        if(ihash == user[session.id()].ihash)
+                            {
+                                $('#user_div_'+id+'_img').css('opacity', stat == 'on' ? 0.5 : 1);
+                            }
                     }
                 else if(xml.name == 'COM')
                     {
                         var {id, cmt} = xml.attr;
                         
                         console.log('Comment:', cmt);
+                        
+                        add_comment_div(id, cmt);
                         format_log('com', [id, cmt]);
+                        
+                        
+                        if(user[id] != undefined && is_repeated(id))
+                            {
+                                session.comment(cmt);
+                            }
                     }
                 else
                     {
@@ -1344,78 +1830,20 @@ function handle_command(com)
         else if(com[0] == 'new')         { new_instance(com[1]);                }
         else if(com[0] == 'tinyurl')     { tinyurl(com[1]);                     }
         else if(com[0] == 'popup')       { POPUP_ENABLED = !POPUP_ENABLED;      }
-        else if(com[0] == 'saveprofile') { add_profile(com[1]);                 }
+        else if(com[0] == 'saveprofile') { add_profile();                       }
         else if(com[0] == 'profile')     { load_profile(com[1]);                }
         else if(com[0] == 'savelog')     { save_log();                          }
-        
-        else if(com[0] == 'server')
-            {
-                var res = session.server(com[1]);
-                
-                if(!res)
-                    {
-                        format_log('error', 'Server name not valid.');
-                    }
-                else
-                    {
-                        clear_screen();
-                    }
-                
-            }
-        else if(com[0] == 'default')
-            {
-                clear_screen();
-                session.set_default();
-            }
-        else if(com[0] == 'invisible')
-            {
-                clear_screen();
-                session.invisible();
-            }
-        else if(com[0] == 'nanashi')
-            {
-                clear_screen();
-                session.nanashi();
-            }
-        else if(com[0] == 'copy')
-            {
-                if(user[com[1]] == undefined)
-                    {
-                        format_log('error', ['User with id ' + id + 'doesnt exist.']);
-                    }
-                else
-                    {
-                        clear_screen();
-                        session.copy(user[com[1]]);
-                    }
-            }
-        else if(com[0] == 'random')
-            {
-                clear_screen();
-                session.random(com[1]);
-            }
-        else if(com[0] == 'room')
-            {
-                change_room(com[1]);
-                
-                format_log('room', [com[1]]);
-            }
-        else if(com[0] == 'relogin')
-            {
-                clear_screen();
-                session.relogin();
-            }
-        else if(com[0] == 'mute')
-            {
-                var id    = com[1];
-                
-                if(user[id] == undefined) { return; }
-                var ihash = user[id].ihash;
-                
-                muted[ihash] = muted[ihash] == undefined ? 1 : undefined;
-                
-                if($('#user_div_'+id)) { $('#user_div_'+id).toggle(); }
-            }
+        else if(com[0] == 'next')        { next_room();                         }
+        else if(com[0] == 'prev')        { previous_room();                     }
+        else if(com[0] == 'copy')        { copy(id);                            }
+        else if(com[0] == 'server')      { change_server(com[1]);               }
+        else if(com[0] == 'default')     { set_default();                       }
+        else if(com[0] == 'invisible')   { set_invisible();                     }
+        else if(com[0] == 'nanashi')     { set_nanashi();                       }
+        else if(com[0] == 'random')      { set_random(com[1]);                  }
+        else if(com[0] == 'room')        { change_room(com[1]);                 }
+        else if(com[0] == 'mute')        { mute(com[1]);                        }
+        else if(com[0] == 'relogin')     { relogin();                           }
         else if(com[0] == 'exit')
             {
                 session.disconnect();
@@ -1454,11 +1882,9 @@ window.onload = function()
     
     process_arguments();
     
+    
     session = new Monachat(login_data, signal_handler);
     session.connect();
-    
-    
-    POPUP_ENABLED = config['popup'];
     
     
     /**********************
@@ -1469,84 +1895,200 @@ window.onload = function()
     
     main_button_table = $('#main_button_table');
     
-    button['log']     = $('#log_button');
-    button['data']    = $('#data_button');
-    button['users']   = $('#users_button');
-    button['stat']    = $('#stat_button');
-    button['config']  = $('#config_button');
-    button['back']    = $('#back_button');
-    button['reenter'] = $('#reenter_button');
-    button['relogin'] = $('#relogin_button');
-    button['proxy']   = $('#proxy_button');
+    room_button['log']     = $('#log_button');
+    room_button['save']    = $('#save_log_button');
+    room_button['data']    = $('#data_button');
+    room_button['users']   = $('#users_button');
+    room_button['stat']    = $('#stat_button');
+    room_button['config']  = $('#config_button');
+    room_button['back']    = $('#back_button');
+    room_button['reenter'] = $('#reenter_button');
+    room_button['relogin'] = $('#relogin_button');
+    room_button['proxy']   = $('#proxy_button');
     
-    button['main_reenter'] = $('#main_reenter_button');
+    main_button['reenter'] = $('#main_reenter_button');
+    
+    
+    room_data_menu = $('#room_data_menu');
+    
+    room_data_menu['profile']      = $('#room_data_profile');
+    room_data_menu['name']         = $('#room_data_name');
+    room_data_menu['character']    = $('#room_data_character');
+    room_data_menu['stat']         = $('#room_data_stat');
+    room_data_menu['trip']         = $('#room_data_trip');
+    room_data_menu['x']            = $('#room_data_x');
+    room_data_menu['y']            = $('#room_data_y');
+    room_data_menu['color_picker'] = $('#room_data_color_picker');
+    room_data_menu['cancel']       = $('#room_data_cancel_button');
+    room_data_menu['accept']       = $('#room_data_accept_button');
+    
+    
+    main_data = $('#main_data');
+    
+    main_data['profile']       = $('#main_data_profile');
+    main_data['name']          = $('#main_data_name');
+    main_data['character']     = $('#main_data_character');
+    main_data['stat']          = $('#main_data_stat');
+    main_data['trip']          = $('#main_data_trip');
+    main_data['x']             = $('#main_data_x');
+    main_data['y']             = $('#main_data_y');
+    main_data['color_picker']  = $('#main_data_color_picker');
+    main_data['character_img'] = $('#main_data_character_img');
     
     log_textarea = $('#log_textarea');
-    
     text_input   = $('.text_input');
+    
+    config_menu    = $('#config_menu');
     
     users_dropdown = $('#users_dropdown');
     stat_dropdown  = $('#stat_dropdown');
+    
+    loader = $('#loader');
     
     
     trip_list = jsonfile.readFileSync('trip.json');
     
     
-    //main_view.append(text_input);
-    
+    $('#room_view').on('mousedown', function(e)
+        {
+            if(e.which == 3)
+                {
+                    show_command_context_menu();
+                    return true;
+                }
+        });
     
     /*******************************
     * Toggle log textarea on click
     *******************************/
-    button['log'].on('click', function()
+    room_button['log']    .on('click', function() { log_textarea.toggle();  });
+    room_button['save']   .on('click', function() { save_log();             })
+    room_button['reenter'].on('click', function() { session.reenter();      });
+    room_button['back']   .on('click', function() { change_room('main');    });
+    room_button['users']  .on('click', function() { show_users_dropdown();  });
+    room_button['stat']   .on('click', function() { stat_dropdown.toggle(); });
+    room_button['proxy']  .on('click', function() { toggle_proxy();         });
+    room_button['relogin'].on('click', function() { relogin();              });
+    room_button['data']   .on('click', function()
         {
-            log_textarea.toggle();
+            if(room_data_menu.css('display') != 'none')
+                {
+                    room_data_menu.toggle();
+                    return;
+                }
+            
+            refresh_data_menu(room_data_menu);
+            room_data_menu.toggle();
         });
 
-    button['reenter'].on('click', function()
+    room_data_menu['cancel'].on('click', function()
         {
-            session.reenter();
+            room_data_menu.toggle();
         });
-    
-    button['relogin'].on('click', function()
+    room_data_menu['accept'].on('click', function()
         {
+            room_data_menu.toggle();
+            
+            var {_r, _g, _b} = room_data_menu['color_picker'].spectrum('get');
+            
+            console.log(_r, _g, _b);
+            session.set_data
+                ({
+                    name:      room_data_menu['name'].val(),
+                    character: room_data_menu['character'].val(),
+                    stat:      room_data_menu['stat'].val(),
+                    trip:      room_data_menu['trip'].val(),
+                    r:         parseInt(_r),
+                    g:         parseInt(_g),
+                    b:         parseInt(_b),
+                    x:         room_data_menu['x'].val(),
+                    y:         room_data_menu['y'].val(),
+                    scl:       session.scl()
+                });
+            
             clear_screen();
-            session.relogin();
         });
-        
-    button['back'].on('click', function()
+
+    room_button['config'].on('click', function()
         {
-            change_room('main');
-        });
-    
-    button['users'].on('click', function()
-        {
-            show_users_dropdown();
-        });
-    button['stat'].on('click', function()
-        {
-            stat_dropdown.toggle();
-        });
-        
-    button['proxy'].on('click', function()
-        {
-            toggle_proxy();
+            config_menu.toggle();
         });
         
 
-    button['main_reenter'].on('click', function()
-        {
-            session.reenter();
-        });
+    main_button['reenter'].on('click', function() { session.reenter(); });
     
 
     log_textarea.attr('edditable', false);
     
     
+    room_data_menu['color_picker'].spectrum
+        ({
+            color          : 'black',
+            showInput      : true,
+            preferredFormat: 'rgb',
+            showPalette    : true,
+            palette:
+                [
+                    ['FFFFFF', 'FFE5FF', 'FFB2FF', 'FF65FF'],
+                    ['FFFFE5', 'FFE5E5', 'FFB2E5', 'FF65E5'],
+                    ['FFFFB2', 'FFE5B2', 'FFB2B2', 'FF65B2'],
+                    ['FFFF65', 'FFE565', 'FFB265', 'FF6565'],
+                    ['E5FFFF', 'E5E5FF', 'E5B2FF', 'E565FF'],
+                    ['E5FFE5', 'E5E5E5', 'E5B2E5', 'E565E5'],
+                    ['E5FFB2', 'E5E5B2', 'E5B2B2', 'E565B2'],
+                    ['E5FF65', 'E5E565', 'E5B265', 'E56565'],
+                    ['B2FFFF', 'B2E5FF', 'B2B2FF', 'BE65FF'],
+                    ['B2FFE5', 'B2E5E5', 'B2B2E5', 'BE65E5'],
+                    ['B2FFB2', 'B2E5B2', 'B2B2B2', 'B265B2'],
+                    ['B2FF65', 'B2E565', 'B2B265', 'B26565'],
+                    ['65FFFF', '65E5FF', '65B2FF', '6565FF'],
+                    ['65FFE5', '65E5E5', '65B2E5', '6565E5'],
+                    ['65FFB2', '65E5B2', '65BE65', '6565B2'],
+                    ['65FF65', '65E565', '65B265', '656565']
+                ]
+        });
+
+    main_data['color_picker'].spectrum
+        ({
+            color          : 'black',
+            showInput      : true,
+            preferredFormat: 'rgb',
+            showPalette    : true,
+            palette:
+                [
+                    ['FFFFFF', 'FFE5FF', 'FFB2FF', 'FF65FF'],
+                    ['FFFFE5', 'FFE5E5', 'FFB2E5', 'FF65E5'],
+                    ['FFFFB2', 'FFE5B2', 'FFB2B2', 'FF65B2'],
+                    ['FFFF65', 'FFE565', 'FFB265', 'FF6565'],
+                    ['E5FFFF', 'E5E5FF', 'E5B2FF', 'E565FF'],
+                    ['E5FFE5', 'E5E5E5', 'E5B2E5', 'E565E5'],
+                    ['E5FFB2', 'E5E5B2', 'E5B2B2', 'E565B2'],
+                    ['E5FF65', 'E5E565', 'E5B265', 'E56565'],
+                    ['B2FFFF', 'B2E5FF', 'B2B2FF', 'BE65FF'],
+                    ['B2FFE5', 'B2E5E5', 'B2B2E5', 'BE65E5'],
+                    ['B2FFB2', 'B2E5B2', 'B2B2B2', 'B265B2'],
+                    ['B2FF65', 'B2E565', 'B2B265', 'B26565'],
+                    ['65FFFF', '65E5FF', '65B2FF', '6565FF'],
+                    ['65FFE5', '65E5E5', '65B2E5', '6565E5'],
+                    ['65FFB2', '65E5B2', '65BE65', '6565B2'],
+                    ['65FF65', '65E565', '65B265', '656565']
+                ]
+        });
+
+    main_data['character'].on('keyup', function()
+        {
+            var character = main_data['character'].val();
+            if(fs.existsSync('character/'+character+'.png'))
+                {
+                    main_data['character_img'].attr('src', 'character/'+character+'.png');
+                };
+        });
+    
+    
     for(let i = 0; i < DEFAULT_STAT.length; i++)
         {
             var el = create_text_el(DEFAULT_STAT[i]);
-            $(el).attr('class', 'dropdown_el')
+            $(el).attr('class', 'dropdown_el stat_dropdown_el')
                 .on('click', function()
                     {
                         session.stat(DEFAULT_STAT[i]);
@@ -1596,4 +2138,60 @@ window.onload = function()
                         }
                 }
         });
+
+    selection = $('#character_selection');
+    var character_list =
+            ('abogado agemona alice anamona aramaki asou bana batu boljoa boljoa3 boljoa4 '
+            + 'charhan chichon chotto1 chotto2 chotto3 coc2 cock dokuo dokuo2 foppa fusa '
+            + 'fuun gaku gakuri gari gerara giko ging ginu gyouza haa haka hat2 hati hati3 '
+            + 'hati4 hikk hiyoko hokkyoku6 hosh ichi ichi2 ichineko iiajan iyou jien joruju '
+            + 'joruju2 kabin kagami kamemona kappappa kasiwa kato kikko2 kita koit koya kunoichi '
+            + 'kuromimi kyaku maji marumimi maturi mina miwa mona monaka mora mosamosa1 mosamosa2 '
+            + 'mosamosa3 mosamosa4 mossari moudamepo mouk mouk1 mouk2 nanyo nezumi nida niku nin3 '
+            + 'niraime niraime2 niramusume niraneko nyog oni oniini oomimi osa papi polygon ppa2 '
+            + 'puru ranta remona riru ri_man sai sens shaitama shak shob shodai sii2 sika sira '
+            + 'siranaiwa sugoi3 sumaso2 suwarifusa tahara tatigiko taxi tibifusa tibigiko tibisii '
+            + 'tiraneyo tofu tokei tuu uma unknown2 unko urara usi wachoi welneco2 yamazaki1 '
+            + 'yamazaki2 yokan zonu zuza').split(' ');
+
+    for(let i = 0; i < character_list.length; i++)
+        {
+            let img = document.createElement('IMG');
+            img.src = 'character/'+character_list[i]+'.png';
+            
+            img.onload = function()
+                {
+                    let div = document.createElement('DIV');
+                    $(div).attr('class', 'selection_div');
+                    $(div).append(img);
+                    
+                    selection.append(div);
+                }
+        }
+    
+    
+    POPUP_ENABLED = config['popup'];
+    if(login_data['proxy'] == 1)
+        {
+            room_button['proxy'].css('background-color', 'rgb(100, 100, 100)');
+        }
+    
+    
+    if(session.room() == 'main')
+        {
+            $('.container').hide();
+            refresh_data_menu(main_data);
+            
+            var character = main_data['character'].val();
+            if(fs.existsSync('character/'+character+'.png'))
+                {
+                    main_data['character_img'].attr('src', 'character/'+character+'.png');
+                };
+            
+            main_view.show();
+        }
+    else
+        {
+            main_view.hide();
+        }
 }

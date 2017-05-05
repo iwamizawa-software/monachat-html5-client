@@ -1,0 +1,183 @@
+/** room view css **/
+
+.text_input {
+    position: absolute;
+    
+    font-family: "MS PGothic";
+    font-size: 16px;
+    
+    width: 450px;
+    height: 30px;
+    
+    padding-left: 5px;
+    padding-right: 5px;
+    
+    top: 355px;
+    left: 160px;
+}
+.log_div {
+    width: 100%;
+    padding: 2px;
+
+    word-wrap: break-word;
+}
+.dropdown_el {
+    display: block;
+
+    padding-left : 10px;
+    padding-right: 20px;
+    padding-top:    2px;
+    padding-bottom: 2px;
+}
+.user_div {
+    position: absolute;
+
+    text-align: center;
+}
+.user_div_img { position: relative; }
+.stat_dropdown_el { background-color: rgb(150, 150, 150) }
+.dropdown_el:hover { background-color: rgb(100, 100, 100) !important; }
+.room_view_dropdown {
+    position: absolute;
+    cursor: default;
+    
+    display: none;
+
+    border: 1px solid black;
+    opacity: 1;
+
+    z-index: 2;
+}
+.user_div_data {
+    position: relative;
+    top: -5px;
+}
+.user_div_stat {
+    display: none;
+    
+    position: relative;
+
+    background-color: yellow;
+
+    bottom: 65px;
+
+    font-size: 15px;
+    
+    height: 18px;
+    border: 1px solid black;
+    padding-top: 4px;
+    padding-bottom: 2px;
+
+    opacity: 1;
+    z-index: 2;
+}
+.comment_div {
+    position: absolute;
+    cursor: default;
+
+    text-align: center;
+
+    height: 30px;
+    line-height: 30px;
+
+    border: 1px solid black;
+    border-radius: 12px;
+
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    
+    animation-name: comment_div_keyframes;
+    animation-duration: 10s;
+    animation-timing-function: linear;
+
+    z-index: 3;
+}
+
+@keyframes comment_div_keyframes
+    {
+        0%   { top: 160px; }
+        100% { top: -100px; }
+    }
+#text_input text { left: 20px;   }
+#log_textarea {
+    -webkit-user-select: auto !important;
+
+    position: absolute;
+    cursor: text;
+    
+    overflow-y: scroll;
+    overflow-x: hidden;
+
+    width: 600px;
+    height: 200px;
+
+    left: 80px;
+    top: 20px;
+    
+    font-size: 15px;
+
+    border: 1px solid black;
+
+    padding: 5px;
+    padding-bottom: 10px;
+
+    background-color: rgb(200, 200, 200);
+
+    //z-index: 2;
+}
+#users_dropdown { left: 8px;  }
+#stat_dropdown  { left: 85px; }
+#character_selection {
+    overflow-y: scroll;
+    display: none; /** block **/
+    border: 1px solid black;
+    position: absolute;
+    
+    width: 537px;
+    height: 260px;
+
+    left: 90px;
+    top: 40px;
+    
+    z-index: 2;
+    background-color: white;
+    opacity: 1;
+}
+.selection_div {
+    border: 1px solid black;
+    display: inline-block;
+}
+/*****************
+* Room data menu
+*****************/
+#room_data { float: right; }
+#room_data_menu {
+    display: none;
+    text-align: right;
+    
+    position: absolute;
+
+    border: 1px solid black;
+    
+    width:  160px;
+    height: 310px;
+
+    left: 80px;
+    top: 10px;
+
+    opacity: 1;
+    background-color: white;
+
+    z-index: 2;
+}
+#data_color_div {
+    position: relative;
+
+    left: -53px;
+}
+#room_data_x, #room_data_y{
+    margin-top: 8px;
+    width: 50px;
+}

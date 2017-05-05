@@ -52,30 +52,56 @@ DONE Add command line flags
 DONE Remove character from dropmenu when they exit and when you change room (they should be being removed though?)
 DONE Darken proxy button when proxy is on
 DONE Implement /new function
-
-???? Implement stalk function
-???? Implement user class to maintain code style
-???? Rename log_textarea
-???? Add lines between users in users dropdown menu
-
-BUGS
------
----- Screen doesn't clear when the /proxy command is typed in the middle of proxy search
+DONE Implement stalk function
 DONE Fix ignore stat
 
 
 0.4.0
 ------
----- Implement comment divs
----- Implement config menu
----- Add character dragging
----- Add relogging on error and disconnection
-PART Fix character scaling
-    ---- Fix y_scale scaling
-    ---- Fix x_scale right limit
----- Dont reconnect on error if it isn't disconnected
----- Implement next and prev commands
+DONE Implement comment divs
+PART Implement config menu
+DONE Add character dragging
+DONE Add relogging on disconnection
+DONE Fix x_scale right limit
+DONE Dont reconnect on error if it isn't disconnected
+DONE Implement next and prev commands
+DONE Right click menu
+DONE Make aviable more info when searching proxies
+DONE Rename button to room_button
+DONE Mute on user dropdown element click
+DONE Add comment_div copy on click
+DONE Implement log youtube embedding
+DONE Set characters half-invisible when they ignore you or you ignore them
+DONE Add image uploads through imgur
+DONE Add user data to context menu
+DONE Add any popup trigger
+---- Add login on main screen
+
+0.5.0
+------
+---- Implement splash screen with server list
+---- Add comment_div dragging
+---- Change color to main_data_character_img on color picker change
+---- Disable socket 'end' behaviour on relogin and enable automatic reconnect
 ---- Add comment sounds
----- Right click menu
+---- Fix y_scale scaling
+---- Character menu
 
 ???? Change title font
+???? Implement user class to maintain code style
+???? Rename log_textarea
+???? Add lines between users in users dropdown menu
+???? Handle <hr> tags on log save?
+
+BUGS
+----
+-BUG Room title isn't displayed when you access a room through the main room
+???? Dont show user info on USER
+-FIX reverse_x_scale ? It doesn't make the user stop when it's dropped
+-FIX Parse XML #e #d etc
+-FIX Some URLs are not loaded
+-FIX Comment centering algorithm
+TEST Comments going out of comment_div
+-FIX log_newline() probably too wide
+-FIX Scl doesnt work (because of propagation?)
+-FIX Screen doesn't clear when the /proxy command is typed in the middle of proxy search

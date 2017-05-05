@@ -62,3 +62,12 @@
     left: 698px;
     top: 353px;
 }
+#room_data_cancel_button {
+    position: relative;
+    top: 10px;
+}
+#room_data_accept_button {
+    position: relative;
+    top: 10px;
+    left: 5px;
+}

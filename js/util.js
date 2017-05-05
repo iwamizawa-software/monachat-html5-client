@@ -12,6 +12,7 @@ var Util = function()
         this.create_a_el = create_a_el;
         this.create_img_el = create_img_el;
         this.is_url = is_url;
+        this.upload_image = upload_image;
     }
 
 module.exports = new Util();
@@ -112,4 +113,20 @@ function is_url(line)
         
         if(regex.test(line)) { return true;  }
         else                 { return false; }
+    }
+
+function upload_image(path)
+    {
+        var file = fs.readFileSync(path, 'base64');
+        
+        $.ajax
+            ({
+                type   : 'POST',
+                url    : 'https://api.imgur.com/3/image',
+                headers: { 'Authorization': 'Client-ID 321a474bd566cbf' },
+                data   : { 'image': file, 'type': 'base64' },
+                
+                success: function(res) { session.comment(res.data.link); },
+                error  : function(err) { alert('error', err); }
+            });
     }
