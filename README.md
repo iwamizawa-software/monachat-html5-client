@@ -6,3 +6,7 @@ HTML5 client for monachat
 ライセンス: GPL v3.0
 
 作者: American man...
+
+まだベータ版だからバグやエラーを大目に見てくださいね＠ｗ＠
+
+バグやリクエストがあればこのメールに送ってください: nishinishi9999@gmail.com
