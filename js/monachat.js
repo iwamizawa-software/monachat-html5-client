@@ -1869,16 +1869,11 @@ function process_arguments()
             }
     }
 
-function read_config()
-    {
-        config = jsonfile.readFileSync('config.json');
-    }
-
 
 window.onload = function()
 {
-    config     = jsonfile.readFileSync('config.json');
-    login_data = jsonfile.readFileSync('config.json');
+    config     = jsonfile.readFileSync('./config.json');
+    login_data = jsonfile.readFileSync('./config.json');
     
     process_arguments();
     
@@ -2078,9 +2073,9 @@ window.onload = function()
     main_data['character'].on('keyup', function()
         {
             var character = main_data['character'].val();
-            if(fs.existsSync('character/'+character+'.png'))
+            if(fs.existsSync('./character/'+character+'.png'))
                 {
-                    main_data['character_img'].attr('src', 'character/'+character+'.png');
+                    main_data['character_img'].attr('src', './character/'+character+'.png');
                 };
         });
     
@@ -2157,7 +2152,7 @@ window.onload = function()
     for(let i = 0; i < character_list.length; i++)
         {
             let img = document.createElement('IMG');
-            img.src = 'character/'+character_list[i]+'.png';
+            img.src = './character/'+character_list[i]+'.png';
             
             img.onload = function()
                 {
@@ -2183,9 +2178,9 @@ window.onload = function()
             refresh_data_menu(main_data);
             
             var character = main_data['character'].val();
-            if(fs.existsSync('character/'+character+'.png'))
+            if(fs.existsSync('./character/'+character+'.png'))
                 {
-                    main_data['character_img'].attr('src', 'character/'+character+'.png');
+                    main_data['character_img'].attr('src', './character/'+character+'.png');
                 };
             
             main_view.show();

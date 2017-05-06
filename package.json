@@ -1,17 +1,23 @@
 {
-    "name": "monachat",
+    "name": "monachat_javascript_client",
     "description": "monachat javascript client",
-    "version": "0.1.0",
+    "version": "0.4.0",
     "author": "Alvaro Fernandez",
     "main": "main.js",
     
     "dependencies": {
+        "jquery": ">=3.2.1",
+        "socks": ">=1.1.10",
+        "xmldoc": ">=1.0.0",
+        "jsonfile": ">=2.4.0",
+        "node-notifier": ">=5.1.2",
+        "spectrum-colorpicker": ">=1.8.0"
     },
     "devDependencies": {
-        "electron": ">= 1.4.15"
+        "electron": ">= 1.6.2"
     },
     
      "scripts": {
-        "package-win": "electron-packager . --arch=x64 --platform=win32 --electron-version=1.4.15"
+        "package-win": "electron-packager . --arch=x64 --platform=win32 --electron-version=1.6.2"
     }
 }

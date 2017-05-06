@@ -188,7 +188,7 @@ function connect_normal()
                 * Send login data
                 ******************/
                 that.client.write('MojaChat\0');
-                that.room();
+                that.room(this._room);
                 
                 /****************
                 * Set ping loop
@@ -262,7 +262,7 @@ function connect_proxy()
                         * Send login data
                         ******************/
                         that.client.write('MojaChat\0');
-                        that._enter_room();
+                        that.room(that._room);
                         
                         /****************
                         * Set ping loop
