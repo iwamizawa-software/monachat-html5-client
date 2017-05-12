@@ -6,18 +6,18 @@
 	"r": 255,
 	"g": 255,
 	"b": 255,
-	"x": 200,
-	"y": 400,
-	"scl": 100,
-	"room": 1,
+	"x": "400",
+	"y": "400",
+	"scl": "100",
+	"room": "main",
 	"proxy": false,
 	"port": 9095,
 	"server": "MONA8094",
-	"timeout": 1,
-	"site": 1,
+	"timeout": "1",
+	"site": "1",
 	"profiles": {
-		}
 	},
-    "popup": true,
-	"popup_trigger": ["addtriggers", "thisway"]
+	"popup": true,
+	"popup_trigger": ["pipirupirupirupipirupi"],
+    "sound": true
 }

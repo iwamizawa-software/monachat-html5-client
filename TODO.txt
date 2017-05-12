@@ -5,7 +5,7 @@ TODO
 
 0.2.0
 ------
-TEST Add server getter/setter
+DONE Add server getter/setter
 DONE Add send_stat function
 DONE Parse special characters
 DONE Shorten name and character automatically
@@ -75,33 +75,44 @@ DONE Set characters half-invisible when they ignore you or you ignore them
 DONE Add image uploads through imgur
 DONE Add user data to context menu
 DONE Add any popup trigger
----- Add login on main screen
+---- Add relogin on main screen
 
 0.5.0
 ------
----- Implement splash screen with server list
----- Add comment_div dragging
----- Change color to main_data_character_img on color picker change
+DONE Implement splash screen with server list
+DONE Add comment_div dragging
+DONE Change color to main_data_character_img on color picker change
 ---- Disable socket 'end' behaviour on relogin and enable automatic reconnect
----- Add comment sounds
----- Fix y_scale scaling
----- Character menu
+    ---- Disable them with proxy
+DONE Add comment sounds
+PART Character menu
+TEST Catch file loading errors and throw them
+TEST Include fonts in package
+DONE Set stat div with to stat width
+DONE Add remove profile option
+DONE Add profile option for new_instance
+DONE Change options in context menu so that it shows on/off when it's off/on
+
+0.6.0
+------
+---- Add a table for users
+---- Add log in different window
+---- Add character image mapping
+---- Fix not being able to select last line in log
+---- Add comment div to user img not to user div
+---- Fix y scaling
+---- Add vertical dragging to comment_div
 
 ???? Change title font
 ???? Implement user class to maintain code style
-???? Rename log_textarea
 ???? Add lines between users in users dropdown menu
 ???? Handle <hr> tags on log save?
+???? Don't show user info on USER
+???? Add full screen log?
 
 BUGS
 ----
--BUG Room title isn't displayed when you access a room through the main room
-???? Dont show user info on USER
--FIX reverse_x_scale ? It doesn't make the user stop when it's dropped
+-FIX Room title isn't displayed when you access a room through the main room
 -FIX Parse XML #e #d etc
 -FIX Some URLs are not loaded
--FIX Comment centering algorithm
-TEST Comments going out of comment_div
--FIX log_newline() probably too wide
--FIX Scl doesnt work (because of propagation?)
 -FIX Screen doesn't clear when the /proxy command is typed in the middle of proxy search

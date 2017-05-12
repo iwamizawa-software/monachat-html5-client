@@ -1,14 +1,21 @@
-<html>
+﻿<html>
     <head>
-        <link rel='stylesheet' href='css/monachat.css'/>
-        <link rel='stylesheet' href='css/buttons.css'/>
-        <link rel='stylesheet' href='css/config_menu.css'/>
-        <link rel='stylesheet' href='css/main_view.css'/>
-        <link rel='stylesheet' href='css/room_view.css'/>
+        <link rel='stylesheet' href='./assets/css/monachat.css'/>
+        <link rel='stylesheet' href='./assets/css/buttons.css'/>
+        <link rel='stylesheet' href='./assets/css/config_menu.css'/>
+        <link rel='stylesheet' href='./assets/css/main_view.css'/>
+        <link rel='stylesheet' href='./assets/css/room_view.css'/>
         
-        <link rel='stylesheet' href='css/spectrum.css'/>
+        <script>
+            global.jQuery = require('jquery');
+            global.$      = jQuery;
+        </script>
+        
+        <link rel='stylesheet' href='./assets/css/spectrum.css'/>
+        <link rel='stylesheet' href='./assets/lib/jquery-ui/jquery-ui.css'/>
     
-        <script src='js/monachat.js'></script>
+        <script src='./assets/lib/jquery-ui/jquery-ui.js'></script>
+        <script src='./assets/js/monachat.js'></script>
     </head>
     
     <body>
@@ -31,7 +38,9 @@
                 </div>
                 <div class='data_menu_div'>
                     <label for='main_data_character' class='data_menu_label'>Char:</label>
-                    <input text id='main_data_character' class='data_menu_input'/>
+                    <input text id='main_data_character' class='data_menu_input'>
+                        <img src='./assets/icon/arrow.png' id='main_data_character_arrow'/>
+                    </input>
                 </div>
                 <div class='data_menu_div'>
                     <label for='main_data_stat' class='data_menu_label'>Stat:</label>
@@ -56,12 +65,34 @@
                 
                 <!--<input text id='main_text_input' class='text_input'></input>-->
                 
-                <img src='github_icons/PNG/GitHub-Mark-32px.png' id='github_icon'/>
+                <div id='main_server_select_div'>
+                    <label for='main_server_select'>Server: </label>
+                    <select name='server' id='main_server_select'>
+                        <option value='iriguchi'>入り口</option>
+                        <option value='ooheya'>大部屋</option>
+                        <option value='chibichato'>ちびちゃと</option>
+                        <option value='moa'>モア</option>
+                        <option value='chiikibetsu'>地域別</option>
+                        <option value='wadaibetsu'>話題別</option>
+                        <option value='tateyokoheya'>縦横部屋</option>
+                        <option value='atochi'>跡地</option>
+                        <option value='cool'>クール</option>
+                        <option value='kanpu'>カンプ</option>
+                        <option value='monafb'>monafb</option>
+                    </select>
+                </div>
+                
+                <div id='main_room_input_div'>
+                    <label for='main_room_input'>Room: </label>
+                    <input text id='main_room_input'></input>
+                </div>
+                
+                <img src='./assets/icon/GitHub-Mark-32px.png' id='github_icon'/>
             </div>
         </div>
         
         <div id='room_view' class='container'>
-            <div id='character_selection'></div>
+            <div id='character_menu'></div>
             
             <button id='log_button' class='room_view_button'>Log</button>
             <button id='data_button' class='room_view_button'>Data</button>
@@ -78,8 +109,8 @@
             <button id='back_button' class='room_view_button'>Back</button>
             
             
-            <div id='log_textarea' readonly></div>
-            <input text id='room_text_input' class='text_input'></input>
+            <div id='log_div' readonly></div>
+            <input text id='room_text_input' class='text_input' autofocus></input>
             
             
             <div id='room_data_menu' class='data_menu'>
@@ -93,7 +124,9 @@
                 </div>
                 <div class='room_data_menu_div'>
                     <label for='room_data_character' class='data_menu_label'>Char:</label>
-                    <input text id='room_data_character' class='data_menu_input'/>
+                    <input text id='room_data_character' class='data_menu_input'>
+                        <img src='./assets/icon/arrow.png' id='room_data_character_arrow'/>
+                    </input>
                 </div>
                 <div class='room_data_menu_div'>
                     <label for='room_data_stat' class='data_menu_label'>Stat:</label>
@@ -119,16 +152,17 @@
                     <button id='room_data_cancel_button' class='room_view_button'>Cancel</button>
                     <button id='room_data_accept_button' class='room_view_button'>Accept</button>
                 </div>
-                
-                
             </div>
             
-            <div id='loader'></div>
-            
-            <div id='users_dropdown' class='room_view_dropdown'></div>
-            <div id='stat_dropdown' class='room_view_dropdown'></div>
+            <div id='users_dropdown'  class='room_view_dropdown'></div>
+            <div id='stat_dropdown'   class='room_view_dropdown'></div>
+            <div id='config_dropdown' class='room_view_dropdown'>
+                <text id='config_login'   class='dropdown_el config_dropdown_el'>Login config</text>
+                <text id='config_trigger' class='dropdown_el config_dropdown_el'>Trigger config</text>
+                <text id='config_client'  class='dropdown_el config_dropdown_el'>Client config</text>
+            </div>
 
-            <div id='config_menu'>
+            <div id='config_login_menu'>
                 <div id='config_menu_user'>
                     <text class='config_menu_title'>Login data</text>
                     
@@ -137,8 +171,8 @@
                         <input id="config_menu_name" class='config_menu_input'/>
                     </div>
                     <div class='config_menu_div'>
-                        <label for='config_menu_char'>Character:</label>
-                        <input id="config_menu_char" class='config_menu_input'/>
+                        <label for='config_menu_character'>Character:</label>
+                        <input id="config_menu_character" class='config_menu_input'/>
                     </div>
                     <div class='config_menu_div'>
                         <label for='config_menu_stat'>Stat:</label>
@@ -158,7 +192,7 @@
                     </div>
                     <div class='config_menu_div'>
                         <label for='config_menu_y'>y:</label>
-                        <input id="config_menu_name" class='config_menu_input'/>
+                        <input id="config_menu_y" class='config_menu_input'/>
                     </div>
                     <div class='config_menu_div'>
                         <label for='config_menu_scl'>Scl:</label>
@@ -169,6 +203,14 @@
                 <div id='config_menu_options'>
                     <text class='config_menu_title'>Options</text>
 
+                    <div class='config_menu_div'>
+                        <label for='config_menu_room'>Room:</label>
+                        <input id="config_menu_room" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_server'>Server:</label>
+                        <input id="config_menu_server" class='config_menu_input'/>
+                    </div>
                     <div class='config_menu_div'>
                         <label for='config_menu_proxy'>Proxy:</label>
                         <input id="config_menu_proxy" class='config_menu_input'/>
@@ -181,15 +223,63 @@
                         <label for='config_menu_timeout'>Timeout:</label>
                         <input id="config_menu_timeout" class='config_menu_input'/>
                     </div>
-                    <div class='config_menu_div'>
-                        <label for='config_menu_popup'>Popup:</label>
-                        <input id="config_menu_popup" class='config_menu_input'/>
-                    </div>
-                    <div class='config_menu_div'>
-                        <textarea id='trigger_list'></textarea>
+                     <div class='config_menu_div'>
+                        <button id='config_menu_login_cancel_button' class='room_view_button'>Cancel</button>
+                        <button id='config_menu_login_accept_button' class='room_view_button'>Accept</button>
                     </div>
                 </div>
             </div>
+            <div id='config_trigger_menu'>
+                <text class='trigger_menu_title'>Triggers</text>
+                <textarea id='config_trigger_list'></textarea>
+                
+                <div class='config_menu_div'>
+                    <button id='config_menu_trigger_cancel_button' class='room_view_button'>Cancel</button>
+                    <button id='config_menu_trigger_accept_button' class='room_view_button'>Accept</button>
+                </div>
+            </div>
+            <div id='config_client_menu'>
+                <div id='config_client_div'>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_sound'>Sound:</label>
+                        <input id="config_menu_sound" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_comment_speed'>Speed:</label>
+                        <input id="config_menu_comment_speed" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_x_y_mode'>x/y mode:</label>
+                        <input id="config_menu_x_y_mode" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_timeout'>Timeout:</label>
+                        <input id="config_menu_timeout" class='config_menu_input'/>
+                    </div>
+                </div>
+                <div id='config_log_div'>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_show_comments'>Show comments:</label>
+                        <input id="config_menu_show_comments" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_background'>Background:</label>
+                        <input id="config_menu_background" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_load_content'>Load content:</label>
+                        <input id="config_menu_load_content" class='config_menu_input'/>
+                    </div>
+                </div>
+                <div class='config_menu_div'>
+                    <button id='config_menu_client_cancel_button' class='room_view_button'>Cancel</button>
+                    <button id='config_menu_client_accept_button' class='room_view_button'>Accept</button>
+                </div>
+            </div>
         </div>
+        
+        <audio id='audio'></audio>
+        
+        <div id='loader'></div>
     </body>
 </html>

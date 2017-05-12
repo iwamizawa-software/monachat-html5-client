@@ -1,0 +1,83 @@
+/** buttons.css **/
+
+.main_room_button {
+    width: 95px;
+    height: 35px;
+}
+.room_view_button {
+    position: absolute;
+
+    width: 65px;
+    height: 32px;
+
+    background-color: white;
+}
+
+/************
+* Room view
+************/
+#log_button {
+    top: 20px;
+    left: 8px;
+}
+#save_log_button {
+    top: 57px;
+    left: 8px;
+}
+#data_button {
+    top: 94px;
+    left: 8px;
+}
+#reenter_button {
+    top: 20px;
+    right: 8px;
+}
+#relogin_button {
+    top:  57px;
+    right: 8px;
+}
+#proxy_button {
+    top:  94px;
+    right: 8px;
+}
+#users_button {
+    bottom: 8px;
+    left:   8px;
+}
+#stat_button {
+    bottom: 8px;
+    left:  85px;
+}
+#config_button {
+    bottom: 8px;
+    right: 85px;
+}
+#back_button {
+    bottom: 8px;
+    right:  8px;
+}
+#room_data_cancel_button {
+    position: relative;
+    top: 10px;
+}
+#room_data_accept_button {
+    position: relative;
+    top: 10px;
+    left: 5px;
+}
+
+/************
+* Main view
+************/
+#main_reenter_button {
+    position: absolute;
+
+    top: 27px;
+    right: 210px;
+}
+#main_button_table {
+    position: absolute;
+
+    left: 35px;
+    top: 70px;
+}

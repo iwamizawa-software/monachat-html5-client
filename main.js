@@ -20,8 +20,8 @@ function createWindow()
         *****************/
         win = new BrowserWindow
             ({
-                width:           788,
-                height:          436,
+                width:           812,
+                height:          465,
                 autoHideMenuBar: true
                 //frame:           false
             });

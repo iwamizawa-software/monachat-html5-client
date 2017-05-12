@@ -1,0 +1,294 @@
+/** room view css **/
+
+.text_input {
+    position: absolute;
+    
+    font-family: var(--default_font);
+    font-size: 16px;
+    
+    width: 476px;
+    height: 30px;
+    
+    padding-left: 5px;
+    padding-right: 5px;
+    
+    bottom: 9px;
+    left: 160px;
+}
+.log_div_el {
+    width: 100%;
+    padding: 2px;
+
+    word-wrap: break-word;
+}
+.user_div {
+    position: absolute;
+
+    text-align: center;
+}
+.user_div_img      { position: relative; }
+.user_div_data {
+    position: relative;
+    top: -5px;
+}
+.user_div_stat {
+    display: none;
+    position: absolute;
+
+    background-color: yellow;
+    
+    top: 95px;
+
+    font-size: 15px;
+    line-height: 20px;
+    
+    height: 20px;
+    border: 1px solid black;
+
+    padding-left: 10px;
+    padding-right: 10px;
+
+    opacity: 1;
+    z-index: 3;
+}
+.comment_div {
+    position: absolute;
+    cursor: hand;
+
+    text-align: center;
+
+    height: 30px;
+    line-height: 30px;
+
+    border: 1px solid black;
+    border-radius: 12px;
+
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    
+    animation-name: comment_div_keyframes;
+    animation-duration: 10s;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+
+    z-index: 3;
+}
+.log_img_el {
+    max-width: 500px;
+    cursor: hand;
+}
+
+#text_input text { left: 20px; }
+#log_div {
+    -webkit-user-select: auto !important;
+
+    position: absolute;
+    cursor: text;
+    
+    overflow-y: scroll;
+    overflow-x: hidden;
+
+    width: 625px;
+    height: 200px;
+
+    left: 80px;
+    top: 20px;
+    
+    font-size: 15px;
+
+    border: 1px solid black;
+
+    padding: 5px;
+    padding-bottom: 10px;
+
+    background-color: rgb(200, 200, 200);
+
+    //z-index: 2;
+}
+#character_menu {
+    overflow-y: scroll;
+    display: none;
+    
+    border: 1px solid black;
+    position: absolute;
+    
+    width: 500px;
+    height: 270px;
+
+    left: 250px;
+    top: 10px;
+    
+    z-index: 3;
+    background-color: white;
+    opacity: 1;
+}
+#character_menu div {
+    display: inline-block;
+    
+    border-bottom: 1px solid black;
+    border-right: 1px solid black;
+}
+.character_menu_img {
+    width: 95px;
+    height: 95px;
+}
+.selection_div {
+    border: 1px solid black;
+    display: inline-block;
+}
+
+/*****************
+* Room data menu
+*****************/
+#room_data { float: right; }
+#room_data_menu {
+    display: none;
+    text-align: right;
+    
+    position: absolute;
+
+    border: 1px solid black;
+    
+    width:  160px;
+    height: 310px;
+
+    left: 80px;
+    top: 10px;
+
+    opacity: 1;
+    background-color: white;
+
+    z-index: 3;
+}
+#room_data_character {
+    padding-right: 21px;
+}
+#room_data_character_arrow {
+    position: absolute;
+
+    left: 139px;
+    top: 12px;
+}
+#data_color_div {
+    position: relative;
+
+    left: -53px;
+}
+#room_data_x, #room_data_y{
+    margin-top: 8px;
+    width: 50px;
+}
+/***********
+* Dropdown
+***********/
+.room_view_dropdown {
+    position: absolute;
+    cursor: default;
+    
+    display: none;
+
+    border: 1px solid grey;
+
+    z-index: 3;
+}
+.dropdown_el {
+    display: block;
+
+    padding-left : 10px;
+    padding-right: 20px;
+    padding-top:    5px;
+    padding-bottom: 5px;
+
+    background-color: white !important;
+
+    border-bottom: 1px solid #BEBEBE;
+}
+.stat_dropdown_cell {
+    display: table-cell;
+
+    padding-left : 10px;
+    padding-right: 20px;
+    //padding-top:    5px;
+    //padding-bottom: 5px;
+
+    vertical-align: middle;
+
+    border-right: 1px solid #BEBEBE;
+
+    width: 80px;
+    height: 32px;
+
+    background-color: white !important;
+
+    border-bottom: 1px solid #BEBEBE;
+}
+.stat_dropdown_cell:last-child {
+    border-right: none;
+}
+.stat_dropdown_row:last-child .stat_dropdown_cell {
+    border-bottom: none;
+    background-color: red;
+}
+.dropdown_el:last-child {
+    border-bottom: none !important;
+}
+.dropdown_el:hover, .stat_dropdown_cell:hover {
+    background-color: #EBEBEB !important;
+}
+
+#users_dropdown {
+    left: 8px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+
+    background-color: white;
+}
+#stat_dropdown {
+    display: none;
+    left: 85px;
+
+    padding-top: 2px;
+    padding-bottom: 2px;
+
+    background-color: white;
+}
+#stat_dropdown {
+    bottom: 50px;
+}
+#stat_dropdown :nth-child() {
+    border: none !important;
+}
+#stat_dropdown label {
+    position: relative;
+    top: 2px;
+}
+#stat_dropdown_input {
+    position: relative;
+    
+    width: 60px;
+    
+    left: 9px;
+    top: 1px;
+}
+#config_dropdown {
+    position: absolute;
+
+    padding-top: 2px;
+    padding-bottom: 2px;
+    background-color: white;
+
+    bottom: 50px;
+    left: 620px;
+}
+
+
+/************
+* Keyframes
+************/
+@keyframes comment_div_keyframes
+    {
+        0%   { top: -20px; }
+        100% { top: -300px; }
+    }
