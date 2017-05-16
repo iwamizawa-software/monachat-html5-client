@@ -19,6 +19,7 @@
 - 他人の無視機能が確認できる
 - どこに人が入ってても表示される （例えば１０１室、あいうえお室）
 - コマンド入力だけで操作出来る
+- 相手が分からないまま無視をすることが出来る
 - 軽い
 - 吹き出しの速度が設定出来る
 - ログ内で画像、youtube動画、リンクを処理する
@@ -52,11 +53,11 @@
 # ドキュメンテーション
 
   - インターフェース
-  - コマンド
-  - 右クリックコンテキストメニュ
+  - <a href='https://github.com/nishinishi9999/monachat-html5-client/wiki/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%83%AA%E3%82%B9%E3%83%88'>コマンド</a>
+  - <a href='https://github.com/nishinishi9999/monachat-html5-client/wiki/%E3%82%B3%E3%83%B3%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E3%83%A1%E3%83%8B%E3%83%A5'>右クリックコンテキストメニュ</a>
   
   - monachatクラス
-  - ボット作成、追加
+  - <a href='https://github.com/nishinishi9999/monachat-html5-client/wiki/%E3%83%9C%E3%83%83%E3%83%88%E4%BD%9C%E6%88%90%E3%80%81%E8%BF%BD%E5%8A%A0'>ボット作成、追加</a>
 
 <br>
 
