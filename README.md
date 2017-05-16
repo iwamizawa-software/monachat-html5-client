@@ -38,12 +38,13 @@
 
 * Windows
 
-v0.5.0: http://tinyurl.com/monachat-html5-client-v0-5-0
-v0.4.0: http://tinyurl.com/monachat-html5-client-0-4-0
+  v0.5.0: http://tinyurl.com/monachat-html5-client-v0-5-0
+  <br>
+  v0.4.0: http://tinyurl.com/monachat-html5-client-0-4-0
 
 * Linux
 
-まだ
+  まだ
 
 <br>
 
