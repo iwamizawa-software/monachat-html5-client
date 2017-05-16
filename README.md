@@ -37,11 +37,13 @@
 # ダウンロード
 
 
-現在バージョン: v0.5.0
+現在バージョン: v0.5.1
 
 
 * Windows
 
+  v0.5.1: http://tinyurl.com/monachat-html5-client-v0-5-1
+  <br>
   v0.5.0: http://tinyurl.com/monachat-html5-client-v0-5-0
   <br>
   v0.4.0: http://tinyurl.com/monachat-html5-client-0-4-0
