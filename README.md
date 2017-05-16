@@ -1,5 +1,6 @@
-# monachat-html5-client (temporary)
+# Monachat HTML5 Client (temporary)
 
+<br>
 
 # クライアント紹介
 
@@ -27,6 +28,7 @@
 
 まだベータ版だからバグやエラーを大目に見てくださいね＠ｗ＠
 
+<br>
 
 # ダウンロード
 
@@ -43,6 +45,7 @@ v0.4.0: http://tinyurl.com/monachat-html5-client-0-4-0
 
 まだ
 
+<br>
 
 # ドキュメンテーション
 
@@ -53,16 +56,19 @@ v0.4.0: http://tinyurl.com/monachat-html5-client-0-4-0
   - monachatクラス
   - ボット作成、追加
 
+<br>
 
 # ライセンス
 
 GPL v3.0
 
+<br>
 
 # 作者
 
 American man...
 
+<br>
 
 # 連絡先
 
