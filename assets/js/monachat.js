@@ -2860,6 +2860,8 @@ window.onload = function()
     session.connect();
     
     
+    loader.show();
+    
     /******************
     * Show login room
     ******************/
