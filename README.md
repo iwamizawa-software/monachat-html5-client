@@ -1,26 +1,5 @@
-# Monachat HTML5 Client (temporary)
+﻿# Monachat HTML5 Client (temporary)
 
-<<<<<<< HEAD
-# ダウンロード
-
-# Windows
-
-v0.5.0: http://tinyurl.com/monachat-html5-client-v0-5-0
-v0.4.0: http://tinyurl.com/monachat-html5-client-0-4-0
-
-# Linux
-
-まだ
-
-
-#ライセンス
-
-GPL v3.0
-
-#作者
-
-American man...
-=======
 <br>
 
 # クライアント紹介
@@ -50,7 +29,6 @@ American man...
 - ログに特定な単語が出たら (名前、etc) OSのお知らせが来る機能があって、放置が楽
 - 簡単にボットが作成、追加出来る
 - そして何よりも、楽しい
->>>>>>> 48741300e0a5461e1ac4b829e5ce6e33ca63ca03
 
 まだベータ版だからバグやエラーを大目に見てくださいね＠ｗ＠
 
