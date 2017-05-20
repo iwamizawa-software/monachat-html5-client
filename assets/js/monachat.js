@@ -4,6 +4,8 @@ const {app}          = require('electron').remote;
 const {Menu, dialog} = require('electron').remote;
 const {shell}        = require('electron');
 const {clipboard}    = require('electron');
+const {ipcRenderer}  = require('electron');
+//const {BrowserWindow} = require('electron');
 
 const fs             = require('fs');
 
@@ -14,7 +16,7 @@ const spectrum = require('spectrum-colorpicker');
 
 const Monachat = require('./assets/js/monachat.jsm');
 const util     = require('./assets/js/util.js');
-const bot      = require('./assets/js/bot.js');
+const contrast = require('./assets/js/contrast.js');
 
 const win    = require('electron').remote.getCurrentWindow();
 
@@ -75,7 +77,7 @@ var user        = {};
 var room        = {};
 var main        = {};
 
-var room_view = { button: {}, el: '', data: {}, dropdown: {} };
+var room_view = { button: {}, el: '', data: {}, new_menu: {}, dropdown: {} };
 var main_view = { button: {}, el: '', data: {}, dropdown: {} };
 
 var data_menu   = {};
@@ -116,8 +118,10 @@ var main_title;
 /***************
 * Global flags
 ***************/
-var POPUP_ALL     = false;
-var IS_CLICK      = true;
+var POPUP_ALL           = false;
+var IS_LOADING_MAIN     = false;
+var GET_ALL_MAIN        = true;
+var LOG_TEXT_BACKGROUND = true;
 
 var POPUP_ENABLED;
 var SOUND_ON;
@@ -151,6 +155,20 @@ var prev_input_n = 0;
 *****************/
 var character_list;
 
+/***********
+* Bot list
+***********/
+var bots = [];
+load_bots();
+
+
+/****************************************
+* Offset of the character click on drag
+* If this is not set, the stop event
+* target is set to room_view
+****************************************/
+var drag_offset_x;
+
 
 function User(xml)
     {
@@ -170,36 +188,49 @@ function User(xml)
     }
 
 
-function x_scale(x)
+function x_to_left(x)
     {
-        if     (x <  30)              { return x_scale(30);  }
-        else if(x > 690)              { return x_scale(690); }
-        else if(isNaN(parseFloat(x))) { return x_scale(30);  }
+        if     (x <  30)              { return x_to_left(30);  }
+        else if(x > 704)              { return x_to_left(704); }
+        else if(isNaN(parseFloat(x))) { return x_to_left(30);  }
         else
             {
-                var [a, b]     = [30, 690];
+                var [a, b]     = [30, 704];
                 var [min, max] = [60, 740];
                 
                 return parseInt((((b-a)*(x-min))/(max-min)) + a);
             }
     }
 
-function reverse_x_scale(x)
+function left_to_x(left)
     {
         var [a, b]     = [60, 740];
-        var [min, max] = [30, 690];
+        var [min, max] = [30, 704];
         
-        return parseInt((((b-a)*(x-min))/(max-min)) + a);
+        return parseInt((((b-a)*(left-min))/(max-min)) + a);
     }
 
-function y_scale(y)
+function y_to_top(y)
     {
-        y = 480; /** disabled **/
+        console.log('Y', y);
         
-        var [a, b]     = [0, 500];
-        var [min, max] = [220, 850];
+        if     (y < 0)   { return y_to_top(0);   }
+        else if(y > 275) { return y_to_top(275); }
         
-        return parseInt((((b-a)*(y-min))/(max-min)) + a);
+        var [a, b]     = [0, 275];
+        var [min, max] = [0, 366];
+        
+        console.log(parseInt(　(((b-a)*(y-min))　/　(max-min)) + a)　);
+        
+        return parseInt(　(((b-a)　*　(y-min))　/　(max-min)) + a　);
+    }
+
+function top_to_y(top)
+    {
+        var [a, b]     = [0, 360];
+        var [min, max] = [0, 275];
+        
+        return parseInt(　(((b-a)　*　(top-min))　/　(max-min)) + a　);
     }
 
 function rgb_scale(c)
@@ -212,10 +243,10 @@ function rgb_scale(c)
 
 function get_px_len(str)
     {
-        var span = document.createElement('SPAN');
-        $(span).attr('id', 'px_len')
+        var span = $(document.createElement('SPAN'))
+            .attr('id', 'px_len')
             .css('display', 'none')
-            .text(str);
+            .text(str)[0];
 
         $('body').append(span);
         
@@ -224,6 +255,21 @@ function get_px_len(str)
         $(span).remove();
         
         return len;
+    }
+
+function load_bots()
+    {
+        var bot_list = fs.readdirSync('./assets/js/bots').filter( (file) => file.match(/\.js$/) );
+
+        for(let i = 0; i < bot_list.length; i++)
+            {
+                if( require.cache[ require.resolve('./assets/js/bots/' + bot_list[i]) ] != undefined)
+                    {
+                        delete require.cache[ require.resolve('./assets/js/bots/' + bot_list[i]) ];
+                    }
+                
+                bots.push( require('./assets/js/bots/' + bot_list[i]) );
+            }
     }
 
 function open_with_browser(e, url)
@@ -238,9 +284,9 @@ function log(el_arr)
         /*********************
         * Create div element
         *********************/
-        var div_el = document.createElement('DIV');
-        $(div_el).attr('class', 'log_div_el')
-            .css('padding-top', 4);
+        var div_el = $(document.createElement('DIV'))
+            .attr('class', 'log_div_el')
+            .css('padding-top', 4)[0];
         
         
         for(var i = 0; i < el_arr.length; i++)
@@ -259,71 +305,105 @@ function log(el_arr)
             }
         
         
+        var is_buttom =
+            room_view.log[0].scrollHeight - room_view.log[0].clientHeight <= room_view.log[0].scrollTop + 1;
+            
+        
         room_view.log.append(div_el);
+        
+        ipcRenderer.send( 'append_log', el_arr.map( (el) => el.outerHTML ) );
+        
+        
         
         /**********************************
         * Scroll automatically to the end
         **********************************/
-        room_view.log[0].scrollTop = room_view.log[0].scrollHeight;
+        if(is_buttom) { room_view.log[0].scrollTop = room_view.log[0].scrollHeight; }
     }
 
 function log_newline(n)
     {
-        for(var i = 0; i < n; i++) { log(['<br>']); }
-    }
-
-function create_nbsp_el(n)
-    {
-        var nbsp_el = document.createElement('NBSP');
-        $(nbsp_el).html('&nbsp'.repeat(n));
-        
-        return nbsp_el;
-    }
-
-function create_text_el(line, r, g, b)
-    {
-        var text_el = document.createElement('TEXT');
-        $(text_el).text(line);
-        
-        if(r != undefined && g != undefined && b != undefined)
+        for(var i = 0; i < n; i++)
             {
-                $(text_el).css('color', 'rgb('+r+', '+g+', '+b+')');
+                log(['<br>']);
             }
+    }
+
+function log_nbsp_el(n)
+    {
+        return $(document.createElement('NBSP'))
+            .html('&nbsp'.repeat(n))[0];
+    }
+
+function log_text_el(line, r, g, b)
+    {
+        var r = r || 0;
+        var g = g || 0;
+        var b = b || 0;
+        
+        var text_el = $(document.createElement('TEXT'))
+            .text(line)
+            .addClass('log_text_el')
+            .css('color', 'rgb('+r+', '+g+', '+b+')')[0];
+        
+        
+        var L1    = contrast.luminiscence(200, 200, 200);
+        var L2    = contrast.luminiscence(r, g, b);
+        var ratio = contrast.contrast_ratio(L1, L2);
+        
+        if(ratio < 3 && !(r == 255 && g == 255 && b == 255))
+            {/*
+                while(ratio < 4)
+                    {
+                        r = (r + 1) % 255;
+                        g = (g + 1) % 255;
+                        b = (b + 1) % 255;
+                        
+                        L1    = contrast.luminiscence(200, 200, 200);
+                        L2    = contrast.luminiscence(r, g, b);
+                        ratio = contrast.contrast_ratio(L1, L2);
+                        
+                        console.log('ratio: ', ratio);
+                    }
+*/
+                r = (200-r) < 0 ? -(200-r) : (200-r);
+                g = (200-g) < 0 ? -(200-g) : (200-g);
+                b = (200-b) < 0 ? -(200-b) : (200-b);
+                if(LOG_TEXT_BACKGROUND) { $(text_el).css('background-color', 'rgb('+r+', '+g+', '+b+')'); }
+            }
+        
         
         return text_el;
     }
 
-function create_a_el(url)
+function log_a_el(url)
     {
-        var a_el = document.createElement('A');
-        
-        $(a_el).text(url)
+        return $(document.createElement('A'))
+            .text(url)
             .attr('href', url)
             .attr('class', 'log_div_a')
-            .on('click', (e) => open_with_browser(e, url));
-
-        return a_el;
+            .on('click', (e) => open_with_browser(e, url))[0];
     }
 
-function create_img_el(url)
+function log_img_el(url)
     {
-        var img_el = document.createElement('IMG');
-        $(img_el).attr('src', url)
+        return $(document.createElement('IMG'))
+            .attr('src', url)
             .attr('href', url)
             .addClass('log_img_el')
-            .on('click', (e) => open_with_browser(e, url));
+            .on('click', (e) => open_with_browser(e, url))[0];
+    }
 
-
-        return img_el;
+function log_time_el()
+    {
+        return log_text_el('['+ new Date().toLocaleTimeString() +'] ');
     }
 
 function create_option_el(value)
     {
-        var option_el = document.createElement('OPTION');
-        $(option_el).attr('value', value)
-            .text(value);
-
-        return option_el;
+        return $(document.createElement('OPTION'))
+            .text(value)
+            .attr('value', value)[0];
     }
 
 function is_ignored(id)  { return user[id] != undefined && session._ignored[user[id].ihash]; }
@@ -340,7 +420,7 @@ function format_user_data(id, n)
         if(n > 3) { line += ' ' + stat; }
         if(n > 4) { line += ' ' + character; }
         
-        line += ' (' + id + ') ';
+        line += ' (' + id + ')';
         
         return line;
     }
@@ -349,9 +429,10 @@ function format_log(type, args)
     {
         if(session.room() == 'main') { return; }
         
-        var time    = new Date().toLocaleTimeString();
-        var time_el = create_text_el('['+time+'] ');
         
+        var time_el = log_time_el();
+        var r_arrow = log_text_el('--> ');
+        var l_arrow = log_text_el('<-- ');
         
         if(type == 'enter')
             {
@@ -359,17 +440,17 @@ function format_log(type, args)
                 if(is_muted(id)) { return; }
                 
                 
-                var user_el = create_text_el
+                var user_el = log_text_el
                     (
-                        '--> ' + format_user_data(id, 5),
+                        format_user_data(id, 5),
                         user[id].r, user[id].g, user[id].b
                     );
                 
                 
-                var info_el = create_text_el('has logged in.');
+                var info_el = log_text_el(' has logged in.');
 
                 
-                log([time_el, user_el, info_el]);
+                log([time_el, r_arrow, user_el, info_el]);
             }
         else if(type == 'exit')
             {
@@ -377,16 +458,17 @@ function format_log(type, args)
                 if(is_muted(id)) { return; }
                 
                 
-                var user_el = create_text_el
+                var user_el = log_text_el
                     (
-                        '<-- ' + format_user_data(id, 5),
+                        format_user_data(id, 5),
+                        
                         user[id].r, user[id].g, user[id].b
                     );
                 
-                var info_el = create_text_el('has exited the room.')
+                var info_el = log_text_el(' has exited the room.');
 
                 
-                log([time_el, user_el, info_el]);
+                log([time_el, l_arrow, user_el, info_el]);
             }
         else if(type == 'room')
             {
@@ -394,9 +476,9 @@ function format_log(type, args)
                 
                 var first_hr_el  = document.createElement('HR');
                 var second_hr_el = document.createElement('HR');
-                var nbsp_el      = create_nbsp_el(55);
+                var nbsp_el      = log_nbsp_el(55);
                 
-                var room_el = create_text_el('ROOM' + room);
+                var room_el = log_text_el('ROOM ' + room);
                 
                 
                 log([first_hr_el]);
@@ -410,9 +492,9 @@ function format_log(type, args)
                 
                 var {r, g, b, stat} = user[id];
                 
-                var user_el = create_text_el( format_user_data(id, 3), r, g, b );
+                var user_el = log_text_el( format_user_data(id, 3), r, g, b );
                 
-                var info_el = create_text_el('changed status to ' + stat);
+                var info_el = log_text_el(' changed status to ' + stat);
 
                 
                 log([time_el, user_el, info_el]);
@@ -439,10 +521,18 @@ function format_log(type, args)
                     }
                 
                 
-                var id_el = create_text_el(format_user_data(id, 2),    user[id].r,    user[id].g,    user[id].b   );
-                var ig_el = create_text_el(format_user_data(ig_id, 2), user[ig_id].r, user[ig_id].g, user[ig_id].b);
+                var id_el = log_text_el
+                    (
+                        format_user_data(id, 2) + ' ',
+                        user[id].r, user[id].g, user[id].b
+                    );
+                var ig_el = log_text_el
+                    (
+                        format_user_data(ig_id, 2) + ' ',
+                        user[ig_id].r, user[ig_id].g, user[ig_id].b
+                    );
                 
-                var stat_el = create_text_el( stat == 'on' ? 'ignored ' : 'stopped ignoring ' );
+                var stat_el = log_text_el( stat == 'on' ? 'ignored ' : 'stopped ignoring ' );
                     
                 
                 log([time_el, id_el, stat_el, ig_el]);
@@ -454,11 +544,14 @@ function format_log(type, args)
                 
                 var {name, trip, ihash, r, g, b} = user[id];
                 
-                var user_el = create_text_el
+                var user_el = log_text_el
                     (
-                        name + ' ' + WHITE_TRIP_SYM + ihash.substr(-6) + ' (' + id + '): ',
+                        format_user_data(id, 3),
                         r, g, b
                     );
+                
+                var two_dot = log_text_el(': ');
+                
                 $(user_el).attr('class', 'log_cmt_user');
 
                 
@@ -469,62 +562,106 @@ function format_log(type, args)
                 
                 if(util.is_url(cmt))
                     {
-                        cmt_el = create_a_el(cmt);
+                        cmt_el = log_a_el(cmt);
                         
-                        log([time_el, user_el, cmt_el]);
+                        if(cmt.match(/^www\./)) { cmt = 'http://' + cmt; }
+                        
                         
                         /********************************************
                         * Request headers to check if it's an image
                         ********************************************/
-                        $.ajax({ type: 'HEAD', async: true, url: cmt })
-                            .done( function(msg, data, jqXHR)
-                                {
-                                    var type = jqXHR.getResponseHeader('content-type');
-                                    var size = jqXHR.getResponseHeader('content-length');
-                                    
-                                    /************************************************
-                                    * If it's an image smaller than 20mb, render it
-                                    ************************************************/
-                                    if(type.match('image') && size/1024 < 20000)
-                                        {
-                                            var img_el = create_img_el(cmt);
-                                            
-                                            log([img_el]);
-                                        }
-                                    else if(cmt.match(/youtube.com|youtu.be/))
-                                        {
-                                            var src;
-                                            
-                                            if(cmt.match('youtube.com/'))
-                                                {
-                                                    src = cmt.replace('watch?v=', 'embed/');
-                                                }
-                                            else if(cmt.match('youtu.be'))
-                                                {
-                                                    src = cmt.replace('.be/', 'be.com/embed/');
-                                                }
-                                            
-                                            var iframe_el = document.createElement('iframe');
-                                            $(iframe_el).attr('width', 373)
-                                                .attr('height', 210)
-                                                .attr('src', src)
-                                                .attr('frameborder', 0)
-                                                .attr('allowfullscreen', 1);
-                                            
-                                            log([iframe_el]);
-                                        }
-                                });
+                        $.ajax
+                            ({
+                                type : 'HEAD',
+                                async: true,
+                                url  : cmt,
+                                
+                                success: function(msg, data, jqXHR)
+                                    {
+                                        var type = jqXHR.getResponseHeader('content-type');
+                                        var size = jqXHR.getResponseHeader('content-length');
+                                        
+                                        /************************************************
+                                        * If it's an image smaller than 20mb, render it
+                                        ************************************************/
+                                        if(type.match('image') && size/1024 < 20000)
+                                            {
+                                                var img_el = log_img_el(cmt);
+                                                
+                                                log([time_el, user_el, two_dot, cmt_el]);
+                                                log([img_el]);
+                                            }
+                                        else if(cmt.match(/youtube.com|youtu.be/))
+                                            {
+                                                var src;
+                                                
+                                                if(cmt.match('youtube.com/'))
+                                                    {
+                                                        src = cmt.replace('watch?v=', 'embed/');
+                                                    }
+                                                else if(cmt.match('youtu.be'))
+                                                    {
+                                                        src = cmt.replace('.be/', 'be.com/embed/');
+                                                    }
+                                                
+                                                var iframe_el = $(document.createElement('iframe'))
+                                                    .attr('width', 373)
+                                                    .attr('height', 210)
+                                                    .attr('src', src)
+                                                    .attr('frameborder', 0)
+                                                    .attr('allowfullscreen', 1)[0];
+                                                
+                                                
+                                                log([time_el, user_el, two_dot, cmt_el]);
+                                                log([iframe_el]);
+                                            }
+                                        else if(type.match('text/html'))
+                                            {
+                                                $.ajax
+                                                    ({
+                                                        type: 'GET',
+                                                        async: true,
+                                                        url: cmt,
+                                                        
+                                                        success: function(msg, data, jqXHR)
+                                                            {
+                                                               var title = $(msg).filter('title').text();
+                                                                
+                                                               var text_el = log_text_el('[ '+title+' ]');
+                                                               var nbsp_el = log_nbsp_el(2);
+                                                                
+                                                               log
+                                                                ([
+                                                                    time_el, user_el, two_dot,
+                                                                    cmt_el,  nbsp_el, text_el
+                                                                ]);
+                                                            }
+                                                    });
+                                            }
+                                        else
+                                            {
+                                                log([time_el, user_el, two_dot, cmt_el]);
+                                            }
+                                    },
+                                
+                                error: function(err)
+                                    {
+                                        format_log('error', ['Could not retrieve URL.']);
+                                    }
+                            });
                     }
                 else
                     {
-                        cmt_el = create_text_el(cmt);
-                        log([time_el, user_el, cmt_el]);
+                        cmt_el = log_text_el(cmt);
+                        log([time_el, user_el, two_dot, cmt_el]);
                     }
 
 
                 /************************************************************
                 * Send a popup to the OS if the comments contains a trigger
                 ************************************************************/
+                if(is_ignored(id) || is_muted(id)) { return; }
+                
                 if(POPUP_ALL)
                     {
                         popup
@@ -554,7 +691,7 @@ function format_log(type, args)
                 var id   = args.shift();
                 
                 
-                var info_el = create_text_el('Trips found for ' + data + ' (id ' + id + '):');
+                var info_el = log_text_el('Trips found for ' + data + ' (id ' + id + '):');
                 
                 log_newline(1);
                 log([info_el]);
@@ -562,9 +699,9 @@ function format_log(type, args)
 
                 for(var i = 0; i < args.length; i++)
                     {
-                        var nbsp_el = create_nbsp_el(4);
+                        var nbsp_el = log_nbsp_el(4);
                         
-                        var res_el = create_text_el(args[i]);
+                        var res_el = log_text_el(args[i]);
                         
                         log([nbsp_el, res_el]);
                     }
@@ -575,7 +712,7 @@ function format_log(type, args)
             {
                 var [error] = args;
                 
-                var error_el = create_text_el
+                var error_el = log_text_el
                     (
                         'Error: ' + error,
                         255, 0, 0
@@ -585,7 +722,7 @@ function format_log(type, args)
             }
         else
             {
-                var text_el = create_text_el('Command not recognized: '+args[0]);
+                var text_el = log_text_el('Command not recognized: '+args[0]);
                 
                 log(text_el);
             }
@@ -647,7 +784,11 @@ function clear_screen()
             }
         else
             {
-                $('.user_div').remove();
+                $('.user_div').fadeOut
+                    ({
+                        duration: 200,
+                        complete: () => $('.user_div').remove()
+                    });
             }
     }
 
@@ -689,6 +830,20 @@ function refresh_main()
     {
         clear_screen();
         
+        loader.show();
+                
+        if(!IS_LOADING_MAIN)
+            {
+                IS_LOADING_MAIN = true;
+                
+                setTimeout( function()
+                    {
+                        loader.hide();
+                        IS_LOADING_MAIN = false;
+                    }, 4000 );
+            }
+        
+        
         main_view.button_table.children().remove();
         
         
@@ -712,8 +867,8 @@ function refresh_main()
         var tr_el, td_el, button_el;
         var tr_length = 5;
         
-        tr_el = document.createElement('TR');
-        $(tr_el).attr('class', 'main_button_table_tr');
+        tr_el = $(document.createElement('TR'))
+            .attr('class', 'main_button_table_tr')[0];
         
         main_view.button_table.append(tr_el);
         
@@ -724,8 +879,8 @@ function refresh_main()
                 
                 n = sorted_rooms[i];
                 
-                button_el = document.createElement('button');
-                $(button_el).text('Room ' + n + ': ' + c)
+                button_el = $(document.createElement('button'))
+                    .text('Room ' + n + ': ' + c)
                     .attr('class', 'main_room_button')
                     .on('click', function()
                         {
@@ -741,12 +896,12 @@ function refresh_main()
                             session._b = _b;
                             
                             change_room(n);
-                        });
+                        })[0];
                         
                         
-                td_el = document.createElement('TD');
-                $(td_el).attr('class', 'main_button_table_td')
-                    .append(button_el);
+                td_el = $(document.createElement('TD'))
+                    .attr('class', 'main_button_table_td')
+                    .append(button_el)[0];
                         
                 if($(tr_el).children().length < tr_length)
                     {
@@ -754,16 +909,13 @@ function refresh_main()
                     }
                 else
                     {
-                        tr_el = document.createElement('TR');
-                        $(tr_el).attr('class', 'main_button_table_tr');
+                        tr_el = $(document.createElement('TR'))
+                            .attr('class', 'main_button_table_tr')[0];
                         
                         $(tr_el).append(td_el);
                         main_view.button_table.append(tr_el);
                     }
             }
-            
-        
-        loader.hide();
     }
 
 function change_character_color(img, r, g, b)
@@ -828,83 +980,82 @@ function append_div(id)
                     .attr('draggable', id == session.id())
                     .css('transform', 'rotatey('+ (user[id].scl == -100 ? 180 : 0) +'deg)')
                     .css('opacity', (is_ignoring(id) || is_ignored(id)) ? 0.5 : 1);
-                    
-/*
-                if(id == session.id())
-                    {
-                        $(img).on('click', function(e)
-                            {
-                                session.scl();
-                            });
-                    }
-*/            
-
+                
+                
                 /*******************************
                 * Create user container object
                 *******************************/
-                var div = document.createElement('div');
-                
-                $(div).attr('id', 'user_div_'+id)
+                var div = $(document.createElement('div'))
+                    .attr('id', 'user_div_'+id)
                     .attr('class', 'user_div')
                     .attr('draggable', id == session.id())
-                    .css('left', x_scale(user[id].x || 0  ))
-                    .css('top',  y_scale(user[id].y || 400))
-                    .css('z-index', id == session.id() ? 2 : 1);
+                    .css('left', x_to_left(user[id].x))
+                    .css('top',  y_to_top(user[id].y))
+                    .css('z-index', id == session.id() ? 2 : 1)[0];
                     
                 
                 if(id == session.id())
                     {
-                        $(div).on('click', function()
-                            {
-                                if(IS_CLICK) { session.scl() }
-                                IS_CLICK = true;
-                            });
-                        
                         $( () => $(div).draggable
                             ({
-                                axis       : 'x',
-                                revert     : false,
-                                containment: 'parent',
-                                stop       : function(e)
+                                //axis       : 'x',
+                                containment: [0, 180, 668, 206],
+                                start: function(e)
                                     {
-                                        session.x(reverse_x_scale(e.clientX-e.offsetX+1));
+                                        drag_offset_x = e.offsetX;
+                                    },
+                                drag: function(e)
+                                    {
+                                        //var img = $('#user_div_'+session.id()+'_img');
+                                        //img.css('max-width', e.clientY*100/300);
+                                    },
+                                stop : function(e)
+                                    {
+                                        var x = session.get_scl() == 100
+                                            ? drag_offset_x
+                                            : (128 - drag_offset_x);
                                         
-                                        IS_CLICK = false;
+                                        session.x( left_to_x(e.clientX - x + 1) );
                                     }
                             })
                          );
                     }
-                else
-                    {
-                        $(div).on('mousedown', function(e)
-                            {
-                                if(e.which == 3)
-                                    {
-                                        show_user_context_menu(id);
-                                        e.stopPropagation();
-                                    }
-                            });
-                    }
+                
+                $(div).on('mousedown', id == session.id()
+                    ? function(e)
+                        {
+                            if(e.which == 3)
+                                {
+                                    session.scl();
+                                }
+                        }
+                    : function(e)
+                        {
+                            if(e.which == 3)
+                                {
+                                    show_user_context_menu(id);
+                                }
+                        });
                 
                 /*******************************
                 * Create user data text object
                 *******************************/
-                var user_data = create_text_el('');
-                $(user_data).attr('class', 'user_div_data')
+                var user_data = $(document.createElement('TEXT'))
+                    .attr('class', 'user_div_data')
                     .html(
-                        '<br>'
-                        + (user[id].name || 'nanashi')
-                        + '<br>' + WHITE_TRIP_SYM
-                        + user[id].ihash.substr(-6)
-                        + (user[id].trip == '' ? '' : ('<br>' + BLACK_TRIP_SYM + user[id].trip))
-                    );
+                            '<br>'
+                            + (user[id].name || 'nanashi')
+                            + '<br>' + WHITE_TRIP_SYM
+                            + user[id].ihash.substr(-6)
+                            + (user[id].trip == '' ? '' : ('<br>' + BLACK_TRIP_SYM + user[id].trip))
+                         )[0];
                 
                 
                 /**********************
                 * Create stat element
                 **********************/
-                var stat_div = document.createElement('DIV');
-                $(stat_div).attr('class', 'user_div_stat')
+                var stat_div = $(document.createElement('DIV'))
+                    .attr('class', 'user_div_stat')
                     .attr('id', 'user_div_stat_'+id)
                     .css('z-index', 2);
                 
@@ -958,8 +1109,8 @@ function move_div(id)
         /**********************************************************
         * Move user div to scaled x and y and rotate if neccesary
         **********************************************************/
-        div.css('left', x_scale(user[id].x));
-        div.css('top', y_scale(user[id].y));
+        div.css('left', x_to_left(user[id].x));
+        div.css('top', y_to_top(user[id].y));
         
         img.css('transform', 'rotatey('+ (user[id].scl == -100 ? 180 : 0) +'deg)');
     }
@@ -994,13 +1145,21 @@ function add_comment_div(id, cmt)
         var width = 128;
         var len   = get_px_len(cmt);
         
-        var div_el = document.createElement('DIV');
-        $(div_el).text(cmt)
+        
+        /***********************************************
+        * Set background colour to white if it's black
+        ***********************************************/
+        var {r, g, b} = user[id];
+        if(r == 0 && g == 0 && b == 0) { [r, g, b] = [255, 255, 255]; }
+        
+        
+        var div_el = $(document.createElement('DIV'))
+            .text(cmt)
             .addClass('comment_div')
-            .css('background-color', 'rgb('+user[id].r+', '+user[id].g+', '+user[id].b+')')
+            .css('background-color', 'rgb('+r+', '+g+', '+b+')')
             .css('width', len+10)
             .css('left', width/2 - len/2 - 10)
-            .on('click', () => clipboard.writeText(cmt) );
+            .on('click', () => clipboard.writeText(cmt) )[0];
 
         
         $( () => $(div_el).draggable
@@ -1035,8 +1194,9 @@ function show_users_dropdown()
                 
                 var {name, ihash} = user[id];
                 
-                var dropdown_el = create_text_el(name + ' ' + WHITE_TRIP_SYM + ihash.substr(-6) + ' ('+id+')');
-                $(dropdown_el).attr('class', 'dropdown_el')
+                var dropdown_el = $(document.createElement('TEXT'))
+                    .text(name + ' ' + WHITE_TRIP_SYM + ihash.substr(-6) + ' ('+id+')')
+                    .attr('class', 'dropdown_el')
                     .css(
                             'background-color',
                             (is_muted(id) || is_ignored(id) || is_ignoring(id))
@@ -1054,17 +1214,15 @@ function show_users_dropdown()
                                         ? 'rgb(255, 0, 0)'     //red
                                         : 'rgb(150, 150, 150)' //grey
                                 )
-                        });
+                        })[0];
 
                 
                 
                 room_view.dropdown['users'].append(dropdown_el);
-                
-                //$(dropdown_el).append('<hr>');
             }
         
-        room_view.dropdown['users'].css( 'top', 370 - room_view.dropdown['users'].height() );
         
+        room_view.dropdown['users'].css( 'top', 370 - room_view.dropdown['users'].height() );        
         room_view.dropdown['users'].toggle();
     }
 
@@ -1088,8 +1246,9 @@ function refresh_data_menu(data_menu)
         
         for(let key in config.profiles)
             {
-                var option = create_option_el(key);
-                data_menu['profile'].append(option);
+                var option_el = create_option_el(key);
+                
+                data_menu['profile'].append(option_el);
             }
         
         data_menu['profile'].on('change', function(e)
@@ -1113,6 +1272,24 @@ function refresh_data_menu(data_menu)
         data_menu['color_picker'].spectrum('set', 'rgb('+session.r()+', '+session.g()+', '+session.b()+')');
     }
 
+function refresh_new_menu()
+    {
+        room_view.new_menu['profile'].children().remove();
+        
+        var default_el = create_option_el('Default');
+        room_view.new_menu['profile'].append(default_el);
+        
+        for(let key in config.profiles)
+            {
+                var option_el = create_option_el(key);
+                
+                room_view.new_menu['profile'].append(option_el);
+            }
+        
+        room_view.new_menu['room'].val(session.room()); 
+        room_view.new_menu['n'].val(1);
+    }
+
 function show_user_context_menu(id)
     {
         var {name, ihash} = user[id];
@@ -1126,8 +1303,14 @@ function show_user_context_menu(id)
                 { label: 'Mute',        click() { mute(id);                } },
                 { label: 'Search trip', click() { search_trip('id', id);   } },
                 { label: 'Search name', click() { search_trip('name', id); } },
-                { label: 'Stalk',       click() { toggle_stalk(id);        } },
-                { label: 'Repeat',      click() { toggle_repeat(id);       } }
+                {
+                    label: 'Stalk '  + (is_repeated(id) ? 'On' : 'Off'),
+                    click() { toggle_stalk(id); }
+                },
+                {
+                    label: 'Repeat ' + (is_repeated(id) ? 'On' : 'Off'),
+                    click() { toggle_repeat(id); }
+                }
             ];
             
         menu = Menu.buildFromTemplate(template);
@@ -1447,22 +1630,9 @@ function play(path)
 
 function add_profile()
     {
-        var {_name, _character, _stat, _trip, _r, _g, _b, _x, _y, _scl} = session;
+        var name = session.name();
         
-        config['profiles'][_name] =
-            {
-                'name'     : session.name(),
-                'character': session.character(),
-                'stat'     : session.stat(),
-                'trip'     : session.trip(),
-                'r'        : session.r(),
-                'g'        : session.g(),
-                'b'        : session.b(),
-                'x'        : session.x(),
-                'y'        : session.y(),
-                'scl'      : session.scl()
-            };
-
+        config['profiles'][name] = session.get_data();
         
         try { jsonfile.writeFileSync('./config.json', config); }
         catch(err) { throw err; alert(err); }
@@ -1483,15 +1653,15 @@ function delete_profile(name)
             }
     }
 
-function load_profile(profile_name)
+function load_profile(name)
     {
-        if(config['profiles'][profile_name] == undefined)
+        if(config['profiles'][name] == undefined)
             {
-                format_log('error', ['Profile '+profile_name+' doesnt exist.']);
+                format_log('error', ['Profile '+name+' doesnt exist.']);
             }
         else
             {
-                session.profile(config['profiles'][profile_name]);
+                session.profile(config['profiles'][name]);
             }
     }
 
@@ -1624,6 +1794,14 @@ function signal_handler(msg)
     {
         console.log(msg);
         
+        
+        /***********************
+        * Parse xml characters
+        ***********************/
+        msg = msg.replace(/#d/g, '\'')
+            .replace(/#e/, '=');
+        
+        
         /************************
         * Discard first message
         ************************/
@@ -1723,10 +1901,16 @@ function signal_handler(msg)
                         console.log('user', user[id]);
                         console.log('enter', xml.attr);
                         
-                        if(id != session.id()) { format_log('enter', [id]); }
                         
-                        
-                        if(SOUND_ON) { play('./sound/enter.wav'); }
+                        if(!is_muted(id))
+                            {
+                                if(id != session.id()) { format_log('enter', [id]); }
+                                
+                                if(SOUND_ON && session.room() != 'main')
+                                    {
+                                        play('./assets/sound/enter.wav');
+                                    }
+                            }
                     }
                 else if(xml.name == 'USER')
                     {
@@ -1757,14 +1941,18 @@ function signal_handler(msg)
                         else
                             {
                                 room[id] = undefined;
-                                console.log(room);
                                 
                                 remove_div(id);
                                 
-                                format_log('exit', [id]);
-                                
-                                
-                                if(SOUND_ON) { play('./sound/enter.wav'); }
+                                if(!is_muted(id))
+                                    {
+                                        format_log('exit', [id]);
+                                        
+                                        if(SOUND_ON && session.room() != 'main')
+                                            {
+                                                play('./assets/sound/enter.wav');
+                                            }
+                                    }
                             }
                     }
                 else if(xml.name == 'SET')
@@ -1790,22 +1978,25 @@ function signal_handler(msg)
                             }
                         if(xml.attr.scl != undefined)
                             {
-                                if(xml.attr.scl != user[id].scl && is_stalked(id))
+                                if(is_stalked(id) && xml.attr.scl != user[id].scl)
                                     {
                                         session.scl();
                                     }
                                 
-                                move_div(id);
                                 user[id].scl = xml.attr.scl;
+                                move_div(id);
                             }
                         
                         if(xml.attr.stat != undefined)
                             {
                                 var {stat} = xml.attr;
                                 
+                                if(stat == user[id].stat) { return; }
+                                
                                 
                                 user[id].stat = stat;
-                                format_log('stat', [id]);
+                                
+                                if(!is_muted(id)) { format_log('stat', [id]); }
                                 
                                 
                                 /***************
@@ -1848,13 +2039,15 @@ function signal_handler(msg)
                         
                         console.log('Comment:', cmt);
                         
-                        add_comment_div(id, cmt);
-                        format_log('com', [id, cmt]);
+                        if(!is_muted(id))
+                            {
+                                add_comment_div(id, cmt);
+                                format_log('com', [id, cmt]);
+                                
+                                if(SOUND_ON) { play('./assets/sound/comment.wav'); }
                         
-                        
-                        if(SOUND_ON) { play('./sound/comment.wav'); }
-                        
-                        if(is_repeated(id)) { session.comment(cmt); }
+                                if(is_repeated(id)) { session.comment(cmt); }
+                            }
                     }
                 else
                     {
@@ -1867,20 +2060,28 @@ function signal_handler(msg)
                     }
                 
                 
-                bot(msg);
+                /***********************************
+                * Send the signal too all the bots
+                ***********************************/
+                for(var i = 0; i < bots.length; i++)
+                    {
+                        bots[i].signal_handler(msg);
+                    }
             }
     }
 
-function handle_command(com)
+function command_handler(com)
     {
         com = com.split(' ');
         
+        var full_arg = com.slice(1).join(' ');
+        
         console.log('com', com);
         
-        if(com[0] == 'name')             { session.name(com[1]);                }
-        else if(com[0] == 'character')   { session.character(com[1]);           }
-        else if(com[0] == 'stat')        { session.stat(com[1]);                }
-        else if(com[0] == 'trip')        { session.trip(com[1]);                }
+        if(com[0] == 'name')             { session.name(full_arg);              }
+        else if(com[0] == 'character' || com[0] == 'char'  ) { session.character(full_arg); }
+        else if(com[0] == 'stat'      || com[0] == 'status') { session.stat(full_arg);      }
+        else if(com[0] == 'trip')        { session.trip(full_arg);              }
         else if(com[0] == 'r')           { session.r(com[1]);                   }
         else if(com[0] == 'g')           { session.g(com[1]);                   }
         else if(com[0] == 'b')           { session.b(com[1]);                   }
@@ -1894,13 +2095,13 @@ function handle_command(com)
         else if(com[0] == 'timeout')     { session.timeout(com[1])              }
         else if(com[0] == 'searchid')    { search_trip('id', com[1]);           }
         else if(com[0] == 'searchtrip')  { search_trip('trip', com[1]);         }
-        else if(com[0] == 'searchname')  { search_trip('name', com[1]);         }
+        else if(com[0] == 'searchname')  { search_trip('name', full_arg);       }
         else if(com[0] == 'proxy')       { toggle_proxy();                      }
         else if(com[0] == 'tinyurl')     { tinyurl(com[1]);                     }
         else if(com[0] == 'popup')       { POPUP_ENABLED = !POPUP_ENABLED;      }
-        else if(com[0] == 'profile')     { load_profile(com[1]);                }
+        else if(com[0] == 'profile')     { load_profile(full_arg);              }
         else if(com[0] == 'saveprofile') { add_profile();                       }
-        else if(com[0] == 'delprofile')  { delete_profile(com[1]);              }
+        else if(com[0] == 'delprofile')  { delete_profile(full_arg);            }
         else if(com[0] == 'savelog')     { save_log();                          }
         else if(com[0] == 'next')        { next_room();                         }
         else if(com[0] == 'prev')        { previous_room();                     }
@@ -1910,30 +2111,68 @@ function handle_command(com)
         else if(com[0] == 'invisible')   { set_invisible();                     }
         else if(com[0] == 'nanashi')     { set_nanashi();                       }
         else if(com[0] == 'random')      { set_random(com[1]);                  }
-        else if(com[0] == 'room')        { change_room(com[1]);                 }
+        else if(com[0] == 'room')        { change_room(full_arg);               }
         else if(com[0] == 'mute')        { mute(com[1]);                        }
         else if(com[0] == 'relogin')     { relogin();                           }
+        else if(com[0] == 'addname')
+            {
+                var [undefined, id, name] = com;
+                var {ihash} = user[id];
+        
+                if(trip_list[ihash] == undefined)
+                    {
+                        trip_list[ihash] = [name];
+                        save_trip();
+                    }
+                else
+                    {
+                        if(!trip_list[ihash].includes(name))
+                            {
+                                trip_list[ihash].push(name);
+                                save_trip();
+                            }
+                    }
+            }
         else if(com[0] == 'new')
             {
-                if(com.length == 2)
+                var options = { n: 1, room: session.room(), prof: session.get_data() };
+                
+                if(com.length == 1)
                     {
-                        new_instance( {n: com[1], prof: session.get_data()} );
+                        options.n = 1;
                     }
-                else if(com.length == 3)
+                else
                     {
-                        if(Number.isInteger(com[2]))
+                        options.n = com[1];
+                        
+                        if(com.length == 3)
                             {
-                                new_instance( {n: com[1], room: com[2]} )
+                                Number.isInteger( parseInt(com[2]) )
+                                    ? options.room = com[2]
+                                    : options.prof = config.profiles[ com[2] ];
                             }
-                        else
+                        
+                        else if(com.length == 4)
                             {
-                                new_instance( {n: com[1], prof: config.profiles[com[2]]} );
+                                options.room = com[2];
+                                options.prof = config.profiles[ com[3] ];
                             }
                     }
-                else if(com.length == 4)
-                    {
-                        new_instance( {n: com[1], room: com[2], prof: config.profiles[com[3]]} );
-                    }
+                
+                
+                new_instance(options);
+            }
+        else if(com[0] == 'reloadbots')
+            {
+                bots = [];
+                
+                load_bots();
+            }
+        else if(com[0] == 'restart')
+            {
+                session.disconnect();
+                app.relaunch();
+                app.quit();
             }
         else if(com[0] == 'exit')
             {
@@ -1999,20 +2238,23 @@ window.onload = function()
     room_view.dropdown['config'] = $('#config_dropdown');
     
     
-    room_view.button['log']     = $('#log_button');
-    room_view.button['save']    = $('#save_log_button');
-    room_view.button['data']    = $('#data_button');
-    room_view.button['users']   = $('#users_button');
-    room_view.button['stat']    = $('#stat_button');
-    room_view.button['config']  = $('#config_button');
-    room_view.button['back']    = $('#back_button');
-    room_view.button['reenter'] = $('#reenter_button');
-    room_view.button['relogin'] = $('#relogin_button');
-    room_view.button['proxy']   = $('#proxy_button');
+    room_view.button['log']        = $('#log_button');
+    room_view.button['log_window'] = $('#log_window_button')
+    room_view.button['save']       = $('#save_log_button');
+    room_view.button['data']       = $('#data_button');
+    room_view.button['users']      = $('#users_button');
+    room_view.button['stat']       = $('#stat_button');
+    room_view.button['config']     = $('#config_button');
+    room_view.button['back']       = $('#back_button');
+    room_view.button['reenter']    = $('#reenter_button');
+    room_view.button['relogin']    = $('#relogin_button');
+    room_view.button['proxy']      = $('#proxy_button');
+    room_view.button['new']        = $('#new_button');
     
     room_view.button['config_login']   = $('#config_login');
     room_view.button['config_trigger'] = $('#config_trigger');
     room_view.button['config_client']  = $('#config_client');
+    room_view.button['config_bots']    = $('#config_bots');
     
     
     room_view.data['el'] = $('#room_data_menu');
@@ -2030,12 +2272,21 @@ window.onload = function()
     room_view.data['accept']          = $('#room_data_accept_button');
     
     
+    room_view.new_menu['el'] = $('#room_new_menu');
+    
+    room_view.new_menu['profile'] = $('#room_new_profile');
+    room_view.new_menu['room']    = $('#room_new_room');
+    room_view.new_menu['n']       = $('#room_new_n');
+    room_view.new_menu['accept']  = $('#room_new_menu_accept_button');
+    
+    
     /***************************
     * Set config menu elements
     ***************************/
     config_menu['login']   = $('#config_login_menu');
     config_menu['trigger'] = $('#config_trigger_menu');
     config_menu['client']  = $('#config_client_menu');
+    config_menu['bots']    = $('#config_bots_menu');
     
     config_menu['name']      = $('#config_menu_name');
     config_menu['character'] = $('#config_menu_character');
@@ -2053,6 +2304,9 @@ window.onload = function()
     
     config_menu['login_accept'] = $('#config_menu_login_accept_button');
     config_menu['login_cancel'] = $('#config_menu_login_cancel_button');
+    
+    config_menu['bots_accept'] = $('#config_menu_bots_accept_button');
+    
         
     
     /*********************
@@ -2094,10 +2348,19 @@ window.onload = function()
     ******************/
     room_view.el.on('mousedown', function(e)
         {
-            if(e.which == 3)
+            var el_class = e.target.className;
+            
+            if(
+                (
+                    el_class == 'container'
+                    || el_class == 'log'
+                    || e.target.parentElement.className == 'log'
+                    || e.target.parentElement.className == 'log_div_el'
+                )
+                && e.which == 3
+              )
                 {
                     show_command_context_menu();
-                    return true;
                 }
         });
     room_view.el.on('keyup', function(e)
@@ -2116,11 +2379,20 @@ window.onload = function()
     room_view.button['proxy']  .on('click', () => toggle_proxy()                        );
     room_view.button['relogin'].on('click', () => relogin()                             );
     room_view.button['config'] .on('click', () => room_view.dropdown['config'].toggle() );
+    room_view.button['new'].on('click', function()
+        {
+            refresh_new_menu();
+            room_view.new_menu.el.toggle();
+        });
+    room_view.button['log_window'].on('click', function()
+        {
+            ipcRenderer.send('toggle_log_window');
+        });
     room_view.button['back']   .on('click', function()
         {
             change_room('main');
             
-            setTimeout(() => session.reenter(), 1000); ////test
+            if(GET_ALL_MAIN) { setTimeout(() => session.reenter(), 1000); }
         });
     room_view.button['data'].on('click', function()
         {
@@ -2174,6 +2446,16 @@ window.onload = function()
     room_view.button['config_client'].on('click', function()
         {
             config_menu['client'].toggle();
+        });
+    room_view.button['config_bots'].on('click', function()
+        {
+            config_menu['bots'].toggle();
+            var child = $('.bot_list_checkbox');
+            
+            for(var i = 0; i < child.length; i++)
+                {
+                    $(child[i]).attr('checked', bots[i].is_on());
+                }
         });
     
     room_view.data['character_arrow'].on('click', function()
@@ -2254,7 +2536,7 @@ window.onload = function()
                     b:         parseInt(_b),
                     x:         room_view.data['x'].val(),
                     y:         room_view.data['y'].val(),
-                    scl:       session.scl()
+                    scl:       session.get_scl()
                 });
             
             
@@ -2265,6 +2547,20 @@ window.onload = function()
         });
 
     character_menu = $('#character_menu');
+    
+    room_view.new_menu['accept'].on('click', function(e)
+        {
+            var profile = room_view.new_menu['profile'].val();
+            var room    = room_view.new_menu['room'].val();
+            var n       = room_view.new_menu['n'].val();
+            
+            new_instance
+                ({
+                    prof: ( profile == 'Default' ? session.get_data() : config.profiles[profile] ),
+                    room: room,
+                    n   : n,
+                });
+        });
 
     
     /**************
@@ -2296,6 +2592,8 @@ window.onload = function()
             
             config_menu.login.toggle();
         });
+    
+    config_menu['bots_accept'].on( 'click', () => config_menu['bots'].hide() );
 
     
     /**************************
@@ -2307,8 +2605,29 @@ window.onload = function()
                 {
                     var text = e.target.value;
                     
-                    if(text[0] == '/') { handle_command(text.substr(1)); }
-                    else               { session.comment(text);          }
+                    if(text[0] == '/')
+                        {
+                            var com    = text.substr(1);
+                            var exists = false;
+                            
+                            for(var i = 0; i < bots.length; i++)
+                                {
+                                    if(bots[i].is_on())
+                                        {
+                                            var ret = bots[i].command_handler(com);
+                                            if(ret == undefined) { exists = true; }
+                                        }
+                                }
+
+                            /*************************************************
+                            * If the command isn't in the handler of any bot
+                            *************************************************/
+                            if(!exists)
+                                {
+                                    command_handler(com);
+                                }
+                        }
+                    else { session.comment(text); }
                     
                     e.target.value = '';
                     
@@ -2376,7 +2695,8 @@ window.onload = function()
             refresh_main();
             
             change_server(e.target.value);
-            setTimeout(() => session.reenter(), 1000); ////test
+            
+            if(GET_ALL_MAIN) { setTimeout(() => session.reenter(), 1000); }
         });
     main_view['room'].on('keydown', function(e)
         {
@@ -2425,10 +2745,10 @@ window.onload = function()
     
     for(var i = 0; i < sorted_n.length; i++)
         {
-            var div_el = document.createElement('DIV');
-            $(div_el).addClass('character_menu_div')
+            var div_el = $(document.createElement('DIV'))
+                .addClass('character_menu_div')
                 .addClass('category_'+character_list[sorted_n[i]].category)
-                .attr('character', sorted_n[i]);
+                .attr('character', sorted_n[i])[0];
 
             $(character_menu).append(div_el);
         }
@@ -2437,29 +2757,30 @@ window.onload = function()
     /**************************************
     * Add default status to stat dropdown
     **************************************/
-    var row = document.createElement('DIV');
-    $(row).addClass('stat_dropdown_row')
-        .css('display', 'table-row');
+    var row = $(document.createElement('DIV'))
+        .addClass('stat_dropdown_row')
+        .css('display', 'table-row')[0];
     
     room_view.dropdown['stat'].append(row);
     
     for(let i = 0; i < DEFAULT_STAT.length; i++)
         {
-            let text_el = create_text_el(DEFAULT_STAT[i]);
-            $(text_el).addClass('stat_dropdown_cell')
+            let text_el = $(document.createElement('TEXT'))
+                .text(DEFAULT_STAT[i])
+                .addClass('stat_dropdown_cell')
                 .css('display', 'table-cell')
                 .on('click', function()
                     {
                         session.stat(DEFAULT_STAT[i]);
                         
                         room_view.dropdown['stat'].toggle();
-                    } );
+                    })[0];
             
             if($(row).children().length == 2)
                 {
-                    row = document.createElement('DIV');
-                    $(row).addClass('stat_dropdown_row')
-                        .css('display', 'table-row');
+                    row = $(document.createElement('DIV'))
+                        .addClass('stat_dropdown_row')
+                        .css('display', 'table-row')[0];
                     
                     room_view.dropdown['stat'].append(row);
                 }
@@ -2467,22 +2788,61 @@ window.onload = function()
             $(row).append(text_el);
         }
 
-    var div = document.createElement('DIV');
-    $(div).addClass('stat_dropdown_cell');
+    var div = $(document.createElement('DIV'))
+        .addClass('stat_dropdown_cell')[0];
     
-    var label = document.createElement('LABEL');
-    $(label).text('Stat:')
-        .attr('for', 'stat_dropdown_input');
+    var label = $(document.createElement('LABEL'))
+        .text('Stat:')
+        .attr('for', 'stat_dropdown_input')[0];
     
-    var input = document.createElement('INPUT');
-    $(input).attr('id', 'stat_dropdown_input');
-    
+    var input = $(document.createElement('INPUT'))
+        .attr('id', 'stat_dropdown_input')[0];
     
     $(div).append(label);
     $(div).append(input);
     
-    
     $(row).append(div);
+    
+    
+    /*******************************
+    * Add bots to bots config list
+    *******************************/
+    for(let i = 0; i < bots.length; i++)
+        {
+            var tr_el = $(document.createElement('TR'))
+                .addClass('bot_list_tr')[0];
+            
+            
+            var name_td = $(document.createElement('TD'))
+                .text(bots[i].name)
+                .addClass('bot_list_name')
+                .addClass('bot_list_td bot_list_cell')
+                .on('click', function()
+                    {
+                        require('child_process').exec( 'explorer .\\assets\\js\\bots' );
+                    })[0];
+            
+            
+            var check_td = $(document.createElement('TD'))
+                .addClass('bot_list_td bot_list_cell')[0];
+            
+            let checkbox_el = $(document.createElement('INPUT'))
+                .attr('type', 'checkbox')
+                .attr('checked', bots[i].is_on())
+                .addClass('bot_list_checkbox')
+                .on('click', function()
+                    {
+                        bots[i].toggle();
+                    })[0];
+                
+            $(check_td).append(checkbox_el);
+                
+            
+            $(tr_el).append(name_td)
+                .append(check_td);
+            
+            $('#bot_list').append(tr_el);
+        }
     
     
     /****************************************************************

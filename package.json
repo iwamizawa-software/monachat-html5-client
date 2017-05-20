@@ -1,8 +1,8 @@
 {
     "name": "monachat_javascript_client",
-    "description": "monachat javascript client",
-    "version": "0.4.0",
-    "author": "Alvaro Fernandez",
+    "description": "Monachat javascript client",
+    "version": "0.6.0",
+    "author": "Alvaro Fernandez (nishinishi, American man...)",
     "main": "main.js",
     
     "dependencies": {

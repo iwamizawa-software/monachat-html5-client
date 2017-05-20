@@ -20,12 +20,16 @@
     top: 20px;
     left: 8px;
 }
-#save_log_button {
+#log_window_button {
     top: 57px;
     left: 8px;
 }
-#data_button {
+#save_log_button {
     top: 94px;
+    left: 8px;
+}
+#data_button {
+    top: 131px;
     left: 8px;
 }
 #reenter_button {
@@ -38,6 +42,10 @@
 }
 #proxy_button {
     top:  94px;
+    right: 8px;
+}
+#new_button {
+    top: 131px;
     right: 8px;
 }
 #users_button {

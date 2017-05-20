@@ -75,15 +75,14 @@ DONE Set characters half-invisible when they ignore you or you ignore them
 DONE Add image uploads through imgur
 DONE Add user data to context menu
 DONE Add any popup trigger
----- Add relogin on main screen
 
 0.5.0
 ------
 DONE Implement splash screen with server list
 DONE Add comment_div dragging
 DONE Change color to main_data_character_img on color picker change
----- Disable socket 'end' behaviour on relogin and enable automatic reconnect
-    ---- Disable them with proxy
+DONE Disable socket 'end' behaviour on relogin and enable automatic reconnect
+    DONE Disable them with proxy
 DONE Add comment sounds
 PART Character menu
 TEST Catch file loading errors and throw them
@@ -95,13 +94,30 @@ DONE Change options in context menu so that it shows on/off when it's off/on
 
 0.6.0
 ------
+DONE Add log in different window
+DONE Get URL title on url
+DONE Add comment queue
+DONE Don't show user messages on mute
+DONE Show stat only on change
+DONE Add command to add manually a name to a trip in trip_list
+DONE Open bot folder on config menu click
+DONE Add evade bot
+DONE Redirect console output into file
+DONE Change background color of text when it's hard to see
+
+0.7.0
+------
+---- Translation
+---- Documentation
+---- Check for architecture at the start and notify if it's not x64
+---- Load bot on checkbox every time bot menu is opened
 ---- Add a table for users
----- Add log in different window
 ---- Add character image mapping
----- Fix not being able to select last line in log
 ---- Add comment div to user img not to user div
 ---- Fix y scaling
 ---- Add vertical dragging to comment_div
+---- Dont convert RGB on copy
+---- Add relogin on main screen
 
 ???? Change title font
 ???? Implement user class to maintain code style
@@ -109,10 +125,17 @@ DONE Change options in context menu so that it shows on/off when it's off/on
 ???? Handle <hr> tags on log save?
 ???? Don't show user info on USER
 ???? Add full screen log?
+???? Add private comunication with PGP?
+???? Support html5 audio and video in log?
 
 BUGS
 ----
 -FIX Room title isn't displayed when you access a room through the main room
--FIX Parse XML #e #d etc
+PART Parse XML #e #d etc
 -FIX Some URLs are not loaded
 -FIX Screen doesn't clear when the /proxy command is typed in the middle of proxy search
+-FIX Not being able to select last line in log
+-FIX Room context menu not working on log sometimes
+-FIX Site and set it to stop proxy search
+-FIX Default cursor on log scroll bar
+-FIX Drag imprecission when dragging from user data div ?

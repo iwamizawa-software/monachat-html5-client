@@ -1,11 +1,25 @@
 # monachat-html5-client (temporary)
 HTML5 client for monachat
 
-ここから最新版のバイナリーがダウンロードできます: http://tinyurl.com/monachat-html5-client-0-4-0
+# ダウンロード
 
-ライセンス: GPL v3.0
+# Windows
 
-作者: American man...
+v0.5.0: http://tinyurl.com/monachat-html5-client-v0-5-0
+v0.4.0: http://tinyurl.com/monachat-html5-client-0-4-0
+
+# Linux
+
+まだ
+
+
+#ライセンス
+
+GPL v3.0
+
+#作者
+
+American man...
 
 まだベータ版だからバグやエラーを大目に見てくださいね＠ｗ＠
 

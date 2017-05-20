@@ -109,7 +109,7 @@ function create_img_el(url)
 function is_url(line)
     {
         //var regex = new RegExp('#\b(([\w-]+://?|www[.])[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|/)))');
-        var regex = new RegExp('http', 'i');
+        var regex = new RegExp('^https?:\/\/|www\.', 'i');
         
         if(regex.test(line)) { return true;  }
         else                 { return false; }

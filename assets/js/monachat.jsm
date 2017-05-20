@@ -59,7 +59,7 @@ function Monachat(data, callback)
         this._server = data.server || 'MONA8094';
         this._room   = data.room   || 100;
         
-        this._timeout = data.timeout || 1;
+        this._timeout = data.timeout || 2;
         
         this._proxy      = data.proxy || 0;
         this._site       = data.site  || 1;
@@ -88,6 +88,7 @@ function Monachat(data, callback)
         this.x         = x;
         this.y         = y;
         this.scl       = scl;
+        this.get_scl   = get_scl;
         this.x_y_scl   = x_y_scl;
         this.get_data  = get_data;
         this.set_data  = set_data;
@@ -100,17 +101,29 @@ function Monachat(data, callback)
         this.timeout = timeout;
         
         
+        this.IS_CONNECTED = false;
+        
+        
         this._enter_main = _enter_main;
         this._enter_room = _enter_room;
         this._exit_room  = _exit_room;
-        this.reenter    = reenter;
+        this.reenter     = reenter;
         
         
-        this.ignore       = ignore;
+        this.ignore        = ignore;
         this._send_stat    = _send_stat;
         this._send_x_y_scl = _send_x_y_scl;
         
-        this.comment = comment;
+        
+        this.comment          = comment;
+        this.send_comment     = send_comment;
+        this.enqueue_comment  = enqueue_comment;
+        this._dequeue_comment = _dequeue_comment;
+        
+        this.COMMENT_SPACE    = 2200; // 2.2s
+        this.CAN_COMMENT      = true;
+        
+        this._comment_queue   = [];
         
         
         this.set_default = set_default;
@@ -203,6 +216,21 @@ function connect_normal()
                 that.set_client_events();
                 
                 if(loader != undefined) { loader.hide(); }
+
+
+                /*********************
+                * Resume paused bots
+                *********************/
+                if(bots != undefined)
+                    {
+                        for(var i = 0; i < bots.length; i++)
+                            {
+                                if( bots[i].is_on() && bots[i].is_paused() )
+                                    {
+                                        bots[i].resume();
+                                    }
+                            }
+                    }
             });
     }
 
@@ -282,7 +310,25 @@ function connect_proxy()
                         that.set_client_events();
                         
                         
+                        this.IS_CONNECTED = true;
+                        
+                        
                         if(loader != undefined) { loader.hide(); }
+
+
+                        /*********************
+                        * Resume paused bots
+                        *********************/
+                        if(bots != undefined)
+                            {
+                                for(var i = 0; i < bots.length; i++)
+                                    {
+                                        if( bots[i].is_on() && bots[i].is_paused() )
+                                            {
+                                                bots[i].resume();
+                                            }
+                                    }
+                            }
                     }
             });
     }
@@ -317,7 +363,8 @@ function set_client_events()
                 
                 if(err.code == 'ECONNRESET' || err.code == 'EPIPE')
                     {
-                        if(0)//!that._proxy)
+                        /*
+                        if(!that._proxy)
                             {
                                 that.disconnect();
                                 
@@ -327,6 +374,7 @@ function set_client_events()
                                 
                                 setTimeout( () => that.connect(), 5000 ); ////not that._timeout
                             }
+                        */
                     }
             });
 
@@ -335,19 +383,35 @@ function set_client_events()
         this.client.on('end', function()
             {
                 console.log('Disconnected from server.');
-                
                 clearInterval(that.ping_timer_id);
+                
                 
                 if(loader != undefined) { loader.show(); }
                 
-                if(0)//!that._proxy)
+                
+                /*************
+                * Pause bots
+                *************/
+                if(bots != undefined)
+                    {
+                        for(var i = 0; i < bots.length; i++)
+                            {
+                                if(bots[i].is_on()) { bots[i].pause(); }
+                            }
+                    }
+                
+                
+                
+                if(!that._proxy || (that._proxy && this.IS_CONNECTED))
                     {
                         console.log('Trying to reconnect...');
                         
                         if(clear_screen != undefined) { clear_screen(); }
                         
-                        setTimeout( () => that.connect(), 5000 ); ////not that._timeout
-                    }
+                        this.IS_CONNECTED = false;
+                        
+                        setTimeout( () => that.connect(), that._timeout );
+                    }                
             });
     }
 
@@ -661,18 +725,16 @@ function y(y)
             }
     }
 
+function get_scl()
+    {
+        return this._scl;
+    }
+    
 function scl()
     {
-        if(scl == undefined)
-            {
-                return this._scl;
-            }
-        else
-            {
-                this._scl = this._scl == 100 ? -100 : 100;
+        this._scl = this._scl == 100 ? -100 : 100;
         
-                this._send_x_y_scl();
-            }
+        this._send_x_y_scl();
     }
 
 function x_y_scl(x, y, scl)
@@ -695,8 +757,8 @@ function get_data()
     {
         return { name     : this._name,
                  character: this._character,
-                 stat     : this._stat,
                  trip     : this._trip,
+                 stat     : this._stat,
                  r        : this._r,
                  g        : this._g,
                  b        : this._b,
@@ -708,25 +770,18 @@ function get_data()
 
 function set_data(data)
     {
-        if(data == undefined)
-            {
-                var {name, id, ihash, trip, r, g, b, x, y, scl} = this;
-                return [name, id, ihash, trip, r, g, b, x, y, scl];
-            }
-        else
-            {
-                this._name      = data.name;
-                this._character = data.character;
-                this._trip      = data.trip;
-                this._r         = data.r;
-                this._g         = data.g;
-                this._b         = data.b;
-                this._x         = data.x;
-                this._y         = data.y;
-                this._scl       = data.scl;
-                
-                session.reenter();
-            }
+        this._name      = data.name;
+        this._character = data.character;
+        this._trip      = data.trip;
+        this._stat      = data.stat;
+        this._r         = data.r;
+        this._g         = data.g;
+        this._b         = data.b;
+        this._x         = data.x;
+        this._y         = data.y;
+        this._scl       = data.scl;
+        
+        session.reenter();
     }
 
 function _send_stat()
@@ -791,9 +846,61 @@ function ignore(ihash)
 
 function comment(cmt)
     {
-        cmt = parse_special_characters( cmt.substr(0, 50) );
-        console.log('comment', '<COM cmt="'+cmt+'" />\0');
+        var that = this;
         
+        cmt = parse_special_characters(cmt)
+            .match(/.{1,50}/g);
+        
+        for(let i = 0; i < cmt.length; i++)
+            {
+                setTimeout( () => that.send_comment(cmt[i]), i*that.COMMENT_SPACE );
+            }
+    }
+
+function enqueue_comment(cmt)
+    {
+        cmt = parse_special_characters(cmt)
+            .match(/.{1,50}/g);
+        
+        var dequeue = this._comment_queue.length == 0;
+        
+        for(var i = 0; i < cmt.length; i++)
+            {
+                this._comment_queue.push(cmt[i]);
+            }
+        
+        if(dequeue) { this._dequeue_comment(); }
+    }
+
+function _dequeue_comment()
+    {
+        var that = this;
+        
+        /****************************************************************
+        * If there are comments in the queue and enough time has passed
+        ****************************************************************/
+        if(this.CAN_COMMENT && this._comment_queue.length > 0)
+            {
+                var cmt = this._comment_queue.shift();
+                
+                this.send_comment(cmt);
+                
+                
+                this.CAN_COMMENT = false;
+                setTimeout( function() { that.CAN_COMMENT = true }, that.COMMENT_SPACE );
+            }
+        
+        /***************************************
+        * Call itself until the queue is empty
+        ***************************************/
+        if(this._comment_queue.length > 0)
+            {
+                setTimeout( () => that._dequeue_comment(), 200 );
+            }
+    }
+
+function send_comment(cmt)
+    {
         this.client.write('<COM cmt="' + cmt + '" />\0');
     }
 

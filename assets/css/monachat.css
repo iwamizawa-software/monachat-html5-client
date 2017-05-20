@@ -1,7 +1,7 @@
 /* monachat css */
 
 :root {
-    --default_font: 'MS Pgothic', 'MS Pゴシック', 'ヒラギノ角ゴ Pro W3', 'Hiragino Kaku Gothic Pro', 'Meiryo', 'メイリオ', 'Osaka', sans-serif;
+    --default_font: 'MS Pgothic', 'MS PÃƒÂ£Ã¢â‚¬Å¡Ã‚Â´ÃƒÂ£Ã¢â‚¬Å¡Ã‚Â·ÃƒÂ£Ã†â€™Ã†â€™ÃƒÂ£Ã¢â‚¬Å¡Ã‚Â¯', 'ÃƒÂ£Ã†â€™Ã¢â‚¬â„¢ÃƒÂ£Ã†â€™Ã‚Â©ÃƒÂ£Ã¢â‚¬Å¡Ã‚Â®ÃƒÂ£Ã†â€™Ã…Â½ÃƒÂ¨Ã‚Â§Ã¢â‚¬â„¢ÃƒÂ£Ã¢â‚¬Å¡Ã‚Â´ Pro W3', 'Hiragino Kaku Gothic Pro', 'Meiryo', 'ÃƒÂ£Ã†â€™Ã‚Â¡ÃƒÂ£Ã¢â‚¬Å¡Ã‚Â¤ÃƒÂ£Ã†â€™Ã‚ÂªÃƒÂ£Ã¢â‚¬Å¡Ã‚Âª', 'Osaka', sans-serif;
 }
 
 html {
@@ -53,6 +53,9 @@ hr {
 
     padding-left: 3px;
 }
+.stop {
+    animation-play-state: paused !important;
+}
 
 #audio {
     display: none;
@@ -77,9 +80,16 @@ hr {
     z-index: 10;
 }
 
-.stop {
-    animation-play-state: paused !important;
-    -webkit-animation-play-state: paused !important;
+#log_window_log {
+    position: absolute;
+
+    width: calc(100% - 10px);
+    height: calc(100% - 15px);
+
+    left: 0px;
+    top: 0px;
+
+    border: none;
 }
 
 @keyframes loading {

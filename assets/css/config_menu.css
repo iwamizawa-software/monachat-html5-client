@@ -164,3 +164,53 @@
     left: -40px;
     top: 50px;
 }
+
+#config_bots_menu {
+    display: none;
+    position: absolute;
+
+    width: 200px;
+    height: 300px;
+
+    left: 290px;
+    top: 40px;
+
+    border: 1px solid black;
+
+    background-color: white;
+
+    z-index: 3;
+}
+#bot_list {
+    position: relative;
+    display: block;
+    overflow-y: auto;
+
+    width: 100%;
+    height: 82%;
+
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+.bot_list_cell {
+    position: relative;
+
+    height: 35px;
+    width: 20%;
+
+    max-width: 50px;
+    
+    text-align: center;
+
+    border-bottom: 1px solid black;
+}
+.bot_list_cell:first-child {
+    border-right: 1px solid black;
+}
+
+#config_menu_bots_accept_button {
+    position: absolute;
+
+    bottom: 8px;
+    left: 72px;
+}
