@@ -40,9 +40,9 @@
 現在バージョン: v0.6.0
 
 
-* Windows
+* Windows (64bit)
 
-  v0.6.0: http://tinyurl.com/monachat-html5-client-0-6-0
+  v0.6.0: http://tinyurl.com/mhzrx74
   <br>
   v0.5.1: http://tinyurl.com/monachat-html5-client-v0-5-1
   <br>
