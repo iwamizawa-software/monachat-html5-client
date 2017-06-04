@@ -233,7 +233,8 @@
 #room_new_menu_accept_button {
     position: relative;
 
-    bottom: -5px;
+    bottom: -15px;
+    left: -10px;
 
     height: 40px;
     width: 180px;
