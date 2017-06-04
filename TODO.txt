@@ -108,16 +108,20 @@ DONE Change background color of text when it's hard to see
 0.7.0
 ------
 ---- Translation
----- Documentation
+PART Documentation
 ---- Check for architecture at the start and notify if it's not x64
----- Load bot on checkbox every time bot menu is opened
----- Add a table for users
----- Add character image mapping
----- Add comment div to user img not to user div
+DONE Load bot on checkbox every time bot menu is opened
+DONE Add default bot config menu option
+DONE Add character mapping
 ---- Fix y scaling
 ---- Add vertical dragging to comment_div
 ---- Dont convert RGB on copy
 ---- Add relogin on main screen
+---- Automatic log saving
+PART Log search
+PART Client config menu
+---- Add automatic ignoring on logout if id changed
+---- Randomize proxy list on download (site 2)
 
 ???? Change title font
 ???? Implement user class to maintain code style
@@ -131,11 +135,11 @@ DONE Change background color of text when it's hard to see
 BUGS
 ----
 -FIX Room title isn't displayed when you access a room through the main room
-PART Parse XML #e #d etc
--FIX Some URLs are not loaded
+PART Parse XML #e #d #f etc
 -FIX Screen doesn't clear when the /proxy command is typed in the middle of proxy search
+-FIX Socket has been disconnected error
 -FIX Not being able to select last line in log
 -FIX Room context menu not working on log sometimes
--FIX Site and set it to stop proxy search
+???? Site and set it to stop proxy search
 -FIX Default cursor on log scroll bar
 -FIX Drag imprecission when dragging from user data div ?

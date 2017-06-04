@@ -1,0 +1,1802 @@
+[{
+		"id": 103562,
+		"answer": "breakfront",
+		"question": "By definition, this type of china cabinet has a slightly projecting middle section",
+		"value": 1000,
+		"airdate": "2011-04-22T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:20.027Z",
+		"updated_at": "2014-02-14T02:10:20.027Z",
+		"category_id": 13932,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13932,
+			"title": "home furnishings",
+			"created_at": "2014-02-14T02:10:18.710Z",
+			"updated_at": "2014-02-14T02:10:18.710Z",
+			"clues_count": 10
+		}
+	}, {
+		"id": 103563,
+		"answer": "Arthur Miller",
+		"question": "Daniel Day-Lewis' was this dramatist",
+		"value": 1000,
+		"airdate": "2011-04-22T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:20.069Z",
+		"updated_at": "2014-02-14T02:10:20.069Z",
+		"category_id": 13933,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13933,
+			"title": "fathers-in-law",
+			"created_at": "2014-02-14T02:10:18.725Z",
+			"updated_at": "2014-02-14T02:10:18.725Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103552,
+		"answer": "Kirk Douglas",
+		"question": "",
+		"value": null,
+		"airdate": "2011-04-22T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:19.564Z",
+		"updated_at": "2016-03-30T15:29:38.609Z",
+		"category_id": 1215,
+		"game_id": null,
+		"invalid_count": 1,
+		"category": {
+			"id": 1215,
+			"title": "the environment",
+			"created_at": "2014-02-11T22:52:39.218Z",
+			"updated_at": "2014-02-11T22:52:39.218Z",
+			"clues_count": 40
+		}
+	}, {
+		"id": 103565,
+		"answer": "<i>Animal House</i>",
+		"question": "Pinto, Otter & D-Day are nicknames of students in this 1978 classic comedy",
+		"value": 200,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:20.624Z",
+		"updated_at": "2014-02-14T02:10:20.624Z",
+		"category_id": 13935,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13935,
+			"title": "movie nicknames",
+			"created_at": "2014-02-14T02:10:20.500Z",
+			"updated_at": "2014-02-14T02:10:20.500Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103566,
+		"answer": "New York",
+		"question": "Attica! & Southport Correctional Facility!",
+		"value": 200,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:20.663Z",
+		"updated_at": "2014-02-14T02:10:20.663Z",
+		"category_id": 13936,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13936,
+			"title": "state / prison",
+			"created_at": "2014-02-14T02:10:20.513Z",
+			"updated_at": "2014-02-14T02:10:20.513Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103567,
+		"answer": "connection time",
+		"question": "MCT is short for \"minimum\" this \"time\" & it's supposed to be long enough to get to a distant gate",
+		"value": 200,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:20.701Z",
+		"updated_at": "2014-02-14T02:10:20.701Z",
+		"category_id": 13937,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13937,
+			"title": "airline lingo",
+			"created_at": "2014-02-14T02:10:20.527Z",
+			"updated_at": "2014-02-14T02:10:20.527Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103568,
+		"answer": "Russia",
+		"question": "In area, it's the largest country in the world that has a red, white & blue flag",
+		"value": 200,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:20.738Z",
+		"updated_at": "2014-02-14T02:10:20.738Z",
+		"category_id": 88,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 88,
+			"title": "geography",
+			"created_at": "2014-02-11T22:47:32.825Z",
+			"updated_at": "2014-02-11T22:47:32.825Z",
+			"clues_count": 95
+		}
+	}, {
+		"id": 103569,
+		"answer": "Easter",
+		"question": "Celebration of the Resurrection",
+		"value": 200,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:20.776Z",
+		"updated_at": "2014-02-14T02:10:20.776Z",
+		"category_id": 13938,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13938,
+			"title": "fill e_____r up",
+			"created_at": "2014-02-14T02:10:20.547Z",
+			"updated_at": "2014-02-14T02:10:20.547Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103570,
+		"answer": "Betsy",
+		"question": "With a .40-caliber flintlock nicknamed \"Old\" her, Crockett is said to have killed 125 bears between 1825 & 1834",
+		"value": 400,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:20.820Z",
+		"updated_at": "2014-02-14T02:10:20.820Z",
+		"category_id": 13934,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13934,
+			"title": "davy crockett",
+			"created_at": "2014-02-14T02:10:20.486Z",
+			"updated_at": "2014-02-14T02:10:20.486Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103571,
+		"answer": "The Italian Stallion",
+		"question": "Sylvester Stallone has this 2-word equine nickname, just like one of his characters",
+		"value": null,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:20.857Z",
+		"updated_at": "2014-02-14T02:10:20.857Z",
+		"category_id": 13935,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13935,
+			"title": "movie nicknames",
+			"created_at": "2014-02-14T02:10:20.500Z",
+			"updated_at": "2014-02-14T02:10:20.500Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103572,
+		"answer": "Illinois",
+		"question": "You're off to the land of Lincoln Correctional Center & also Dixon (but no Mason)",
+		"value": 400,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:20.930Z",
+		"updated_at": "2014-02-14T02:10:20.930Z",
+		"category_id": 13936,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13936,
+			"title": "state / prison",
+			"created_at": "2014-02-14T02:10:20.513Z",
+			"updated_at": "2014-02-14T02:10:20.513Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103573,
+		"answer": "a Deadhead",
+		"question": "As a noun, it's a fan of a Jerry Garcia band; as a pilot's verb, it's to fly as a passenger while you're on duty",
+		"value": 400,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:20.971Z",
+		"updated_at": "2014-02-14T02:10:20.971Z",
+		"category_id": 13937,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13937,
+			"title": "airline lingo",
+			"created_at": "2014-02-14T02:10:20.527Z",
+			"updated_at": "2014-02-14T02:10:20.527Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103574,
+		"answer": "Africa",
+		"question": "Hippo, in the north of this continent, was the diocesan seat of St. Augustine",
+		"value": 400,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.010Z",
+		"updated_at": "2014-02-14T02:10:21.010Z",
+		"category_id": 88,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 88,
+			"title": "geography",
+			"created_at": "2014-02-11T22:47:32.825Z",
+			"updated_at": "2014-02-11T22:47:32.825Z",
+			"clues_count": 95
+		}
+	}, {
+		"id": 103575,
+		"answer": "an educator",
+		"question": "A professor or principal",
+		"value": 400,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.050Z",
+		"updated_at": "2014-02-14T02:10:21.050Z",
+		"category_id": 13938,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13938,
+			"title": "fill e_____r up",
+			"created_at": "2014-02-14T02:10:20.547Z",
+			"updated_at": "2014-02-14T02:10:20.547Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103576,
+		"answer": "Texas",
+		"question": "After losing his final election, Crockett said, \"You may all go to hell and I will go\" here",
+		"value": 600,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.088Z",
+		"updated_at": "2014-02-14T02:10:21.088Z",
+		"category_id": 13934,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13934,
+			"title": "davy crockett",
+			"created_at": "2014-02-14T02:10:20.486Z",
+			"updated_at": "2014-02-14T02:10:20.486Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103577,
+		"answer": "Mr. Pink",
+		"question": "Steve Buscemi's character in \"Reservoir Dogs\" chafed after receiving this nickname",
+		"value": 600,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.125Z",
+		"updated_at": "2014-02-14T02:10:21.125Z",
+		"category_id": 13935,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13935,
+			"title": "movie nicknames",
+			"created_at": "2014-02-14T02:10:20.500Z",
+			"updated_at": "2014-02-14T02:10:20.500Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103578,
+		"answer": "Minnesota",
+		"question": "Hey! You! Get off of my correctional facility at St. Cloud! Rush City, too, for that matter!",
+		"value": 600,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.163Z",
+		"updated_at": "2014-02-14T02:10:21.163Z",
+		"category_id": 13936,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13936,
+			"title": "state / prison",
+			"created_at": "2014-02-14T02:10:20.513Z",
+			"updated_at": "2014-02-14T02:10:20.513Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103579,
+		"answer": "a full body scan",
+		"question": "The TSA's advanced imaging technology is also called FBS, short for this (passengers may have other terms)",
+		"value": 600,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.201Z",
+		"updated_at": "2014-02-14T02:10:21.201Z",
+		"category_id": 13937,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13937,
+			"title": "airline lingo",
+			"created_at": "2014-02-14T02:10:20.527Z",
+			"updated_at": "2014-02-14T02:10:20.527Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103580,
+		"answer": "12 hours",
+		"question": "If you live on the equator, you'll note you usually have this many hours of daylight a day",
+		"value": 600,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.240Z",
+		"updated_at": "2014-02-14T02:10:21.240Z",
+		"category_id": 88,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 88,
+			"title": "geography",
+			"created_at": "2014-02-11T22:47:32.825Z",
+			"updated_at": "2014-02-11T22:47:32.825Z",
+			"clues_count": 95
+		}
+	}, {
+		"id": 103581,
+		"answer": "the employer",
+		"question": "The worker's boss",
+		"value": 600,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.277Z",
+		"updated_at": "2014-02-14T02:10:21.277Z",
+		"category_id": 13938,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13938,
+			"title": "fill e_____r up",
+			"created_at": "2014-02-14T02:10:20.547Z",
+			"updated_at": "2014-02-14T02:10:20.547Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103582,
+		"answer": "Santa Anna",
+		"question": "The diary of a Mexican officer who was at the Alamo claims Davy was executed after the battle on this general's orders",
+		"value": 800,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.316Z",
+		"updated_at": "2014-02-14T02:10:21.316Z",
+		"category_id": 13934,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13934,
+			"title": "davy crockett",
+			"created_at": "2014-02-14T02:10:20.486Z",
+			"updated_at": "2014-02-14T02:10:20.486Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103583,
+		"answer": "<i>Guys and Dolls</i>",
+		"question": "A character nicknamed Nicely Nicely sings \"Sit down you're rocking the boat\" in this 1955 movie",
+		"value": 800,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.355Z",
+		"updated_at": "2014-02-14T02:10:21.355Z",
+		"category_id": 13935,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13935,
+			"title": "movie nicknames",
+			"created_at": "2014-02-14T02:10:20.500Z",
+			"updated_at": "2014-02-14T02:10:20.500Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103584,
+		"answer": "Massachusetts",
+		"question": "Cedar Junction & Framingham are wicked excellent prisons for the wicked",
+		"value": 800,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.400Z",
+		"updated_at": "2014-02-14T02:10:21.400Z",
+		"category_id": 13936,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13936,
+			"title": "state / prison",
+			"created_at": "2014-02-14T02:10:20.513Z",
+			"updated_at": "2014-02-14T02:10:20.513Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103585,
+		"answer": "a layover",
+		"question": "Technically, this is what it's called when you spend the night between flights",
+		"value": 800,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.442Z",
+		"updated_at": "2014-02-14T02:10:21.442Z",
+		"category_id": 13937,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13937,
+			"title": "airline lingo",
+			"created_at": "2014-02-14T02:10:20.527Z",
+			"updated_at": "2014-02-14T02:10:20.527Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103586,
+		"answer": "the North Sea",
+		"question": "Frisia is a European region bordering this sea",
+		"value": 800,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.484Z",
+		"updated_at": "2014-02-14T02:10:21.484Z",
+		"category_id": 88,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 88,
+			"title": "geography",
+			"created_at": "2014-02-11T22:47:32.825Z",
+			"updated_at": "2014-02-11T22:47:32.825Z",
+			"clues_count": 95
+		}
+	}, {
+		"id": 103587,
+		"answer": "an elector",
+		"question": "One of 538 who choose a president",
+		"value": 800,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.523Z",
+		"updated_at": "2014-02-14T02:10:21.523Z",
+		"category_id": 13938,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13938,
+			"title": "fill e_____r up",
+			"created_at": "2014-02-14T02:10:20.547Z",
+			"updated_at": "2014-02-14T02:10:20.547Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103588,
+		"answer": "Andrew Jackson",
+		"question": "In 1832 Crockett & his fellow Whigs opposed this president's position against the Bank of the United States",
+		"value": 1000,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.566Z",
+		"updated_at": "2014-02-14T02:10:21.566Z",
+		"category_id": 13934,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13934,
+			"title": "davy crockett",
+			"created_at": "2014-02-14T02:10:20.486Z",
+			"updated_at": "2014-02-14T02:10:20.486Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103589,
+		"answer": "Gomer Pyle",
+		"question": "R. Lee Ermey in \"Full Metal Jacket\" calls Vincent D'Onofrio's character this, after a fictional TV marine",
+		"value": 1000,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.627Z",
+		"updated_at": "2014-02-14T02:10:21.627Z",
+		"category_id": 13935,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13935,
+			"title": "movie nicknames",
+			"created_at": "2014-02-14T02:10:20.500Z",
+			"updated_at": "2014-02-14T02:10:20.500Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103590,
+		"answer": "California",
+		"question": "It's another Pleasant Valley State Prison Sunday, no one's flying out of Pelican Bay, either",
+		"value": 1000,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.671Z",
+		"updated_at": "2014-02-14T02:10:21.671Z",
+		"category_id": 13936,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13936,
+			"title": "state / prison",
+			"created_at": "2014-02-14T02:10:20.513Z",
+			"updated_at": "2014-02-14T02:10:20.513Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103591,
+		"answer": "a holding pattern",
+		"question": "A plane turned away from landing at an airport & circling to await instructions is said to be in one of these patterns",
+		"value": 1000,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.710Z",
+		"updated_at": "2014-02-14T02:10:21.710Z",
+		"category_id": 13937,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13937,
+			"title": "airline lingo",
+			"created_at": "2014-02-14T02:10:20.527Z",
+			"updated_at": "2014-02-14T02:10:20.527Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103592,
+		"answer": "Sri Lanka",
+		"question": "In 1972 the Tamil Tigers, a liberation group, not a baseball team, was founded in this country",
+		"value": 1000,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.749Z",
+		"updated_at": "2014-02-14T02:10:21.749Z",
+		"category_id": 88,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 88,
+			"title": "geography",
+			"created_at": "2014-02-11T22:47:32.825Z",
+			"updated_at": "2014-02-11T22:47:32.825Z",
+			"clues_count": 95
+		}
+	}, {
+		"id": 103593,
+		"answer": "equaliser",
+		"question": "Nickname for Colonel Colt's deadly invention",
+		"value": 1000,
+		"airdate": "2011-04-21T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:21.786Z",
+		"updated_at": "2014-02-14T02:10:21.786Z",
+		"category_id": 13938,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13938,
+			"title": "fill e_____r up",
+			"created_at": "2014-02-14T02:10:20.547Z",
+			"updated_at": "2014-02-14T02:10:20.547Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103594,
+		"answer": "1948",
+		"question": "\"The Last Campaign: How Harry Truman Won the ____ Election\"",
+		"value": 200,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:22.346Z",
+		"updated_at": "2014-02-14T02:10:22.346Z",
+		"category_id": 13939,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13939,
+			"title": "the book of the year",
+			"created_at": "2014-02-14T02:10:22.223Z",
+			"updated_at": "2014-02-14T02:10:22.223Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103595,
+		"answer": "<i>Caddyshack</i>",
+		"question": "\"In the words of Jean-Paul Sartre, 'Au revoir, gopher\"'",
+		"value": 200,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:22.386Z",
+		"updated_at": "2014-02-14T02:10:22.386Z",
+		"category_id": 13940,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13940,
+			"title": "bill murray movie quotes",
+			"created_at": "2014-02-14T02:10:22.238Z",
+			"updated_at": "2014-02-14T02:10:22.238Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103596,
+		"answer": "Truman Capote",
+		"question": "The senseless murder of the Clutter family in 1959 prompted this man to pen \"In Cold Blood\"",
+		"value": 200,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:22.429Z",
+		"updated_at": "2014-02-14T02:10:22.429Z",
+		"category_id": 13941,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13941,
+			"title": "this category is murder",
+			"created_at": "2014-02-14T02:10:22.259Z",
+			"updated_at": "2014-02-14T02:10:22.259Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103597,
+		"answer": "apple",
+		"question": "Cortland,Golden Delicious",
+		"value": 200,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:22.470Z",
+		"updated_at": "2014-02-14T02:10:22.470Z",
+		"category_id": 13942,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13942,
+			"title": "fruit types",
+			"created_at": "2014-02-14T02:10:22.274Z",
+			"updated_at": "2014-02-14T02:10:22.274Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103598,
+		"answer": "banjos",
+		"question": "It's dueling buzzers in a race to name this instrument",
+		"value": 200,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:22.516Z",
+		"updated_at": "2014-02-14T02:10:22.516Z",
+		"category_id": 13943,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13943,
+			"title": "an ear for music",
+			"created_at": "2014-02-14T02:10:22.287Z",
+			"updated_at": "2014-02-14T02:10:22.287Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103599,
+		"answer": "a godsend",
+		"question": "It's something wanted or needed that happens unexpectedly, perhaps coming from heaven",
+		"value": 200,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:22.556Z",
+		"updated_at": "2014-02-14T02:10:22.556Z",
+		"category_id": 13944,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13944,
+			"title": "at the \"end\"",
+			"created_at": "2014-02-14T02:10:22.302Z",
+			"updated_at": "2014-02-14T02:10:22.302Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103600,
+		"answer": "1984",
+		"question": "\"____\"(Oh, you need more?  One word--Orwell)",
+		"value": 400,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:22.597Z",
+		"updated_at": "2014-02-14T02:10:22.597Z",
+		"category_id": 13939,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13939,
+			"title": "the book of the year",
+			"created_at": "2014-02-14T02:10:22.223Z",
+			"updated_at": "2014-02-14T02:10:22.223Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103601,
+		"answer": "<i>Groundhog Day</i>",
+		"question": "\"I was in the Virgin Islands once. I met a girl... that was a pretty good day.  Why couldn't I get that day over & over?\"",
+		"value": 400,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:22.672Z",
+		"updated_at": "2014-02-14T02:10:22.672Z",
+		"category_id": 13940,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13940,
+			"title": "bill murray movie quotes",
+			"created_at": "2014-02-14T02:10:22.238Z",
+			"updated_at": "2014-02-14T02:10:22.238Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103602,
+		"answer": "Jack the Ripper",
+		"question": "The London district of Whitechapel is where this fiend carried out his slayings in 1888",
+		"value": 400,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:22.720Z",
+		"updated_at": "2014-02-14T02:10:22.720Z",
+		"category_id": 13941,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13941,
+			"title": "this category is murder",
+			"created_at": "2014-02-14T02:10:22.259Z",
+			"updated_at": "2014-02-14T02:10:22.259Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103603,
+		"answer": "grapes",
+		"question": "Red Globe,Champagne",
+		"value": 400,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:22.761Z",
+		"updated_at": "2014-02-14T02:10:22.761Z",
+		"category_id": 13942,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13942,
+			"title": "fruit types",
+			"created_at": "2014-02-14T02:10:22.274Z",
+			"updated_at": "2014-02-14T02:10:22.274Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103604,
+		"answer": "cowbell",
+		"question": "I need more of this instrument rockin' out here",
+		"value": 400,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:22.800Z",
+		"updated_at": "2014-02-14T02:10:22.800Z",
+		"category_id": 13943,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13943,
+			"title": "an ear for music",
+			"created_at": "2014-02-14T02:10:22.287Z",
+			"updated_at": "2014-02-14T02:10:22.287Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103605,
+		"answer": "pretend",
+		"question": "Make believe",
+		"value": 400,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:22.840Z",
+		"updated_at": "2014-02-14T02:10:22.840Z",
+		"category_id": 13944,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13944,
+			"title": "at the \"end\"",
+			"created_at": "2014-02-14T02:10:22.302Z",
+			"updated_at": "2014-02-14T02:10:22.302Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103606,
+		"answer": "1968",
+		"question": "\"The Year the Dream Died: Revisiting ____ in America\"",
+		"value": 600,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:22.882Z",
+		"updated_at": "2014-02-14T02:10:22.882Z",
+		"category_id": 13939,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13939,
+			"title": "the book of the year",
+			"created_at": "2014-02-14T02:10:22.223Z",
+			"updated_at": "2014-02-14T02:10:22.223Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103607,
+		"answer": "<i>Ghost Busters</i>",
+		"question": "\"Why worry?  Each of us is wearing an unlicensed nuclear accelerator on his back\"",
+		"value": 600,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:22.921Z",
+		"updated_at": "2014-02-14T02:10:22.921Z",
+		"category_id": 13940,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13940,
+			"title": "bill murray movie quotes",
+			"created_at": "2014-02-14T02:10:22.238Z",
+			"updated_at": "2014-02-14T02:10:22.238Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103608,
+		"answer": "St. Valentine\\'s Day",
+		"question": "Al Capone had 7 members of a rival crime gang killed on this date in 1929",
+		"value": 600,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:22.962Z",
+		"updated_at": "2014-02-14T02:10:22.962Z",
+		"category_id": 13941,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13941,
+			"title": "this category is murder",
+			"created_at": "2014-02-14T02:10:22.259Z",
+			"updated_at": "2014-02-14T02:10:22.259Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103609,
+		"answer": "lime",
+		"question": "Bearss,Key",
+		"value": 600,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:23.000Z",
+		"updated_at": "2014-02-14T02:10:23.000Z",
+		"category_id": 13942,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13942,
+			"title": "fruit types",
+			"created_at": "2014-02-14T02:10:22.274Z",
+			"updated_at": "2014-02-14T02:10:22.274Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103610,
+		"answer": "the pan flute",
+		"question": "We didn't get Zamfir, but we did get a sample of this instrument; check it out",
+		"value": 600,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:23.042Z",
+		"updated_at": "2014-02-14T02:10:23.042Z",
+		"category_id": 13943,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13943,
+			"title": "an ear for music",
+			"created_at": "2014-02-14T02:10:22.287Z",
+			"updated_at": "2014-02-14T02:10:22.287Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103611,
+		"answer": "amend",
+		"question": "To do this to the U.S. Constitution, approval must be given by 3/4 of the state legislatures or 3/4 of state conventions",
+		"value": 600,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:23.083Z",
+		"updated_at": "2014-02-14T02:10:23.083Z",
+		"category_id": 13944,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13944,
+			"title": "at the \"end\"",
+			"created_at": "2014-02-14T02:10:22.302Z",
+			"updated_at": "2014-02-14T02:10:22.302Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103612,
+		"answer": "1912",
+		"question": "\"All Stations! Distress! April 15, ____\"",
+		"value": 800,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:23.123Z",
+		"updated_at": "2014-02-14T02:10:23.123Z",
+		"category_id": 13939,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13939,
+			"title": "the book of the year",
+			"created_at": "2014-02-14T02:10:22.223Z",
+			"updated_at": "2014-02-14T02:10:22.223Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103613,
+		"answer": "<i>Scrooged</i>",
+		"question": "After a props guy on a Christmas TV special says antlers won't stay glued to a mouse, Bill asks, \"Have you tried staples?\"",
+		"value": null,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:23.161Z",
+		"updated_at": "2014-02-14T02:10:23.161Z",
+		"category_id": 13940,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13940,
+			"title": "bill murray movie quotes",
+			"created_at": "2014-02-14T02:10:22.238Z",
+			"updated_at": "2014-02-14T02:10:22.238Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103840,
+		"answer": "North Korea",
+		"question": "South Korea",
+		"value": 400,
+		"airdate": "2011-04-08T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:37.571Z",
+		"updated_at": "2014-02-14T02:10:37.571Z",
+		"category_id": 12464,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 12464,
+			"title": "it borders just one other country",
+			"created_at": "2014-02-14T01:59:30.718Z",
+			"updated_at": "2014-02-14T01:59:30.718Z",
+			"clues_count": 10
+		}
+	}, {
+		"id": 103614,
+		"answer": "Palermo",
+		"question": "The airport of this Sicilian city is named for 2 anti-organized crime judges, both murdered in 1992",
+		"value": 800,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:23.202Z",
+		"updated_at": "2014-02-14T02:10:23.202Z",
+		"category_id": 13941,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13941,
+			"title": "this category is murder",
+			"created_at": "2014-02-14T02:10:22.259Z",
+			"updated_at": "2014-02-14T02:10:22.259Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103615,
+		"answer": "bananas",
+		"question": "Cavendish,Manzano",
+		"value": 800,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:23.248Z",
+		"updated_at": "2014-02-14T02:10:23.248Z",
+		"category_id": 13942,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13942,
+			"title": "fruit types",
+			"created_at": "2014-02-14T02:10:22.274Z",
+			"updated_at": "2014-02-14T02:10:22.274Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103616,
+		"answer": "a trombone",
+		"question": "Vic Dickenson was a master of this instrument",
+		"value": 800,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:23.293Z",
+		"updated_at": "2014-02-14T02:10:23.293Z",
+		"category_id": 13943,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13943,
+			"title": "an ear for music",
+			"created_at": "2014-02-14T02:10:22.287Z",
+			"updated_at": "2014-02-14T02:10:22.287Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103617,
+		"answer": "reverend",
+		"question": "This title for a member of the clergy can be preceded by very, most or right",
+		"value": 800,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:23.332Z",
+		"updated_at": "2014-02-14T02:10:23.332Z",
+		"category_id": 13944,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13944,
+			"title": "at the \"end\"",
+			"created_at": "2014-02-14T02:10:22.302Z",
+			"updated_at": "2014-02-14T02:10:22.302Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103618,
+		"answer": "1215",
+		"question": "\"____: The Year of Magna Carta\"",
+		"value": 1000,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:23.374Z",
+		"updated_at": "2014-02-14T02:10:23.374Z",
+		"category_id": 13939,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13939,
+			"title": "the book of the year",
+			"created_at": "2014-02-14T02:10:22.223Z",
+			"updated_at": "2014-02-14T02:10:22.223Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103619,
+		"answer": "<i>Tootsie</i>",
+		"question": "As Dustin Hoffman's friend Jeff: \"That is one nutty hospital\"",
+		"value": 1000,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:23.413Z",
+		"updated_at": "2014-02-14T02:10:23.413Z",
+		"category_id": 13940,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13940,
+			"title": "bill murray movie quotes",
+			"created_at": "2014-02-14T02:10:22.238Z",
+			"updated_at": "2014-02-14T02:10:22.238Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103620,
+		"answer": "(Christopher) Marlowe",
+		"question": "In 1593 this English playwright & poet was murdered under mysterious circumstances",
+		"value": 1000,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:23.453Z",
+		"updated_at": "2014-02-14T02:10:23.453Z",
+		"category_id": 13941,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13941,
+			"title": "this category is murder",
+			"created_at": "2014-02-14T02:10:22.259Z",
+			"updated_at": "2014-02-14T02:10:22.259Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103621,
+		"answer": "melon",
+		"question": "Crenshaw,Santa Claus",
+		"value": 1000,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:23.500Z",
+		"updated_at": "2014-02-14T02:10:23.500Z",
+		"category_id": 13942,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13942,
+			"title": "fruit types",
+			"created_at": "2014-02-14T02:10:22.274Z",
+			"updated_at": "2014-02-14T02:10:22.274Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103622,
+		"answer": "a harpsichord",
+		"question": "Lurch into this instrument",
+		"value": 1000,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:23.543Z",
+		"updated_at": "2014-02-14T02:10:23.543Z",
+		"category_id": 13943,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13943,
+			"title": "an ear for music",
+			"created_at": "2014-02-14T02:10:22.287Z",
+			"updated_at": "2014-02-14T02:10:22.287Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103623,
+		"answer": "a legend",
+		"question": "From the Latin for \"things to be read\", it's a table explaining symbols on a map or chart",
+		"value": 1000,
+		"airdate": "2011-04-20T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:23.587Z",
+		"updated_at": "2014-02-14T02:10:23.587Z",
+		"category_id": 13944,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13944,
+			"title": "at the \"end\"",
+			"created_at": "2014-02-14T02:10:22.302Z",
+			"updated_at": "2014-02-14T02:10:22.302Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103624,
+		"answer": "Benny Goodman",
+		"question": "In 1962 this clarinetist decided to swing over to the Soviet Union & record a few concerts there",
+		"value": 200,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.132Z",
+		"updated_at": "2014-02-14T02:10:24.132Z",
+		"category_id": 13945,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13945,
+			"title": "from u.s. to ussr",
+			"created_at": "2014-02-14T02:10:24.025Z",
+			"updated_at": "2014-02-14T02:10:24.025Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103625,
+		"answer": "the Yankees",
+		"question": "In 1961 Whitey Ford won 25 games for this American League team",
+		"value": 200,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.170Z",
+		"updated_at": "2014-02-14T02:10:24.170Z",
+		"category_id": 13946,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13946,
+			"title": "25-game winners",
+			"created_at": "2014-02-14T02:10:24.039Z",
+			"updated_at": "2014-02-14T02:10:24.039Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103626,
+		"answer": "Buckingham Palace",
+		"question": "It \"has served as the official London residence of Britain's sovereigns since 1837\"",
+		"value": 200,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.209Z",
+		"updated_at": "2014-02-14T02:10:24.209Z",
+		"category_id": 13947,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13947,
+			"title": "on the british monarchy's website",
+			"created_at": "2014-02-14T02:10:24.053Z",
+			"updated_at": "2014-02-14T02:10:24.053Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103627,
+		"answer": "the 10 Commandments",
+		"question": "The Ark of the Covenant",
+		"value": 200,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.248Z",
+		"updated_at": "2014-02-14T02:10:24.248Z",
+		"category_id": 6484,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 6484,
+			"title": "hold it!",
+			"created_at": "2014-02-11T23:17:19.951Z",
+			"updated_at": "2014-02-11T23:17:19.951Z",
+			"clues_count": 10
+		}
+	}, {
+		"id": 103628,
+		"answer": "<i>A Time to Kill</i>",
+		"question": "In Ecclesiastes this 1989 book title precedes \"and a time to heal\"",
+		"value": 200,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.286Z",
+		"updated_at": "2014-02-14T02:10:24.286Z",
+		"category_id": 13948,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13948,
+			"title": "biblical book titles",
+			"created_at": "2014-02-14T02:10:24.082Z",
+			"updated_at": "2014-02-14T02:10:24.082Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103629,
+		"answer": "the Ozarks",
+		"question": "This mountain range extends from southern Illinois across Missouri into Arkansas",
+		"value": 200,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.328Z",
+		"updated_at": "2014-02-14T02:10:24.328Z",
+		"category_id": 13949,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13949,
+			"title": "\"ark\", who goes there?",
+			"created_at": "2014-02-14T02:10:24.095Z",
+			"updated_at": "2014-02-14T02:10:24.095Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103630,
+		"answer": "The Nitty Gritty Dirt Band",
+		"question": "In 1977, when it was known simply as The Dirt Band, it became the first U.S. rock group to tour the USSR",
+		"value": 400,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.408Z",
+		"updated_at": "2014-02-14T02:10:24.408Z",
+		"category_id": 13945,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13945,
+			"title": "from u.s. to ussr",
+			"created_at": "2014-02-14T02:10:24.025Z",
+			"updated_at": "2014-02-14T02:10:24.025Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103631,
+		"answer": "the Brooklyn Dodgers",
+		"question": "In 1956 Don Newcombe won 27 games for this National League team",
+		"value": 400,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.449Z",
+		"updated_at": "2014-02-14T02:10:24.449Z",
+		"category_id": 13946,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13946,
+			"title": "25-game winners",
+			"created_at": "2014-02-14T02:10:24.039Z",
+			"updated_at": "2014-02-14T02:10:24.039Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103632,
+		"answer": "curtsy",
+		"question": "Traditional forms of greeting the Queen: \"For men... a neck bow (from the head only) whilst women do a small\" one of these bows",
+		"value": 400,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.491Z",
+		"updated_at": "2014-02-14T02:10:24.491Z",
+		"category_id": 13947,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13947,
+			"title": "on the british monarchy's website",
+			"created_at": "2014-02-14T02:10:24.053Z",
+			"updated_at": "2014-02-14T02:10:24.053Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103633,
+		"answer": "tobacco (products)",
+		"question": "A humidor",
+		"value": 400,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.530Z",
+		"updated_at": "2014-02-14T02:10:24.530Z",
+		"category_id": 6484,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 6484,
+			"title": "hold it!",
+			"created_at": "2014-02-11T23:17:19.951Z",
+			"updated_at": "2014-02-11T23:17:19.951Z",
+			"clues_count": 10
+		}
+	}, {
+		"id": 103634,
+		"answer": "Ruth",
+		"question": "One of Oprah's picks was Jane Hamilton's novel \"The Book of\" her; sounds just like an Old Testament book",
+		"value": 400,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.571Z",
+		"updated_at": "2014-02-14T02:10:24.571Z",
+		"category_id": 13948,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13948,
+			"title": "biblical book titles",
+			"created_at": "2014-02-14T02:10:24.082Z",
+			"updated_at": "2014-02-14T02:10:24.082Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103635,
+		"answer": "aardvark",
+		"question": "This African mammal is a walking can of Raid--its diet consists almost entirely of ants & termites",
+		"value": 400,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.611Z",
+		"updated_at": "2014-02-14T02:10:24.611Z",
+		"category_id": 13949,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13949,
+			"title": "\"ark\", who goes there?",
+			"created_at": "2014-02-14T02:10:24.095Z",
+			"updated_at": "2014-02-14T02:10:24.095Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103636,
+		"answer": "<i>Stars and Stripes Forever</i>",
+		"question": "In 1987 the first U.S. symphony orchestra to play Russia in a decade offered this Sousa piece as its final encore",
+		"value": 600,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.651Z",
+		"updated_at": "2014-02-14T02:10:24.651Z",
+		"category_id": 13945,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13945,
+			"title": "from u.s. to ussr",
+			"created_at": "2014-02-14T02:10:24.025Z",
+			"updated_at": "2014-02-14T02:10:24.025Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103637,
+		"answer": "Tom \"Terrific\" Seaver",
+		"question": "Terrific!  He racked up 25 wins for the Miraculous 1969 Mets",
+		"value": 600,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.691Z",
+		"updated_at": "2014-02-14T02:10:24.691Z",
+		"category_id": 13946,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13946,
+			"title": "25-game winners",
+			"created_at": "2014-02-14T02:10:24.039Z",
+			"updated_at": "2014-02-14T02:10:24.039Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103638,
+		"answer": "Facebook",
+		"question": "The Queen & the British monarchy have pages on this social networking site; you can \"like\" them but you can't \"friend\" them",
+		"value": 600,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.732Z",
+		"updated_at": "2014-02-14T02:10:24.732Z",
+		"category_id": 13947,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13947,
+			"title": "on the british monarchy's website",
+			"created_at": "2014-02-14T02:10:24.053Z",
+			"updated_at": "2014-02-14T02:10:24.053Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103639,
+		"answer": "a CD",
+		"question": "A jewel case (not jewelry)",
+		"value": 600,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.776Z",
+		"updated_at": "2014-02-14T02:10:24.776Z",
+		"category_id": 6484,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 6484,
+			"title": "hold it!",
+			"created_at": "2014-02-11T23:17:19.951Z",
+			"updated_at": "2014-02-11T23:17:19.951Z",
+			"clues_count": 10
+		}
+	}, {
+		"id": 103640,
+		"answer": "<i>Song of Solomon</i>",
+		"question": "Macon \"Milkman\" Dead is on a quest for his identity in this novel by Toni Morrison",
+		"value": 600,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.814Z",
+		"updated_at": "2014-02-14T02:10:24.814Z",
+		"category_id": 13948,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13948,
+			"title": "biblical book titles",
+			"created_at": "2014-02-14T02:10:24.082Z",
+			"updated_at": "2014-02-14T02:10:24.082Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103641,
+		"answer": "spark plugs",
+		"question": "In a gas engine, these ignite the fuel-air mixture",
+		"value": 600,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.853Z",
+		"updated_at": "2014-02-14T02:10:24.853Z",
+		"category_id": 13949,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13949,
+			"title": "\"ark\", who goes there?",
+			"created_at": "2014-02-14T02:10:24.095Z",
+			"updated_at": "2014-02-14T02:10:24.095Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103642,
+		"answer": "Paul Robeson",
+		"question": "An admirer of the USSR, he gave a 1949 concert from Moscow's Tchaikovsky Hall that included \"Ol' Man River\"",
+		"value": 800,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.892Z",
+		"updated_at": "2014-02-14T02:10:24.892Z",
+		"category_id": 13945,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13945,
+			"title": "from u.s. to ussr",
+			"created_at": "2014-02-14T02:10:24.025Z",
+			"updated_at": "2014-02-14T02:10:24.025Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103643,
+		"answer": "the Detroit Tigers",
+		"question": "The last Major League 30-game winner was Denny McLain, for this team in 1968",
+		"value": 800,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.929Z",
+		"updated_at": "2014-02-14T02:10:24.929Z",
+		"category_id": 13946,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13946,
+			"title": "25-game winners",
+			"created_at": "2014-02-14T02:10:24.039Z",
+			"updated_at": "2014-02-14T02:10:24.039Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103644,
+		"answer": "the Royal Air Force (RAF)",
+		"question": "If the Queen has an engagement outside London, her journeys often use a helicopter or an aircraft from this military group",
+		"value": 800,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:24.968Z",
+		"updated_at": "2014-02-14T02:10:24.968Z",
+		"category_id": 13947,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13947,
+			"title": "on the british monarchy's website",
+			"created_at": "2014-02-14T02:10:24.053Z",
+			"updated_at": "2014-02-14T02:10:24.053Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103645,
+		"answer": "coffee",
+		"question": "A demitasse",
+		"value": 800,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:25.007Z",
+		"updated_at": "2014-02-14T02:10:25.007Z",
+		"category_id": 6484,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 6484,
+			"title": "hold it!",
+			"created_at": "2014-02-11T23:17:19.951Z",
+			"updated_at": "2014-02-11T23:17:19.951Z",
+			"clues_count": 10
+		}
+	}, {
+		"id": 103646,
+		"answer": "Bethlehem",
+		"question": "A collection of essays by Joan Didion is called \"Slouching Towards\" this biblical city",
+		"value": 800,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:25.046Z",
+		"updated_at": "2014-02-14T02:10:25.046Z",
+		"category_id": 13948,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13948,
+			"title": "biblical book titles",
+			"created_at": "2014-02-14T02:10:24.082Z",
+			"updated_at": "2014-02-14T02:10:24.082Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103647,
+		"answer": "punctuation marks",
+		"question": "Hey!  Look closely; if you do, & you should, you will see that there are 6 uses of these 2-word items used in writing!  Now, 8!",
+		"value": 800,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:25.085Z",
+		"updated_at": "2014-02-14T02:10:25.085Z",
+		"category_id": 13949,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13949,
+			"title": "\"ark\", who goes there?",
+			"created_at": "2014-02-14T02:10:24.095Z",
+			"updated_at": "2014-02-14T02:10:24.095Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103648,
+		"answer": "the Kirov",
+		"question": "(Jimmy of the Clue Crew delivers the clue from the Dance Theatre of Harlem in New York.)  In 1988, the Dance Theatre of Harlem became part of the great legacy of dance in Russia, being acclaimed with a standing ovation at this famed Leningrad theater",
+		"value": 1000,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:25.125Z",
+		"updated_at": "2014-02-14T02:10:25.125Z",
+		"category_id": 13945,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13945,
+			"title": "from u.s. to ussr",
+			"created_at": "2014-02-14T02:10:24.025Z",
+			"updated_at": "2014-02-14T02:10:24.025Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103649,
+		"answer": "the Philadelphia Phillies",
+		"question": "In 1972 Steve Carlton was a 27-game winner for this team that won 59 the whole season",
+		"value": 1000,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:25.164Z",
+		"updated_at": "2014-02-14T02:10:25.164Z",
+		"category_id": 13946,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13946,
+			"title": "25-game winners",
+			"created_at": "2014-02-14T02:10:24.039Z",
+			"updated_at": "2014-02-14T02:10:24.039Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103650,
+		"answer": "Jubilee",
+		"question": "Before Elizabeth II, Queen Victoria was the last monarch to celebrate the anniversary called a Golden this",
+		"value": 1000,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:25.203Z",
+		"updated_at": "2014-02-14T02:10:25.203Z",
+		"category_id": 13947,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13947,
+			"title": "on the british monarchy's website",
+			"created_at": "2014-02-14T02:10:24.053Z",
+			"updated_at": "2014-02-14T02:10:24.053Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103651,
+		"answer": "fish",
+		"question": "A creel (these creatures, primarily)",
+		"value": 1000,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:25.247Z",
+		"updated_at": "2014-02-14T02:10:25.247Z",
+		"category_id": 6484,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 6484,
+			"title": "hold it!",
+			"created_at": "2014-02-11T23:17:19.951Z",
+			"updated_at": "2014-02-11T23:17:19.951Z",
+			"clues_count": 10
+		}
+	}, {
+		"id": 103652,
+		"answer": "Moses",
+		"question": "\"The Bear\" is one of the stories in Faulkner's collection called \"Go Down,\" him",
+		"value": 1000,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:25.287Z",
+		"updated_at": "2014-02-14T02:10:25.287Z",
+		"category_id": 13948,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13948,
+			"title": "biblical book titles",
+			"created_at": "2014-02-14T02:10:24.082Z",
+			"updated_at": "2014-02-14T02:10:24.082Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103653,
+		"answer": "trademarks",
+		"question": "The U.S. Patent Office lists 3 types of intellectual property--patents, copyrights & these",
+		"value": null,
+		"airdate": "2011-04-19T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:25.324Z",
+		"updated_at": "2014-02-14T02:10:25.324Z",
+		"category_id": 13949,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13949,
+			"title": "\"ark\", who goes there?",
+			"created_at": "2014-02-14T02:10:24.095Z",
+			"updated_at": "2014-02-14T02:10:24.095Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103654,
+		"answer": "(Jackie) Kennedy",
+		"question": "In February 1962 millions of Americans tuned in to watch her TV \"Tour of the White House\"",
+		"value": 200,
+		"airdate": "2011-04-18T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:25.858Z",
+		"updated_at": "2014-02-14T02:10:25.858Z",
+		"category_id": 13950,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13950,
+			"title": "real historical housewives of d.c.",
+			"created_at": "2014-02-14T02:10:25.761Z",
+			"updated_at": "2014-02-14T02:10:25.761Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103655,
+		"answer": "relish",
+		"question": "To savor the taste of, like a certain hot dog topping",
+		"value": 200,
+		"airdate": "2011-04-18T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:25.901Z",
+		"updated_at": "2014-02-14T02:10:25.901Z",
+		"category_id": 12112,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 12112,
+			"title": "food words & phrases",
+			"created_at": "2014-02-14T01:57:08.709Z",
+			"updated_at": "2014-02-14T01:57:08.709Z",
+			"clues_count": 20
+		}
+	}, {
+		"id": 103656,
+		"answer": "Bethesda",
+		"question": "No. 1:This Maryland town that's home to a naval hospital",
+		"value": 200,
+		"airdate": "2011-04-18T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:25.941Z",
+		"updated_at": "2014-02-14T02:10:25.941Z",
+		"category_id": 13951,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13951,
+			"title": "forbes' most-educated small towns",
+			"created_at": "2014-02-14T02:10:25.781Z",
+			"updated_at": "2014-02-14T02:10:25.781Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103657,
+		"answer": "(Louisa May) Alcott",
+		"question": "...of \"Little Men\"",
+		"value": 200,
+		"airdate": "2011-04-18T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:25.980Z",
+		"updated_at": "2014-02-14T02:10:25.980Z",
+		"category_id": 13952,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13952,
+			"title": "\"a\" is for author",
+			"created_at": "2014-02-14T02:10:25.795Z",
+			"updated_at": "2014-02-14T02:10:25.795Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103658,
+		"answer": "Dr. Seuss",
+		"question": "Horton heard that \"Read Across America Day\", March 2, coincides with the birthday of this children's author",
+		"value": 200,
+		"airdate": "2011-04-18T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:26.019Z",
+		"updated_at": "2014-02-14T02:10:26.019Z",
+		"category_id": 622,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 622,
+			"title": "holidays & observances",
+			"created_at": "2014-02-11T22:49:28.085Z",
+			"updated_at": "2014-02-11T22:49:28.085Z",
+			"clues_count": 195
+		}
+	}, {
+		"id": 103659,
+		"answer": "<i>Die Walküre</i> (<i>The Valkyrie</i>)",
+		"question": "(Sarah reports from backstage at the Metropolitan Opera in New York.)  The great soprano Deborah Voigt wears this costume in the Met's 2011 production of this Wagner opera, in which she plays the title role",
+		"value": 200,
+		"airdate": "2011-04-18T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:26.058Z",
+		"updated_at": "2014-02-14T02:10:26.058Z",
+		"category_id": 13953,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13953,
+			"title": "backstage at the met",
+			"created_at": "2014-02-14T02:10:25.814Z",
+			"updated_at": "2014-02-14T02:10:25.814Z",
+			"clues_count": 5
+		}
+	}, {
+		"id": 103660,
+		"answer": "Abigail Adams",
+		"question": "Only 6 rooms were finished when she moved in in 1800, & she ended up using the East Room to hang laundry",
+		"value": 400,
+		"airdate": "2011-04-18T12:00:00.000Z",
+		"created_at": "2014-02-14T02:10:26.140Z",
+		"updated_at": "2014-02-14T02:10:26.140Z",
+		"category_id": 13950,
+		"game_id": null,
+		"invalid_count": null,
+		"category": {
+			"id": 13950,
+			"title": "real historical housewives of d.c.",
+			"created_at": "2014-02-14T02:10:25.761Z",
+			"updated_at": "2014-02-14T02:10:25.761Z",
+			"clues_count": 5
+		}
+	}
+]

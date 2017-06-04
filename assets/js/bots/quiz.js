@@ -2,8 +2,6 @@
 * Base bot
 ***********/
 
-console.log('LOADED');
-
 function Bot()
     {
         this.name = require('path').basename(__filename);
@@ -166,6 +164,8 @@ function signal_handler(msg)
                     {
                         let {id, cmt} = xml.attr;
                         
+                        if(id == session.id()) { return; }
+                        
                         if(this.waiting)
                             {
                                 if(cmt.match(this.answer))
@@ -186,12 +186,25 @@ function command_handler(com)
         if(com[0] == 'quiz')
             {
                 if(com[1] == undefined) { return; }
-                
+                if(com[1] > this.file.length) { return; }
                 
                 var questions = [];
+                var already   = {};
+                
                 for(var i = 0; i < com[1]; i++)
                     {
-                        questions.push( this.file[ parseInt(Math.random()*this.file.length) ] );
+                        var rand = parseInt(Math.random()*this.file.length);
+                        
+                        if(already[this.file[rand].question] == undefined)
+                            {
+                                questions.push( this.file[rand] );
+                                
+                                already[this.file[rand].question] = true;
+                            }
+                        else
+                            {
+                                i--;
+                            }
                     }
                 
                 this.quiz = questions;
@@ -201,7 +214,7 @@ function command_handler(com)
             }
         else if(com[0] == 'load')
             {
-                this.file = jsonfile.readFileSync('./../../quiz/'+com[1]+'.json');
+                this.file = jsonfile.readFileSync('./assets/js/bots/quiz/'+com[1]+'.json');
             }
         else if(com[0] == 'stopquiz')
             {

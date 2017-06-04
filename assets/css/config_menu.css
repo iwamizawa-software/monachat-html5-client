@@ -66,14 +66,27 @@
 }
 #config_menu_login_cancel_button {
     position: relative;
-    right: -60px;
-    top: 52px;
+    
+    right: 50px;
+    bottom: -58px;
+
+    height: 40px;
+    width: 150px;
+
+    border-bottom: 0px;
+    border-right: 0px;
 }
 #config_menu_login_accept_button {
     position: relative;
 
-    right: -70px;
-    top: 52px;
+    right: -100px;
+    bottom: -18px;
+
+    height: 40px;
+    width: 150px;
+
+    border-bottom: 0px;
+    border-right: 0px;
 }
 #config_trigger_menu text {
     position: relative;
@@ -117,13 +130,28 @@
 }
 #config_menu_trigger_accept_button {
     position: relative;
-    top:  -50px;
-    left: -40px;
+    
+    top:  -47px;
+    left: -6px;
+
+    width: 110px;
+    height: 40px;
+
+    border-bottom: none;
+    border-right: none;
 }
 #config_menu_trigger_cancel_button {
     position: relative;
-    top: -50px;
-    left: 120px;
+    
+    top: -47px;
+    left:  0px;
+
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+
+    width: 110px;
+    height: 40px;
 }
 #config_client_menu {
     position: absolute;
@@ -132,8 +160,8 @@
     width: 250px;
     height: 280px;
 
-    top: 70px;
-    left: 200px;
+    top: 50px;
+    left: 260px;
 
     text-align: right;
     padding-left: 10px;
@@ -152,28 +180,57 @@
 #config_client_menu div {
     padding-top: 3px;
 }
+#config_menu_client_add_config {
+    position: relative;
+    
+    top: 12px;
+    left: -63px;
+
+    padding: 5px;
+}
+#config_menu_client_add_trip_list {
+    position: relative;
+
+    top: 12px;
+    left: -32px;
+
+    padding: 5px;
+}
 #config_menu_client_cancel_button {
     position: relative;
     
-    left: -70px;
-    top: 50px;
+    width: 52%;
+    height: 40px;
+
+    left: -130px;
+    top: 24px;
+
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
 }
 #config_menu_client_accept_button {
     position: relative;
     
-    left: -40px;
-    top: 50px;
+    width: 52%;
+    height: 40px;
+
+    left: -0px;
+    top: -16px;
+
+    border-bottom: none;
+    border-right: none;
 }
 
 #config_bots_menu {
     display: none;
     position: absolute;
 
-    width: 200px;
-    height: 300px;
+    width: 265px;
+    height: 350px;
 
-    left: 290px;
-    top: 40px;
+    left: 260px;
+    top: 10px;
 
     border: 1px solid black;
 
@@ -187,7 +244,7 @@
     overflow-y: auto;
 
     width: 100%;
-    height: 82%;
+    height: 87%;
 
     table-layout: fixed;
     border-collapse: collapse;
@@ -204,13 +261,22 @@
 
     border-bottom: 1px solid black;
 }
-.bot_list_cell:first-child {
+.bot_list_cell {
     border-right: 1px solid black;
+}
+.bot_list_cell:last-child {
+    border-right: none;
 }
 
 #config_menu_bots_accept_button {
     position: absolute;
 
-    bottom: 8px;
-    left: 72px;
+    bottom: 0px;
+
+    width: 100%;
+    height: 40px;
+
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
 }

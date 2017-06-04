@@ -5,9 +5,8 @@ const {Menu, dialog} = require('electron').remote;
 const {shell}        = require('electron');
 const {clipboard}    = require('electron');
 const {ipcRenderer}  = require('electron');
-//const {BrowserWindow} = require('electron');
 
-const fs             = require('fs');
+const fs       = require('fs');
 
 const xmldoc   = require('xmldoc');
 const jsonfile = require('jsonfile');
@@ -18,7 +17,7 @@ const Monachat = require('./assets/js/monachat.jsm');
 const util     = require('./assets/js/util.js');
 const contrast = require('./assets/js/contrast.js');
 
-const win    = require('electron').remote.getCurrentWindow();
+const win = require('electron').remote.getCurrentWindow();
 
 
 /************
@@ -93,6 +92,7 @@ var ignoring    = {};
 
 var config_menu = {};
 
+
 /***********************************
 * Placeholders for global elements
 ***********************************/
@@ -120,9 +120,9 @@ var main_title;
 ***************/
 var POPUP_ALL           = false;
 var IS_LOADING_MAIN     = false;
-var GET_ALL_MAIN        = true;
-var LOG_TEXT_BACKGROUND = true;
 
+var LOG_TEXT_BACKGROUND;
+var GET_ALL_MAIN;
 var POPUP_ENABLED;
 var SOUND_ON;
 
@@ -159,8 +159,6 @@ var character_list;
 * Bot list
 ***********/
 var bots = [];
-load_bots();
-
 
 /****************************************
 * Offset of the character click on drag
@@ -168,6 +166,36 @@ load_bots();
 * target is set to room_view
 ****************************************/
 var drag_offset_x;
+
+
+/*********************
+* Load configuration
+*********************/
+try
+    {
+        config         = jsonfile.readFileSync('./config.json');
+        login_data     = jsonfile.readFileSync('./config.json');
+        trip_list      = jsonfile.readFileSync('./trip.json');
+        character_list = jsonfile.readFileSync('./character_list.json');
+        
+        SOUND_ON            = config['sound'];
+        POPUP_ENABLED       = config['popup'];
+        GET_ALL_MAIN        = config['get_all_main'];
+        LOG_TEXT_BACKGROUND = config['log_text_background'];
+        
+        var room_view_css = document.styleSheets[4];
+        
+        room_view_css.insertRule('.comment_div { animation-duration: ' + config['comment_speed'] + 's; }', 0);
+        room_view_css.insertRule('.log { background-color: ' + config['background'] + '; }', 0);
+    }
+catch(err)
+    {
+        throw err;
+        process.exit();
+    }
+    
+process_arguments();
+load_bots();
 
 
 function User(xml)
@@ -178,7 +206,7 @@ function User(xml)
         this.character = user.type  || 'mona';
         this.stat      = user.stat  || '通常';
         this.trip      = user.trip  || '';
-        this.ihash     = user.ihash || 'no_ihash';
+        this.ihash     = user.ihash || 'ANON';
         this.r         = rgb_scale(user.r || 100);
         this.g         = rgb_scale(user.g || 100);
         this.b         = rgb_scale(user.b || 100);
@@ -212,15 +240,13 @@ function left_to_x(left)
 
 function y_to_top(y)
     {
-        console.log('Y', y);
+        y = 275; //// temporal
         
         if     (y < 0)   { return y_to_top(0);   }
         else if(y > 275) { return y_to_top(275); }
         
         var [a, b]     = [0, 275];
         var [min, max] = [0, 366];
-        
-        console.log(parseInt(　(((b-a)*(y-min))　/　(max-min)) + a)　);
         
         return parseInt(　(((b-a)　*　(y-min))　/　(max-min)) + a　);
     }
@@ -257,6 +283,32 @@ function get_px_len(str)
         return len;
     }
 
+function save_config()
+    {
+        /*********************
+        * Check if it's void
+        *********************/
+        if(config['name'] == undefined) { return; }
+        
+        try { jsonfile.writeFileSync('./config.json', config); }
+        catch(err) { throw err; alert(err); }
+    }
+
+function save_trip()
+    {
+        /*********************
+        * Check if it's void
+        *********************/
+        var len = 0;
+        for(var trip in trip_list) { len++; break; }
+        
+        if(len > 0)
+            {
+                try { jsonfile.writeFileSync('./trip.json', trip_list); }
+                catch(err) { throw err; alert(err); }
+            }
+    }
+
 function load_bots()
     {
         var bot_list = fs.readdirSync('./assets/js/bots').filter( (file) => file.match(/\.js$/) );
@@ -269,6 +321,13 @@ function load_bots()
                     }
                 
                 bots.push( require('./assets/js/bots/' + bot_list[i]) );
+                
+                if(config.default_bots[bots[i].name] != undefined)
+                    {
+                        config.default_bots[bots[i].name] == true
+                            ? bots[i].on()
+                            : bots[i].off();
+                    }
             }
     }
 
@@ -406,12 +465,25 @@ function create_option_el(value)
             .attr('value', value)[0];
     }
 
-function is_ignored(id)  { return user[id] != undefined && session._ignored[user[id].ihash]; }
-function is_ignoring(id) { return user[id] != undefined && ignoring[user[id].ihash];         }
-function is_muted(id)    { return user[id] != undefined && muted[user[id].ihash];            }
+function is_ignored(id)  { return (user[id] != undefined && session._ignored[user[id].ihash] == true); }
+function is_ignoring(id) { return (user[id] != undefined && ignoring[user[id].ihash]         == true); }
+function is_muted(id)    { return (user[id] != undefined && muted[user[id].ihash]            == true); }
 
 function format_user_data(id, n)
     {
+        if(user[id] == undefined)
+            {
+                user[id] = new User
+                    ({ attr:
+                            {
+                                name     : '',
+                                character: '',
+                                ihash    : '_ANONYMOUS'
+                            }
+                    });
+                room[id] = user[id];
+            }
+        
         var {name, character, stat, trip, ihash, r, g, b} = user[id];
         
         var line = name
@@ -540,6 +612,24 @@ function format_log(type, args)
         else if(type == 'com')
             {
                 var [id, cmt] = args;
+                
+                console.log('COM', id, cmt);
+               
+               //// test
+               if(user[id] == undefined)
+                    {
+                        user[id] = new User
+                            ({
+                                attr:
+                                    {
+                                        name     : 'cantread',
+                                        ihash    : '_CANTREAD'
+                                    }   
+                            });
+                        
+                        room[id] = user[id];
+                    }
+                
                 if(is_muted(id)) { return; }
                 
                 var {name, trip, ihash, r, g, b} = user[id];
@@ -560,7 +650,7 @@ function format_log(type, args)
                 ***************/
                 var cmt_el;
                 
-                if(util.is_url(cmt))
+                if(config['load_content'] && util.is_url(cmt))
                     {
                         cmt_el = log_a_el(cmt);
                         
@@ -646,7 +736,14 @@ function format_log(type, args)
                                 
                                 error: function(err)
                                     {
-                                        format_log('error', ['Could not retrieve URL.']);
+                                        var error_el = log_text_el('[ Could not retrieve URL ]');
+                                        var nbsp_el  = log_nbsp_el(1);
+                                        
+                                        log
+                                            ([
+                                                time_el, user_el, two_dot,
+                                                cmt_el,  nbsp_el, error_el
+                                            ]);
                                     }
                             });
                     }
@@ -960,8 +1057,46 @@ function change_character_color(img, r, g, b)
         
         img.onload = '';
         img.src    = buffer_canvas.toDataURL();
+        console.log('IMG', img);
         
         buffer_ctx.clearRect(0, 0, 128, 128);
+    }
+
+function check_transparency(id, e)
+    {
+        var img = new Image();
+        
+        img.onload = function()
+            {
+                buffer_ctx.drawImage(img, 0, 0);
+                var data = buffer_ctx.getImageData(0, 0, 128, 128);
+                
+                if(data.data[e.offsetY*(128*4) + e.offsetX*4 + 3] != 0)
+                    {
+                        show_user_context_menu(id);
+                    }
+                else
+                    {
+                        console.log('Transparent');
+                        
+                        $(e.target).hide();
+                        
+                        var target = document.elementFromPoint(e.clientX, e.clientY);
+                        $(target).trigger({type: 'mousedown', which: 3});
+                        
+                        $(e.target).show();
+                    }
+            }
+        
+        
+        var character = user[id].character;
+        
+        if(!fs.existsSync('./assets/character/'+character+'.png'))
+            {
+                character = 'mona';
+            }
+        
+        img.src = './assets/character/'+character+'.png';
     }
 
 function append_div(id)
@@ -974,6 +1109,7 @@ function append_div(id)
         img.onload = function()
             {
                 change_character_color(this, user[id].r, user[id].g, user[id].b);
+                
                                 
                 $(img).attr('id', 'user_div_'+id+'_img')
                     .attr('class', 'user_div_img')
@@ -998,16 +1134,10 @@ function append_div(id)
                     {
                         $( () => $(div).draggable
                             ({
-                                //axis       : 'x',
                                 containment: [0, 180, 668, 206],
                                 start: function(e)
                                     {
                                         drag_offset_x = e.offsetX;
-                                    },
-                                drag: function(e)
-                                    {
-                                        //var img = $('#user_div_'+session.id()+'_img');
-                                        //img.css('max-width', e.clientY*100/300);
                                     },
                                 stop : function(e)
                                     {
@@ -1019,23 +1149,19 @@ function append_div(id)
                                     }
                             })
                          );
+                    
+                        $(div).on('mousedown', function(e)
+                            {
+                                if(e.which == 3) { session.scl(); }
+                            });
                     }
-                
-                $(div).on('mousedown', id == session.id()
-                    ? function(e)
-                        {
-                            if(e.which == 3)
-                                {
-                                    session.scl();
-                                }
-                        }
-                    : function(e)
-                        {
-                            if(e.which == 3)
-                                {
-                                    show_user_context_menu(id);
-                                }
-                        });
+                else
+                    {
+                        $(img).on('mousedown', function(e)
+                            {
+                                if(e.which == 3) { check_transparency(id, e); }
+                            });
+                    }
                 
                 /*******************************
                 * Create user data text object
@@ -1057,7 +1183,7 @@ function append_div(id)
                 var stat_div = $(document.createElement('DIV'))
                     .attr('class', 'user_div_stat')
                     .attr('id', 'user_div_stat_'+id)
-                    .css('z-index', 2);
+                    .css('z-index', 3);
                 
                 if(user[id].stat != '通常')
                     {
@@ -1175,7 +1301,7 @@ function add_comment_div(id, cmt)
         /**********************************
         * Remove the div after 60 seconds
         **********************************/
-        var timeout = setTimeout( () => $(div_el).remove(), 60000 );
+        setTimeout( () => $(div_el).remove(), 60000 );
         
         
         $('#user_div_'+id).append(div_el);
@@ -1199,9 +1325,9 @@ function show_users_dropdown()
                     .attr('class', 'dropdown_el')
                     .css(
                             'background-color',
-                            (is_muted(id) || is_ignored(id) || is_ignoring(id))
-                                ? 'rgb(255, 0, 0)'
-                                : 'rgb(150, 150, 150)'
+                            is_muted(id)  ? 'red'                          :
+                            (is_ignored(id) || is_ignoring(id)) ? 'yellow' :
+                                                                  'white'
                         )
                     .on('click', function()
                         {
@@ -1210,13 +1336,11 @@ function show_users_dropdown()
                             $(this).css
                                 (
                                     'background-color',
-                                    $(this).css('background-color') == 'rgb(150, 150, 150)'
-                                        ? 'rgb(255, 0, 0)'     //red
-                                        : 'rgb(150, 150, 150)' //grey
+                                    is_muted(id)                        ? 'red'    :
+                                    (is_ignored(id) || is_ignoring(id)) ? 'yellow' :
+                                                                          'white'
                                 )
                         })[0];
-
-                
                 
                 room_view.dropdown['users'].append(dropdown_el);
             }
@@ -1286,23 +1410,48 @@ function refresh_new_menu()
                 room_view.new_menu['profile'].append(option_el);
             }
         
-        room_view.new_menu['room'].val(session.room()); 
+        room_view.new_menu['room'].val(session.room());
         room_view.new_menu['n'].val(1);
+        room_view.new_menu['site'].val(session.site());
+        room_view.new_menu['timeout'].val(session.timeout());
     }
 
 function show_user_context_menu(id)
     {
         var {name, ihash} = user[id];
         
+        var trip  = trip_list[ihash];
+        var names = '';
+        var len   = 0;
+        
+        for(var i = 0; i < trip.length; i++)
+            {
+                if((names + trip[i]).length <= 16)
+                    {
+                        names += trip[i] + ', ';
+                        len++;
+                    }
+                else
+                    {
+                        break;
+                    }
+            }
+        
+        names = names.substr(0, names.length-2);
+        names = len < trip.length
+            ? '「' + names + '...」 (' + trip.length + ')'
+            : '「' + names + '」';
+        
         var template =
             [
                 { label: name + ' ' + WHITE_TRIP_SYM + ihash + ' (' + id + ')' },
                 { type: 'separator' },
+                { label: names, click() { search_trip('id', id) } },
+                { type: 'separator' },
                 { label: 'Copy',        click() { copy(id);                } },
                 { label: 'Ignore',      click() { ignore(id);              } },
                 { label: 'Mute',        click() { mute(id);                } },
-                { label: 'Search trip', click() { search_trip('id', id);   } },
-                { label: 'Search name', click() { search_trip('name', id); } },
+                { label: 'Search trips', click() { search_trip('name', user[id].name); } },
                 {
                     label: 'Stalk '  + (is_repeated(id) ? 'On' : 'Off'),
                     click() { toggle_stalk(id); }
@@ -1319,10 +1468,25 @@ function show_user_context_menu(id)
 
 function show_command_context_menu()
     {
+        /******************************
+        * Get next and previous rooms
+        ******************************/
+        var sorted = get_sorted_rooms();
+        var room   = session.room();
+                
+        var index = get_index(room, sorted);
+        
+        var next = (sorted.length > 0 && sorted[index+1] != undefined) ? ' ('+sorted[index+1]+')' : '';
+        var prev = (sorted.length > 0 && sorted[index-1] != undefined) ? ' ('+sorted[index-1]+')' : '';
+        
+        
+        /******************
+        * Create template
+        ******************/
         var template =
             [
-                { label: 'Next room',      click() { next_room();     } },
-                { label: 'Previous room',  click() { previous_room(); } },
+                { label: 'Next room'+next,     click() { next_room();     } },
+                { label: 'Previous room'+prev, click() { previous_room(); } },
                 { type: 'separator' },
                 {
                     label: 'Profile',
@@ -1373,7 +1537,7 @@ function show_config_login_menu()
         config_menu['character'] .val(config.character);
         config_menu['stat']      .val(config.stat);
         config_menu['trip']      .val(config.trip);
-        config_menu['rgb']       .val('test');
+        config_menu['rgb']       .val(config.r+' '+config.g+' '+config.b);
         config_menu['x']         .val(config.x);
         config_menu['y']         .val(config.y);
         config_menu['scl']       .val(config.scl);
@@ -1529,18 +1693,6 @@ function add_trip(id)
             }
     }
 
-function save_trip()
-    {
-        var n = 0;
-        for(var key in trip_list) { n++; }
-        
-        if(n)
-            {
-                try { jsonfile.writeFileSync('trip.json', trip_list); }
-                catch(err) { throw err; alert(err); }
-            }
-    }
-
 function search_trip(type, data)
     {
         if(type == 'id')
@@ -1577,23 +1729,21 @@ function search_trip(type, data)
                 var name = data;
                 var match = [name, 'unknown'];
                 
-                for(var key in trip_list)
+                for(var trip in trip_list)
                     {
-                        var trip = key;
-                        
-                        for(var i = 0; i < trip_list[key].length; i++)
+                        for(var i = 0; i < trip_list[trip].length; i++)
                             {
-                                if(trip_list[key][i] == name)
+                                if(trip_list[trip][i] == name)
                                     {
-                                        match.push(key);
+                                        match.push(trip);
                                         break;
                                     }
                             }
                     }
                 
-                if(data.length == 2)
+                if(match.length == 2)
                     {
-                        format_log('error', ['No user with name ' + name + ' found.']);
+                        format_log('error', ['No trips for ' + name + ' found.']);
                     }
                 else
                     {
@@ -1634,8 +1784,7 @@ function add_profile()
         
         config['profiles'][name] = session.get_data();
         
-        try { jsonfile.writeFileSync('./config.json', config); }
-        catch(err) { throw err; alert(err); }
+        save_config();
     }
 
 function delete_profile(name)
@@ -1648,8 +1797,7 @@ function delete_profile(name)
             {
                 delete config.profiles[name];
                 
-                try { jsonfile.writeFileSync('./config.json', config); }
-                catch(err) { throw err; alert(err); }
+                save_config();
             }
     }
 
@@ -1671,31 +1819,30 @@ function new_instance(data)
             {
                 return;
             }
+            
+        var login_args =
+            [
+                '.',
+                'proxy',     '1',
+                'site',      data['site']    || session.site(),
+                'timeout',   data['timeout'] || session.timeout(),
+                
+                'name',      data.prof.name,
+                'character', data.prof.character,
+                'stat',      data.prof.stat,
+                'trip',      data.prof.trip,
+                'r',         data.prof.r,
+                'g',         data.prof.g,
+                'b',         data.prof.b,
+                'x',         data.prof.x,
+                'y',         data.prof.y,
+                'scl',       data.prof.scl,
+                'room',      data.room
+            ];
         
         for(var i = 0; i < data.n; i++)
             {
-                require('child_process').spawn
-                    (
-                        ARGV[0],
-                        [
-                            '.',
-                            'proxy',     '1',
-                            'name',      data.prof.name,
-                            'character', data.prof.character,
-                            'stat',      data.prof.stat,
-                            'trip',      data.prof.trip,
-                            'r',         data.prof.r,
-                            'g',         data.prof.g,
-                            'b',         data.prof.b,
-                            'x',         data.prof.x,
-                            'y',         data.prof.y,
-                            'scl',       data.prof.scl,
-                            'room',      data.room
-                        ],
-                        {
-                            detached: true
-                        }
-                    );
+                require('child_process').spawn( ARGV[0], login_args, { detached: true } );
             }
     }
 
@@ -1711,9 +1858,9 @@ function ignore(id)
                 
                 session.ignore(ihash);
                 
-                ignoring[user[id].ihash] = is_ignored(id) ? false : true;
+                ignoring[ihash] = !ignoring[ihash];
                 
-                $('#user_div_'+id+'_img').css('opacity', is_ignored(id) ? 0.5 : 1);
+                $('#user_div_'+id+'_img').css('opacity', ignoring[ihash] ? 0.5 : 1);
             }
     }
 
@@ -1727,7 +1874,7 @@ function mute(id)
             {            
                 var ihash = user[id].ihash;
                 
-                muted[ihash] = is_muted(id) ? 1 : undefined;
+                muted[ihash] = !muted[ihash];
                 
                 if($('#user_div_'+id)) { $('#user_div_'+id).toggle(); }
             }
@@ -1772,6 +1919,12 @@ function set_invisible()
         session.invisible();
     }
 
+function set_anonymous()
+    {
+        clear_screen();
+        session.anonymous();
+    }
+
 function set_nanashi()
     {
         clear_screen();
@@ -1786,7 +1939,6 @@ function set_random(country)
 
 function relogin()
     {
-        clear_screen();
         session.relogin();
     }
 
@@ -1827,7 +1979,7 @@ function signal_handler(msg)
                         var {n, c, id, ihash, name} = xml.attr;
                         
                         //console.log('uinfo', xml.attr);
-                        alert('uinfo');
+                        //alert('uinfo');
                     }
                 else if(xml.name == 'COUNT')
                     {
@@ -1940,7 +2092,7 @@ function signal_handler(msg)
                             }
                         else
                             {
-                                room[id] = undefined;
+                                delete room[id];
                                 
                                 remove_div(id);
                                 
@@ -1958,6 +2110,7 @@ function signal_handler(msg)
                 else if(xml.name == 'SET')
                     {
                         var id = xml.attr.id;
+                        
                         
                         /***********************
                         * It moves three times
@@ -2041,7 +2194,7 @@ function signal_handler(msg)
                         
                         if(!is_muted(id))
                             {
-                                add_comment_div(id, cmt);
+                                if(config['show_comments']) { add_comment_div(id, cmt); }
                                 format_log('com', [id, cmt]);
                                 
                                 if(SOUND_ON) { play('./assets/sound/comment.wav'); }
@@ -2109,11 +2262,21 @@ function command_handler(com)
         else if(com[0] == 'server')      { change_server(com[1]);               }
         else if(com[0] == 'default')     { set_default();                       }
         else if(com[0] == 'invisible')   { set_invisible();                     }
+        else if(com[0] == 'anonymous')   { set_anonymous();                     }
         else if(com[0] == 'nanashi')     { set_nanashi();                       }
         else if(com[0] == 'random')      { set_random(com[1]);                  }
         else if(com[0] == 'room')        { change_room(full_arg);               }
         else if(com[0] == 'mute')        { mute(com[1]);                        }
         else if(com[0] == 'relogin')     { relogin();                           }
+        else if(com[0] == 'clearall')
+            {
+                muted            = {};
+                ignoring         = {};
+                session._ignored = {};
+                
+                stalk  = {};
+                repeat = {};
+            }
         else if(com[0] == 'addname')
             {
                 var [undefined, id, name] = com;
@@ -2201,36 +2364,14 @@ function process_arguments()
 
 window.onload = function()
 {
-    try
-        {
-            config         = jsonfile.readFileSync('./config.json');
-            login_data     = jsonfile.readFileSync('./config.json');
-            trip_list      = jsonfile.readFileSync('./trip.json');
-            character_list = jsonfile.readFileSync('./character_list.json');
-        }
-   catch(err)
-        {
-            throw err;
-            process.exit();
-        }
-    
-    process_arguments();
-    
-    
-    /*****************
-    * Load constants
-    *****************/
-    POPUP_ENABLED = config['popup'];
-    SOUND_ON      = config['sound'];
-    
-    
     /*************************
     * Set room view elements
     *************************/
     room_view.el = $('#room_view');
     
-    room_view.log   = $('#log_div');
-    room_view.input = $('.text_input');
+    room_view.log        = $('#log_div');
+    room_view.log_search = $('#log_search');
+    room_view.input      = $('.text_input');
     
     
     room_view.dropdown['users']  = $('#users_dropdown');
@@ -2277,6 +2418,8 @@ window.onload = function()
     room_view.new_menu['profile'] = $('#room_new_profile');
     room_view.new_menu['room']    = $('#room_new_room');
     room_view.new_menu['n']       = $('#room_new_n');
+    room_view.new_menu['site']    = $('#room_new_site');
+    room_view.new_menu['timeout'] = $('#room_new_timeout');
     room_view.new_menu['accept']  = $('#room_new_menu_accept_button');
     
     
@@ -2288,19 +2431,31 @@ window.onload = function()
     config_menu['client']  = $('#config_client_menu');
     config_menu['bots']    = $('#config_bots_menu');
     
-    config_menu['name']      = $('#config_menu_name');
-    config_menu['character'] = $('#config_menu_character');
-    config_menu['stat']      = $('#config_menu_stat');
-    config_menu['trip']      = $('#config_menu_trip');
-    config_menu['rgb']       = $('#config_menu_rgb');
-    config_menu['x']         = $('#config_menu_x');
-    config_menu['y']         = $('#config_menu_y');
-    config_menu['scl']       = $('#config_menu_scl');
-    config_menu['room']      = $('#config_menu_room');
-    config_menu['server']    = $('#config_menu_server');
-    config_menu['proxy']     = $('#config_menu_proxy');
-    config_menu['site']      = $('#config_menu_site');
-    config_menu['timeout']   = $('#config_menu_timeout');
+    config_menu['name']          = $('#config_menu_name');
+    config_menu['character']     = $('#config_menu_character');
+    config_menu['stat']          = $('#config_menu_stat');
+    config_menu['trip']          = $('#config_menu_trip');
+    config_menu['rgb']           = $('#config_menu_rgb');
+    config_menu['x']             = $('#config_menu_x');
+    config_menu['y']             = $('#config_menu_y');
+    config_menu['scl']           = $('#config_menu_scl');
+    config_menu['room']          = $('#config_menu_room');
+    config_menu['server']        = $('#config_menu_server');
+    config_menu['proxy']         = $('#config_menu_proxy');
+    config_menu['site']          = $('#config_menu_site');
+    config_menu['timeout']       = $('#config_menu_timeout');
+    config_menu['add_config']    = $('#config_menu_timeout');
+    config_menu['add_trip_list'] = $('#config_menu_add_trip_list');
+    
+    
+    config_menu['sound']         = $('#config_menu_sound');
+    config_menu['comment_speed'] = $('#config_menu_comment_speed');
+    config_menu['x_y_mode']      = $('#config_menu_x_y_mode');
+    config_menu['show_comments'] = $('#config_menu_show_comments');
+    config_menu['background']    = $('#config_menu_background');
+    config_menu['load_content']  = $('#config_menu_load_content');
+    config_menu['get_all_main']  = $('#config_menu_get_all_main');
+    
     
     config_menu['login_accept'] = $('#config_menu_login_accept_button');
     config_menu['login_cancel'] = $('#config_menu_login_cancel_button');
@@ -2369,16 +2524,36 @@ window.onload = function()
                 {
                     room_view.input.focus();
                 }
+            else if(e.key == 'f' && e.ctrlKey)
+                {
+                    if( $('#log_search_div').css('display') == 'none' )
+                        {
+                            $('#log_search_div').show();
+                            log_search.focus();
+                        }
+                    else
+                        {
+                            $('#log_search_div').hide();
+                            
+                            win.webContents.stopFindInPage('clearSelection');
+                            
+                            room_view.input.focus();
+                        }
+                }
         });
     
     room_view.button['log']    .on('click', () => room_view.log.toggle()                );
     room_view.button['save']   .on('click', () => save_log()                            );
     room_view.button['reenter'].on('click', () => session.reenter()                     );
     room_view.button['users']  .on('click', () => show_users_dropdown()                 );
-    room_view.button['stat']   .on('click', () => room_view.dropdown['stat'].toggle()   );
     room_view.button['proxy']  .on('click', () => toggle_proxy()                        );
     room_view.button['relogin'].on('click', () => relogin()                             );
     room_view.button['config'] .on('click', () => room_view.dropdown['config'].toggle() );
+    room_view.button['stat'].on('click', function()
+        {
+            $('#stat_dropdown_input').val(session.stat());
+            room_view.dropdown['stat'].toggle();
+        });
     room_view.button['new'].on('click', function()
         {
             refresh_new_menu();
@@ -2411,7 +2586,7 @@ window.onload = function()
     room_view.button['config_login'].on('click', function()
         {
             show_config_login_menu();
-            room_view.dropdown['config'].toggle();
+            room_view.dropdown['config'].hide();
         });
     room_view.button['config_trigger'].on('click', function()
         {
@@ -2424,6 +2599,32 @@ window.onload = function()
             $('#config_trigger_list').val(list);
             
             config_menu['trigger'].toggle();
+            room_view.dropdown['config'].hide();
+        });
+    room_view.button['config_client'].on('click', function()
+        {
+            config_menu['sound']        .val(config['sound']);
+            config_menu['comment_speed'].val(config['comment_speed']);
+            config_menu['x_y_mode']     .val(config['x_y_mode']);
+            config_menu['show_comments'].val(config['show_comments']);
+            config_menu['background']   .val(config['background']);
+            config_menu['load_content'] .val(config['load_content']);
+            config_menu['get_all_main'] .val(config['get_all_main']);
+            
+            config_menu['client'].toggle();
+            room_view.dropdown['config'].hide();
+        });
+    room_view.button['config_bots'].on('click', function()
+        {
+            config_menu['bots'].toggle();
+            var child = $('.bot_list_checkbox');
+            
+            for(var i = 0; i < child.length; i++)
+                {
+                    $(child[i]).attr('checked', bots[i].is_on());
+                }
+            
+            room_view.dropdown['config'].hide();
         });
     $('#config_menu_trigger_cancel_button').on('click', function()
         {
@@ -2437,24 +2638,69 @@ window.onload = function()
             
             if(list.length > 0)
                 {
-                    try { jsonfile.writeFileSync('./config.json', config); }
-                    catch(err) { throw err; alert(err); }
+                    save_config();
                 }
             
             config_menu['trigger'].toggle();
         });
-    room_view.button['config_client'].on('click', function()
+    $('#config_menu_client_add_config').on('click', function()
         {
-            config_menu['client'].toggle();
+            dialog.showOpenDialog
+                (
+                    function(path)
+                        {
+                            var file = path[0];
+                            
+                            for(var key in file) { config[key] = file[key]; }
+                            save_config();
+                        }
+                );
         });
-    room_view.button['config_bots'].on('click', function()
+    $('#config_menu_client_add_trip_list').on('click', function()
         {
-            config_menu['bots'].toggle();
-            var child = $('.bot_list_checkbox');
+            dialog.showOpenDialog
+                (
+                    function(path)
+                        {
+                            var file = path[0];
+                            
+                            for(var key in file) { trip_list[key] = file[key]; }
+                            save_trip();
+                        }
+                );
+        });
+    $('#config_menu_client_cancel_button').on('click', function()
+        {
+            config_menu.client.hide();
+        });
+    $('#config_menu_client_accept_button').on('click', function()
+        {
+            config['sound']         = config_menu['sound']        .val() == 'true';
+            config['comment_speed'] = config_menu['comment_speed'].val();
+            config['x_y_mode']      = config_menu['x_y_mode']     .val();
+            config['show_comments'] = config_menu['show_comments'].val() == 'true';
+            config['background']    = config_menu['background']   .val();
+            config['load_content']  = config_menu['load_content'] .val() == 'true';
+            config['get_all_main']  = config_menu['get_all_main'] .val() == 'true';
             
-            for(var i = 0; i < child.length; i++)
+            save_config();
+            
+            config_menu.client.hide();
+        });
+    
+    room_view.log_search.on('keyup', function(e)
+        {
+            if(e.key == 'Enter')
                 {
-                    $(child[i]).attr('checked', bots[i].is_on());
+                    var text = room_view.log_search.val();
+                    ipcRenderer.send('search', text);
+                }
+            else if(e.key == 'Escape')
+                {
+                    ipcRenderer.send('stopsearch');
+                    $('#log_search_div').hide();
+                    
+                    log_search.blur();
                 }
         });
     
@@ -2517,10 +2763,6 @@ window.onload = function()
                             });
                 }
         });
-    room_view.data['cancel'].on('click', function()
-        {
-            room_view.data.el.toggle();
-        });
     room_view.data['accept'].on('click', function()
         {
             var {_r, _g, _b} = room_view.data['color_picker'].spectrum('get');
@@ -2553,12 +2795,16 @@ window.onload = function()
             var profile = room_view.new_menu['profile'].val();
             var room    = room_view.new_menu['room'].val();
             var n       = room_view.new_menu['n'].val();
+            var site    = room_view.new_menu['site'].val();
+            var timeout = room_view.new_menu['timeout'].val();
             
             new_instance
                 ({
-                    prof: ( profile == 'Default' ? session.get_data() : config.profiles[profile] ),
-                    room: room,
-                    n   : n,
+                    prof   : ( profile == 'Default' ? session.get_data() : config.profiles[profile] ),
+                    room   : room,
+                    n      : n,
+                    site   : site,
+                    timeout: timeout
                 });
         });
 
@@ -2572,11 +2818,19 @@ window.onload = function()
         });
     config_menu['login_accept'].on('click', function()
         {
+            var rgb = config_menu['rgb'].val().match(/(\d+) (\d+) (\d+)/);
+            if(!rgb) { return; }
+            
+            var [r, g, b] = rgb.splice(1, 4);
+            
+            
             config.name     　= config_menu['name'].val();
             config.character = config_menu['character'].val();
             config.stat     　= config_menu['stat'].val();
             config.trip     　= config_menu['trip'].val();
-          //config_menu['rgb'].val('test');
+            config.r         = parseInt(r);
+            config.g         = parseInt(g);
+            config.b         = parseInt(b);
             config.x        　= config_menu['x'].val();
             config.y        　= config_menu['y'].val();
             config.scl      　= config_menu['scl'].val();
@@ -2586,8 +2840,7 @@ window.onload = function()
             config.timeout  　= config_menu['timeout'].val();
             config.site     　= config_menu['site'].val();
             
-            try { jsonfile.writeFileSync('./config.json', config); }
-            catch(err) { throw err; alert(err); }
+            save_config();
             
             
             config_menu.login.toggle();
@@ -2796,7 +3049,11 @@ window.onload = function()
         .attr('for', 'stat_dropdown_input')[0];
     
     var input = $(document.createElement('INPUT'))
-        .attr('id', 'stat_dropdown_input')[0];
+        .attr('id', 'stat_dropdown_input')
+        .on('keydown', function(e)
+            {
+                if(e.key == 'Enter') { session.stat($(this).val()); }
+            })[0];
     
     $(div).append(label);
     $(div).append(input);
@@ -2834,12 +3091,30 @@ window.onload = function()
                     {
                         bots[i].toggle();
                     })[0];
-                
+            
             $(check_td).append(checkbox_el);
+            
+            
+            var default_td = $(document.createElement('TD'))
+                .addClass('bot_list_td bot_list_cell')[0];
+
+            let default_el = $(document.createElement('INPUT'))
+                .attr('type', 'checkbox')
+                .attr('checked', bots[i].is_on())
+                .addClass('bot_list_default')
+                .on('click', function(e)
+                    {
+                        config.default_bots[ bots[i].name ] = e.target.checked;
+                        
+                        save_config();
+                    })[0];
+            
+            $(default_td).append(default_el);
                 
             
             $(tr_el).append(name_td)
-                .append(check_td);
+                .append(check_td)
+                .append(default_td);
             
             $('#bot_list').append(tr_el);
         }

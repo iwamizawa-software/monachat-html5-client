@@ -7,7 +7,7 @@
 .room_view_button {
     position: absolute;
 
-    width: 65px;
+    width: 67px;
     height: 32px;
 
     background-color: white;
@@ -18,35 +18,35 @@
 ************/
 #log_button {
     top: 20px;
-    left: 8px;
+    left: 7px;
 }
 #log_window_button {
     top: 57px;
-    left: 8px;
+    left: 7px;
 }
 #save_log_button {
     top: 94px;
-    left: 8px;
+    left: 7px;
 }
 #data_button {
     top: 131px;
-    left: 8px;
+    left: 7px;
 }
 #reenter_button {
     top: 20px;
-    right: 8px;
+    right: 7px;
 }
 #relogin_button {
     top:  57px;
-    right: 8px;
+    right: 7px;
 }
 #proxy_button {
     top:  94px;
-    right: 8px;
+    right: 7px;
 }
 #new_button {
     top: 131px;
-    right: 8px;
+    right: 7px;
 }
 #users_button {
     bottom: 8px;
@@ -81,7 +81,7 @@
     position: absolute;
 
     top: 27px;
-    right: 210px;
+    right: 220px;
 }
 #main_button_table {
     position: absolute;

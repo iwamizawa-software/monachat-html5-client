@@ -39,7 +39,7 @@
 
     background-color: yellow;
     
-    top: 95px;
+    top: 94px;
 
     font-size: 15px;
     line-height: 20px;
@@ -71,14 +71,13 @@
     padding-bottom: 1px;
     
     animation-name: comment_div_keyframes;
-    animation-duration: 10s;
     animation-timing-function: linear;
     animation-fill-mode: forwards;
 
     z-index: 3;
 }
 .log_img_el {
-    max-width: 500px;
+    max-width: 90%;
     cursor: hand;
 }
 
@@ -105,9 +104,24 @@
     padding: 5px;
     padding-bottom: 10px;
 
-    background-color: rgb(200, 200, 200);
-
     //z-index: 2;
+}
+#log_search_div {
+    display: none;
+    position: absolute;
+    
+    top: 21px;
+    right: 98px;
+    
+    width: 200px;
+    height: 30px;
+}
+#log_search {
+    padding-left: 5px;
+    padding-right: 5px;
+
+    width: 100%;
+    height: 100%;
 }
 #character_menu {
     overflow-y: scroll;
@@ -154,7 +168,7 @@
     border: 1px solid black;
     
     width:  160px;
-    height: 310px;
+    height: 295px;
 
     left: 80px;
     top: 10px;
@@ -182,6 +196,19 @@
     margin-top: 8px;
     width: 50px;
 }
+#room_data_accept_button {
+    position: relative;
+    
+    height: 35px;
+    width: 100%;
+
+    top: 18px;
+    left: 0px;
+
+    border-bottom: none;
+    border-right: none;
+    border-left: none;
+}
 
 #room_new_menu {
     display: none;
@@ -189,8 +216,8 @@
     
     background-color: white;
     
-    width:  150px;
-    height: 150px;
+    width:  170px;
+    height: 215px;
 
     right: 85px;
     top:   15px;
@@ -205,7 +232,15 @@
 }
 #room_new_menu_accept_button {
     position: relative;
-    right: 28px;
+
+    bottom: -5px;
+
+    height: 40px;
+    width: 180px;
+
+    border-bottom: 0px;
+    border-left: 0px;
+    border-right: 0px;
 }
 
 /***********
@@ -229,8 +264,6 @@
     padding-top:    5px;
     padding-bottom: 5px;
 
-    background-color: white !important;
-
     border-bottom: 1px solid #BEBEBE;
 }
 .stat_dropdown_cell {
@@ -252,6 +285,11 @@
 
     border-bottom: 1px solid #BEBEBE;
 }
+#stat_dropdown_input {
+    font: var(--default_font);
+    padding-left: 5px;
+    padding-right: 5px;
+}
 .stat_dropdown_cell:last-child {
     border-right: none;
 }
@@ -270,6 +308,10 @@
     left: 8px;
     padding-top: 2px;
     padding-bottom: 2px;
+
+    max-height: 365px;
+
+    overflow-y: auto;
 
     background-color: white;
 }
@@ -309,6 +351,8 @@
 
     bottom: 50px;
     left: 620px;
+
+    z-index: 4;
 }
 
 

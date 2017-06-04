@@ -6,13 +6,14 @@
         <link rel='stylesheet' href='./assets/css/main_view.css'/>
         <link rel='stylesheet' href='./assets/css/room_view.css'/>
         
+        <link rel='stylesheet' href='./assets/css/spectrum.css'/>
+        <link rel='stylesheet' href='./assets/lib/jquery-ui/jquery-ui.css'/>
+        
+        
         <script>
             global.jQuery = require('jquery');
             global.$      = jQuery;
         </script>
-        
-        <link rel='stylesheet' href='./assets/css/spectrum.css'/>
-        <link rel='stylesheet' href='./assets/lib/jquery-ui/jquery-ui.css'/>
     
         <script src='./assets/lib/jquery-ui/jquery-ui.js'></script>
         <script src='./assets/js/monachat.js'></script>
@@ -21,39 +22,39 @@
     <body>
         <div id='main_view' class='container'>
             <div id='main_data' class='data_menu'>
-            <div id='main_data_div'>
-                <div class='data_menu_div'>
-                    <label for='main_data_profile' class='data_menu_label'>Profile:</label>
-                    <select text id='main_data_profile' class='data_menu_select'></select>
-                </div>
-                <div id='main_data_character_img_div'>
-                    <img id='main_data_character_img'></img>
-                </div>
-                
-                <br><br>
-                
-                <div class='data_menu_div'>
-                    <label for='main_data_name' class='data_menu_label'>Name:</label>
-                    <input text id='main_data_name' class='data_menu_input'/>
-                </div>
-                <div class='data_menu_div'>
-                    <label for='main_data_character' class='data_menu_label'>Char:</label>
-                    <input text id='main_data_character' class='data_menu_input'>
-                        <img src='./assets/icon/arrow.png' id='main_data_character_arrow'/>
-                    </input>
-                </div>
-                <div class='data_menu_div'>
-                    <label for='main_data_stat' class='data_menu_label'>Stat:</label>
-                    <input text id='main_data_stat' class='data_menu_input'/>
-                </div>
-                <div class='data_menu_div'>
-                    <label for='main_data_trip' class='data_menu_label'>Trip:</label>
-                    <input text id='main_data_trip' class='data_menu_input'/>
-                </div>
-                <div id='main_data_color_div' class='data_menu_div'>
-                    <label for='main_data_color_picker' class='data_menu_label'>RGB:</label>
-                    <input id="main_data_color_picker"/>
-                </div>
+                <div id='main_data_div'>
+                    <div class='data_menu_div'>
+                        <label for='main_data_profile' class='data_menu_label'>Profile:</label>
+                        <select text id='main_data_profile' class='data_menu_select'></select>
+                    </div>
+                    <div id='main_data_character_img_div'>
+                        <img id='main_data_character_img'></img>
+                    </div>
+                    
+                    <br><br>
+                    
+                    <div class='data_menu_div'>
+                        <label for='main_data_name' class='data_menu_label'>Name:</label>
+                        <input text id='main_data_name' class='data_menu_input'/>
+                    </div>
+                    <div class='data_menu_div'>
+                        <label for='main_data_character' class='data_menu_label'>Char:</label>
+                        <input text id='main_data_character' class='data_menu_input'>
+                            <img src='./assets/icon/arrow.png' id='main_data_character_arrow'/>
+                        </input>
+                    </div>
+                    <div class='data_menu_div'>
+                        <label for='main_data_stat' class='data_menu_label'>Stat:</label>
+                        <input text id='main_data_stat' class='data_menu_input'/>
+                    </div>
+                    <div class='data_menu_div'>
+                        <label for='main_data_trip' class='data_menu_label'>Trip:</label>
+                        <input text id='main_data_trip' class='data_menu_input'/>
+                    </div>
+                    <div id='main_data_color_div' class='data_menu_div'>
+                        <label for='main_data_color_picker' class='data_menu_label'>RGB:</label>
+                        <input id="main_data_color_picker"/>
+                    </div>
                 </div>
             </div>
             
@@ -112,6 +113,9 @@
             
             
             <div id='log_div' class='log' readonly></div>
+            <div id='log_search_div'>
+                <input text id='log_search' placeholder='Search'></input>
+            </div>
             <input text id='room_text_input' class='text_input' autofocus></input>
             
             
@@ -149,11 +153,7 @@
                     <input text id='room_data_y' class='data_menu_input'/>
                 </div>
 
-
-                <div id='data_button_div' class='room_data_menu_div'>
-                    <button id='room_data_cancel_button' class='room_view_button'>Cancel</button>
-                    <button id='room_data_accept_button' class='room_view_button'>Accept</button>
-                </div>
+                <button id='room_data_accept_button' class='room_view_button'>Accept</button>
             </div>
             
             <div id='room_new_menu'>
@@ -169,6 +169,15 @@
                     <label for='room_new_n' class='data_menu_label'>N:</label>
                     <input text id='room_new_n' class='data_menu_input'></input>
                 </div>
+                <div class='room_data_menu_div'>
+                    <label for='room_new_site' class='data_menu_label'>Site:</label>
+                    <input text id='room_new_site' class='data_menu_input'></input>
+                </div>
+                <div class='room_data_menu_div'>
+                    <label for='room_new_timeout' class='data_menu_label'>Timeout:</label>
+                    <input text id='room_new_timeout' class='data_menu_input'></input>
+                </div>
+
                 <div id='data_button_div' class='room_data_menu_div'>
                     <button id='room_new_menu_accept_button' class='room_view_button'>Accept</button>
                 </div>
@@ -266,16 +275,12 @@
                         <input id="config_menu_sound" class='config_menu_input'/>
                     </div>
                     <div class='config_menu_div'>
-                        <label for='config_menu_comment_speed'>Speed:</label>
+                        <label for='config_menu_comment_speed'>Comment speed:</label>
                         <input id="config_menu_comment_speed" class='config_menu_input'/>
                     </div>
                     <div class='config_menu_div'>
                         <label for='config_menu_x_y_mode'>x/y mode:</label>
                         <input id="config_menu_x_y_mode" class='config_menu_input'/>
-                    </div>
-                    <div class='config_menu_div'>
-                        <label for='config_menu_timeout'>Timeout:</label>
-                        <input id="config_menu_timeout" class='config_menu_input'/>
                     </div>
                 </div>
                 <div id='config_log_div'>
@@ -291,6 +296,14 @@
                         <label for='config_menu_load_content'>Load content:</label>
                         <input id="config_menu_load_content" class='config_menu_input'/>
                     </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_get_all_main'>Get all main:</label>
+                        <input id="config_menu_get_all_main" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <button id='config_menu_client_add_config'>Add config</button>
+                        <button id='config_menu_client_add_trip_list'>Add trip list</button>
+                    </div>
                 </div>
                 <div class='config_menu_div'>
                     <button id='config_menu_client_cancel_button' class='room_view_button'>Cancel</button>
@@ -302,6 +315,7 @@
                     <tr class='bot_list_tr' id='bot_list_header_tr'>
                         <th class='bot_list_header bot_list_cell'>Name</div>
                         <th class='bot_list_header bot_list_cell'>On</div>
+                        <th class='bot_list_header bot_list_cell'>Default</div>
                     </tr>
                 </table>
                 
@@ -311,5 +325,10 @@
         <audio id='audio'></audio>
         
         <div id='loader'></div>
+        <!--
+        <map name="char-map">
+            <area id = "char_map" title="test" coords="65,68,83,75,92,87,90,98,81,105,72,106,74,112,65,113,60,106,54,115,49,106,48,95,59,79" shape="poly" onclick="return false;">
+        </map>
+        -->
     </body>
 </html>

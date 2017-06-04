@@ -1,4 +1,4 @@
-{
+﻿{
 	"name": "名無しさん",
 	"character": "mona",
 	"stat": "通常",
@@ -6,8 +6,8 @@
 	"r": 255,
 	"g": 255,
 	"b": 255,
-	"x": "400",
-	"y": "400",
+	"x": "200",
+	"y": "275",
 	"scl": "100",
 	"room": "main",
 	"proxy": false,
@@ -17,7 +17,19 @@
 	"site": "1",
 	"profiles": {
 	},
+	"default_bots": {
+	},
+    "download_always": false,
+	"sound": true,
+	"comment_speed": "10",
+	"x_y_mode": "x",
+	"show_comments": true,
+	"log_text_background": true,
+	"background": "rgb(200, 200, 200)",
+	"load_content": true,
+	"load_all_main": true,
+	"language": "jp",
 	"popup": true,
-	"popup_trigger": ["pipirupirupirupipirupi"],
-    "sound": true
+	"popup_trigger": ["pipirupirupirupipirupi", "ぴぴるぴるぴるぴぴるぴ"],
+	"get_all_main": false
 }

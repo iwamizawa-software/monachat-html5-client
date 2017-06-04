@@ -70,11 +70,13 @@ function Monachat(data, callback)
         this.connect_normal      = connect_normal.bind(this);
         this.connect_proxy       = connect_proxy.bind(this);
         this.disconnect          = disconnect;
+        this.reconnect           = reconnect;
         this.relogin             = relogin;
         this.set_client_events   = set_client_events;
         this.ping                = ping.bind(this);
         this.check_proxy_list    = check_proxy_list;
         this.download_proxy_list = download_proxy_list.bind(this);
+        this.ping_proxies        = ping_proxies;
         
         this.name      = name;
         this.id        = id;
@@ -115,6 +117,7 @@ function Monachat(data, callback)
         this._send_x_y_scl = _send_x_y_scl;
         
         
+        this.send             = send;
         this.comment          = comment;
         this.send_comment     = send_comment;
         this.enqueue_comment  = enqueue_comment;
@@ -132,6 +135,10 @@ function Monachat(data, callback)
         this.copy        = copy;
         this.random      = random;
         this.profile     = profile;
+        
+        this.anonymous  = anonymous;
+        this._anonymous = false;
+        this._enter_room_anonymous = _enter_room_anonymous;
         
         
         this.signal_handler = signal_handler;
@@ -179,7 +186,48 @@ function reverse_rgb_scale(c)
 
 function connect()
     {
+        clearInterval(this.ping_timer_id);
+        
         this._proxy ? this.check_proxy_list() : this.connect_normal();
+    }
+
+function reconnect(s)
+    {
+        clearInterval(this.ping_timer_id);
+        
+        
+        if(clear_screen != undefined) { clear_screen(); }
+        if(loader       != undefined) { loader.show();  }
+        
+        
+        /*************
+        * Pause bots
+        *************/
+        if(bots != undefined)
+            {
+                for(var i = 0; i < bots.length; i++)
+                    {
+                        if(bots[i].is_on()) { bots[i].pause(); }
+                    }
+            }
+        
+        if(this.client != undefined)
+            {
+                this.client.end();
+                this.client.destroy();
+            }
+        
+        if(this._proxy)
+            {
+                if(this._site == 1 && config && config['download_always']) { this.proxy_list = []; }
+                this.connect();
+            }
+        else
+            {
+                console.log('Trying to reconnect...');
+                
+                setTimeout( () => this.connect(), s*1000 );
+            }
     }
 
 function connect_normal()
@@ -202,7 +250,9 @@ function connect_normal()
                 /******************
                 * Send login data
                 ******************/
-                that.client.write('MojaChat\0');
+                that.send('MojaChat\0');
+                
+                
                 that.room(that._room);
                 
                 /****************
@@ -276,13 +326,13 @@ function connect_proxy()
                 
                 if(err)
                     {
-                        console.log('Error connecting to proxy: ', err)
-                        
-                        that.check_proxy_list();
+                        console.log('Error connecting to proxy: ', err);
+                        that.reconnect(1);
                     }
                 else
                     {
                         console.log('Proxy connected.');
+                        that.IS_CONNECTED = true;
                         
                         that.client = socket;
                         
@@ -291,7 +341,7 @@ function connect_proxy()
                         /******************
                         * Send login data
                         ******************/
-                        that.client.write('MojaChat\0');
+                        that.send('MojaChat\0');
                         that.room(that._room);
                         
                         /****************
@@ -308,9 +358,6 @@ function connect_proxy()
                         * Set socket listening events
                         ******************************/
                         that.set_client_events();
-                        
-                        
-                        this.IS_CONNECTED = true;
                         
                         
                         if(loader != undefined) { loader.hide(); }
@@ -358,23 +405,18 @@ function set_client_events()
 
         this.client.on('error', function(err)
             {
-                console.error(err);
-                //alert(err.code);
+                console.error('Error: ', err);
+                console.error('Code: ', err.code);
                 
-                if(err.code == 'ECONNRESET' || err.code == 'EPIPE')
+                if(err.code == 'EPIPE')//err.code == 'ECONNRESET' || err.code == 'EPIPE')
                     {
-                        /*
-                        if(!that._proxy)
-                            {
-                                that.disconnect();
-                                
-                                clearInterval(that.ping_timer_id);
-                                
-                                console.log('Trying to reconnect...');
-                                
-                                setTimeout( () => that.connect(), 5000 ); ////not that._timeout
-                            }
-                        */
+                        that.disconnect();
+                        
+                        clearInterval(that.ping_timer_id);
+                        
+                        console.log('Trying to reconnect...');
+                        
+                        setTimeout( () => that.connect(), 5000 ); ////not that._timeout
                     }
             });
 
@@ -383,35 +425,10 @@ function set_client_events()
         this.client.on('end', function()
             {
                 console.log('Disconnected from server.');
-                clearInterval(that.ping_timer_id);
                 
+                //if(log) { format_log('error', ['Disconnected from server.']); }
                 
-                if(loader != undefined) { loader.show(); }
-                
-                
-                /*************
-                * Pause bots
-                *************/
-                if(bots != undefined)
-                    {
-                        for(var i = 0; i < bots.length; i++)
-                            {
-                                if(bots[i].is_on()) { bots[i].pause(); }
-                            }
-                    }
-                
-                
-                
-                if(!that._proxy || (that._proxy && this.IS_CONNECTED))
-                    {
-                        console.log('Trying to reconnect...');
-                        
-                        if(clear_screen != undefined) { clear_screen(); }
-                        
-                        this.IS_CONNECTED = false;
-                        
-                        setTimeout( () => that.connect(), that._timeout );
-                    }                
+                that.reconnect(1);
             });
     }
 
@@ -422,23 +439,21 @@ function disconnect()
 
 function relogin()
     {
-        this._exit_room();
-        this.disconnect();
-        
-        this._proxy ? this.check_proxy_list() : this.connect();
+        this.reconnect(0);
     }
 
 function ping()
     {
         console.log('ping');
         
-        this.client.write('<NOP />\0');
+        this.send('<NOP />\0');
     }
 
 function download_proxy_list()
     {
         var that = this;
         
+        console.log('Downloading proxy list...');
         
         if(this._site == 1)
             {
@@ -455,6 +470,7 @@ function download_proxy_list()
                         *******************/
                         var xml  = new xmldoc.XmlDocument(table);
                         var list = xml.children[1].children;
+                        
                         
                         for(var i = 0; i < list.length; i++)
                             {
@@ -497,14 +513,45 @@ function download_proxy_list()
                     });
             }
     }
+
+function ping_proxies(n)
+    {
+        var that = this;
+        
+        
+        var exec = require('child_process').exec;
+        
+        for(let i = 0; i < this.proxy_list.length; i++)
+            {
+                exec('ping -n '+n+' '+this.proxy_list[i].addr, function(err, ret)
+                    {
+                        var ping = ret.match(/Media = (\d+)ms/);
+                        
+                        var addr = that.proxy_list[i].addr;
+                        var port = that.proxy_list[i].port;
+                        
+                        if(!ping)
+                            {
+                                console.log(addr+':'+port+' : Not alive');
+                            }
+                        else
+                            {
+                                that.proxy_list[i]['ping'] = ping;
+                                console.log(addr+':'+port+' : '+ping[1]);
+                            }
+                    });
+            }
+    }
     
 function _enter_main()
     {
-        this.client.write('<ENTER room="' + this._server + '" attrib="no" />\0');
+        this.send('<ENTER room="' + this._server + '" attrib="no" />\0');
     }    
 
 function _enter_room()
     {
+        if(this._anonymous) { return this._enter_room_anonymous(); }
+        
         var msg =
             '<ENTER '
             + 'room="' + this._server + '/' + this._room + '" '
@@ -523,12 +570,19 @@ function _enter_room()
             + '/>\0';
 
         
-        this.client.write(msg);
+        this.send(msg);
+    }
+
+function _enter_room_anonymous()
+    {
+        var msg = '<ENTER room="' + this._server + '/' + this._room + '" umax="0" attrib="no" />\0';
+
+        this.send(msg);
     }
 
 function _exit_room()
     {
-        this.client.write('<EXIT no="' + this._id + '" />\0');
+        this.send('<EXIT no="' + this._id + '" />\0');
     }
 
 function room(room)
@@ -786,12 +840,12 @@ function set_data(data)
 
 function _send_stat()
     {        
-        this.client.write('<SET stat="'+this._stat+'" />\0');
+        this.send('<SET stat="'+this._stat+'" />\0');
     }
 
 function _send_x_y_scl()
     {
-        this.client.write('<SET x="'+this._x+'" scl="'+this._scl+'" y="'+this._y+'" />\0');
+        this.send('<SET x="'+this._x+'" scl="'+this._scl+'" y="'+this._y+'" />\0');
     }
 
 function proxy()
@@ -841,7 +895,19 @@ function ignore(ihash)
             }
         
         
-        this.client.write('<IG ihash="'+ihash+'" stat="'+stat+'" />\0');
+        this.send('<IG ihash="'+ihash+'" stat="'+stat+'" />\0');
+    }
+
+function send(msg)
+    {
+        if(this.client.writable)
+            {
+                this.client.write(msg);
+            }
+        else if(format_log != undefined && msg != '<NOP >\0')
+            {
+                format_log('error', ['Client is disconnected.']);
+            }
     }
 
 function comment(cmt)
@@ -901,7 +967,7 @@ function _dequeue_comment()
 
 function send_comment(cmt)
     {
-        this.client.write('<COM cmt="' + cmt + '" />\0');
+        this.send('<COM cmt="' + cmt + '" />\0');
     }
 
 function set_default()
@@ -955,6 +1021,12 @@ function invisible()
                 y        : '',
                 scl      : ''
             });
+    }
+
+function anonymous()
+    {
+        this._anonymous = !this._anonymous;
+        this.reenter();
     }
 
 function copy(data)

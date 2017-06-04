@@ -2,9 +2,25 @@
 
 const {ipcRenderer} = require('electron');
 const {shell}       = require('electron');
+const jsonfile      = require('jsonfile');
 
 
 var log_window = { log: '' };
+var config;
+
+try
+    {
+        config = jsonfile.readFileSync('./config.json');
+        
+        var room_view_css = document.styleSheets[4];
+        
+        room_view_css.insertRule('.log { background-color: ' + config['background'] + '; }', 0);
+    }
+catch(err)
+    {
+        throw err;
+        process.exit();
+    }
 
 
 function open_with_browser(e, url)

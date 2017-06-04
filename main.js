@@ -103,16 +103,28 @@ ipcMain.on('append_log', function(e, el_arr)
     {
         log_win.webContents.send('append_log', el_arr);
     });
+ipcMain.on('search', function(e, text)
+    {
+        win.webContents.findInPage(text);
+        log_win.webContents.findInPage(text);
+    });
+ipcMain.on('stopsearch', function()
+    {
+        win.webContents.stopFindInPage('clearSelection');
+        log_win.webContents.stopFindInPage('clearSelection');
+    });
+ipcMain.on('end', function(e, el_arr)
+    {
+        process.exit();
+        
+    });
 
 
-
-app.on
-    (
-        'ready',
-        createWindow
-    );
-app.on
-    (
-        'activate',
-        () => { if(win == null) { createWindow(); } }
-    );
+app.on('ready', function()
+    {
+        createWindow();
+    });
+app.on('activate', function()
+    {
+        if(win == null) { createWindow(); }
+    });
