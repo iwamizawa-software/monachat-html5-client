@@ -2649,7 +2649,7 @@ window.onload = function()
                 (
                     function(path)
                         {
-                            var file = path[0];
+                            var file = jsonfile.readFileSync(path[0]);
                             
                             for(var key in file) { config[key] = file[key]; }
                             save_config();
@@ -2662,7 +2662,7 @@ window.onload = function()
                 (
                     function(path)
                         {
-                            var file = path[0];
+                            var file = jsonfile.readFileSync(path[0]);
                             
                             for(var key in file) { trip_list[key] = file[key]; }
                             save_trip();
