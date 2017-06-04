@@ -1057,7 +1057,6 @@ function change_character_color(img, r, g, b)
         
         img.onload = '';
         img.src    = buffer_canvas.toDataURL();
-        console.log('IMG', img);
         
         buffer_ctx.clearRect(0, 0, 128, 128);
     }
@@ -1086,6 +1085,9 @@ function check_transparency(id, e)
                         
                         $(e.target).show();
                     }
+
+                
+                buffer_ctx.clearRect(0, 0, 128, 128);
             }
         
         
