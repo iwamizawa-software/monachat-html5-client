@@ -6,6 +6,9 @@ const {shell}        = require('electron');
 const {clipboard}    = require('electron');
 const {ipcRenderer}  = require('electron');
 
+var child = require('child_process');
+var p = new child.ChildProcess();
+
 const fs       = require('fs');
 
 const xmldoc   = require('xmldoc');
@@ -93,6 +96,9 @@ var ignoring    = {};
 var config_menu = {};
 
 
+var slave = [];
+
+
 /***********************************
 * Placeholders for global elements
 ***********************************/
@@ -118,13 +124,20 @@ var main_title;
 /***************
 * Global flags
 ***************/
-var POPUP_ALL           = false;
-var IS_LOADING_MAIN     = false;
+var POPUP_ALL       = false;
+var IS_LOADING_MAIN = false;
+var IS_MASTER       = true;
+var KEEP_LOOKING_ID = false;
+var ALWAYS_ON_TOP   = false;
+var MAX_Y           = 275;
 
 var LOG_TEXT_BACKGROUND;
 var GET_ALL_MAIN;
 var POPUP_ENABLED;
 var SOUND_ON;
+var IS_TRANSPARENT;
+var LOG_POS;
+
 
 /*******************
 * Global variables
@@ -190,14 +203,59 @@ try
     }
 catch(err)
     {
-        throw err;
-        process.exit();
+        //throw err;
+        //process.exit();
     }
     
 process_arguments();
 load_bots();
 
 
+/*******************
+* Master-slave IPC
+*******************/
+ipcRenderer.on('master_msg', function(e, msg)
+    {
+        console.log('Message from master: ', msg);
+        console.log(e);
+        
+        command_handler(msg);
+        
+        //e.sender.send('Message received.');
+    });
+ipcRenderer.on('slave_msg', function(e, msg)
+    {
+        console.log('Message from child: ', msg);
+    });
+
+function send_slave(msg)
+    {
+        for(var i = 0; i < slave.length; i++)
+            {
+                if(slave[i].connected) { slave[i].send(msg); }
+            }
+    }
+
+function send_each_slave(f)
+    {
+        var connected = slave.filter( (obj) => obj.connected );
+        
+        for(var i = 0; i < connected.length; i++)
+            {
+                connected[i].send( f() );
+            }
+    }
+
+ipcRenderer.on('save_log', function(e)
+    {
+        save_log();
+        ipcRenderer.send('end');
+    });
+
+
+/*************
+* User class
+*************/
 function User(xml)
     {
         var user = xml.attr;
@@ -240,12 +298,12 @@ function left_to_x(left)
 
 function y_to_top(y)
     {
-        y = 275; //// temporal
+        y = MAX_Y; //// temporal
         
-        if     (y < 0)   { return y_to_top(0);   }
-        else if(y > 275) { return y_to_top(275); }
+        if     (y < 235) { return y_to_top(235); }
+        else if(y > MAX_Y) { return y_to_top(MAX_Y); }
         
-        var [a, b]     = [0, 275];
+        var [a, b]     = [0, MAX_Y];
         var [min, max] = [0, 366];
         
         return parseInt(　(((b-a)　*　(y-min))　/　(max-min)) + a　);
@@ -253,7 +311,10 @@ function y_to_top(y)
 
 function top_to_y(top)
     {
-        var [a, b]     = [0, 360];
+        if     (top < 235) { return y_to_top(235); }
+        else if(top > 275) { return y_to_top(275); }
+        
+        var [a, b]     = [0, 275];
         var [min, max] = [0, 275];
         
         return parseInt(　(((b-a)　*　(top-min))　/　(max-min)) + a　);
@@ -484,13 +545,15 @@ function format_user_data(id, n)
                 room[id] = user[id];
             }
         
-        var {name, character, stat, trip, ihash, r, g, b} = user[id];
+        var {name, character, stat, trip, ihash, r, g, b, x, y} = user[id];
         
         var line = name
         if(n > 1) { line += ' ' + WHITE_TRIP_SYM + ihash.substr(-6);          }
         if(n > 2) { line += ' ' + (trip == '' ? '' : (BLACK_TRIP_SYM + trip)) }
         if(n > 3) { line += ' ' + stat; }
         if(n > 4) { line += ' ' + character; }
+        if(n > 5) { line += ' r:' + r + ' g:' + g + ' b:' + b; }
+        if(n > 6) { line += ' x:' + x + ' y:' + y; }
         
         line += ' (' + id + ')';
         
@@ -671,6 +734,8 @@ function format_log(type, args)
                                         var type = jqXHR.getResponseHeader('content-type');
                                         var size = jqXHR.getResponseHeader('content-length');
                                         
+                                        console.log([type, size]);
+                                        
                                         /************************************************
                                         * If it's an image smaller than 20mb, render it
                                         ************************************************/
@@ -680,6 +745,24 @@ function format_log(type, args)
                                                 
                                                 log([time_el, user_el, two_dot, cmt_el]);
                                                 log([img_el]);
+                                            }
+                                        else if(type == 'video/webm' && size/1024 < 20000)
+                                            {
+                                                var video_el = $(document.createElement('video'))
+                                                    .attr('src', cmt)
+                                                    .attr('controls', '')[0];
+                                                
+                                                log([time_el, user_el, two_dot, cmt_el]);
+                                                log([video_el]);
+                                            }
+                                        else if(type.match('audio') && size/1024 < 20000)
+                                            {
+                                                var audio_el = $(document.createElement('audio'))
+                                                    .attr('src', cmt)
+                                                    .attr('controls', '')[0];
+                                                
+                                                log([time_el, user_el, two_dot, cmt_el]);
+                                                log([audio_el]);
                                             }
                                         else if(cmt.match(/youtube.com|youtu.be/))
                                             {
@@ -855,6 +938,31 @@ function save_log()
         
         
         fs.writeFileSync('./log/'+date+'.txt', text);
+    }
+
+function search_log(word)
+    {
+        var logs = fs.readdirSync('log')
+            .filter( (filename) => filename.match(/\.txt$/) );
+        
+        log_newline(1);
+        
+        for(var i = 0; i < logs.length; i++)
+            {
+                log( [log_text_el('File: ' + logs[i], 0, 255, 255)] );
+                
+                var file = fs.readFileSync(__dirname + '/log/' + logs[i], 'utf8').split('\n');
+                for(var j = 0; j < file.length; j++)
+                    {
+                        if(file[j].match(word))
+                            {
+                                log( [log_text_el(file[j])] );
+                            }
+                    }
+            }
+        
+        log( [log_text_el('LOG SEARCH END', 0, 255, 255)] );
+        log_newline(1);
     }
 
 function get_id_from_ihash(ihash)
@@ -1134,12 +1242,22 @@ function append_div(id)
                 
                 if(id == session.id())
                     {
+                        var drag_offset_x;
+                        var drag_offset_y;
+                        
                         $( () => $(div).draggable
                             ({
                                 containment: [0, 180, 668, 206],
                                 start: function(e)
                                     {
                                         drag_offset_x = e.offsetX;
+                                        drag_offset_y = e.offsetY;
+                                    },
+                                drag : function(e)
+                                    {
+                                        //var img = $('#user_div_'+session.id()+'_img');
+                                        
+                                        //img.css('width', 128 - (e.clientX/100));
                                     },
                                 stop : function(e)
                                     {
@@ -1147,7 +1265,15 @@ function append_div(id)
                                             ? drag_offset_x
                                             : (128 - drag_offset_x);
                                         
+                                        var y = drag_offset_y;
+                  
+                                        //console.log(e.clientY, e.offsetY, y, top_to_y(e.clientY))
+                  
+                                        //session._y = top_to_y(e.clientY);
+                                        //session._y = e.clientY;
                                         session.x( left_to_x(e.clientX - x + 1) );
+                                        
+                                        console.log(e.clientY);
                                     }
                             })
                          );
@@ -1331,17 +1457,36 @@ function show_users_dropdown()
                             (is_ignored(id) || is_ignoring(id)) ? 'yellow' :
                                                                   'white'
                         )
-                    .on('click', function()
+                    .on('mousedown', function(e)
                         {
-                            mute(id);
-                            
-                            $(this).css
-                                (
-                                    'background-color',
-                                    is_muted(id)                        ? 'red'    :
-                                    (is_ignored(id) || is_ignoring(id)) ? 'yellow' :
-                                                                          'white'
-                                )
+                            if(e.which == 1)
+                                {
+                                    mute(id);
+                                    
+                                    $(this).css
+                                        (
+                                            'background-color',
+                                            is_muted(id)
+                                                ? 'red'
+                                                : (is_ignored(id) || is_ignoring(id))
+                                                    ? 'yellow'
+                                                    : 'white'
+                                        );
+                                }
+                            else if(e.which == 3)
+                                {
+                                    ignore(id);
+                                    
+                                    $(this).css
+                                        (
+                                            'background-color',
+                                            is_ignored(id)
+                                                ? 'yellow'
+                                                : is_muted(id)
+                                                    ? 'red'
+                                                    : 'white'
+                                        );
+                                }
                         })[0];
                 
                 room_view.dropdown['users'].append(dropdown_el);
@@ -1446,16 +1591,28 @@ function show_user_context_menu(id)
         
         var template =
             [
-                { label: name + ' ' + WHITE_TRIP_SYM + ihash + ' (' + id + ')' },
+                {
+                    label: format_user_data(id, 3), click()
+                        {
+                            var {r, g, b, x, y} = user[id];
+                            
+                            log_newline(1);
+                            log([ log_time_el(), log_text_el(' ' + format_user_data(id, 5),        0, 255, 255) ]);
+                            log([ log_time_el(), log_text_el(' r: ' + r + ' g: ' + g + ' b: ' + b, 0, 255, 255) ]);
+                            log([ log_time_el(), log_text_el(' x: ' + x + ' y: ' + y,              0, 255, 255) ]);
+                            log([ log_time_el(), log_text_el(' Names registered: ' + trip.length,  0, 255, 255) ]);
+                            log_newline(1);
+                        }
+                },
                 { type: 'separator' },
-                { label: names, click() { search_trip('id', id) } },
+                { label: names,          click() { search_trip('id', id) } },
                 { type: 'separator' },
-                { label: 'Copy',        click() { copy(id);                } },
-                { label: 'Ignore',      click() { ignore(id);              } },
-                { label: 'Mute',        click() { mute(id);                } },
+                { label: 'Copy',         click() { copy(id);   } },
+                { label: 'Ignore',       click() { ignore(id); } },
+                { label: 'Mute',         click() { mute(id);   } },
                 { label: 'Search trips', click() { search_trip('name', user[id].name); } },
                 {
-                    label: 'Stalk '  + (is_repeated(id) ? 'On' : 'Off'),
+                    label: 'Stalk '  + (is_stalked(id) ? 'On' : 'Off'),
                     click() { toggle_stalk(id); }
                 },
                 {
@@ -1497,8 +1654,9 @@ function show_command_context_menu()
                             { label: 'Save profile', click() { add_profile();   } },
                             { label: 'Default',      click() { set_default();   } },
                             { label: 'Random',       click() { set_random();    } },
+                            { label: 'Nanashi',      click() { set_nanashi();   } },
                             { label: 'Invisible',    click() { set_invisible(); } },
-                            { label: 'Nanashi',      click() { set_nanashi();   } }
+                            { label: 'Anonymous',    click() { set_anonymous(); } }
                         ]
                 },
                 { type: 'separator' },
@@ -1525,6 +1683,14 @@ function show_command_context_menu()
                     label: 'New', click()
                     {
                         new_instance( { n: 1, room: session.room(), prof: session.get_data() } );
+                    }
+                },
+                { type: 'separator'},
+                { label: 'Transparent', click() { toggle_transparent(); } },
+                { label: (ALWAYS_ON_TOP ? 'Always' : 'Never') + ' on top', click()
+                    {
+                        ALWAYS_ON_TOP = !ALWAYS_ON_TOP;
+                        win.setAlwaysOnTop(ALWAYS_ON_TOP);
                     }
                 }
             ];
@@ -1752,6 +1918,24 @@ function search_trip(type, data)
                         format_log('triplist', match);
                     }
             }
+        else if(type == 'namerecursive')
+            {
+                var name = data;
+                var match = [name, 'unknown'];
+                
+                search_trip('name', name);
+                
+                for(var trip in trip_list)
+                    {
+                        for(var i = 0; i < trip_list[trip].length; i++)
+                            {
+                                if(trip_list[trip][i] == name)
+                                    {
+                                        search_trip('trip', trip);
+                                    }
+                            }
+                    }
+            }
     }
 
 function tinyurl(long_url)
@@ -1821,7 +2005,10 @@ function new_instance(data)
             {
                 return;
             }
-            
+        
+        if(data['slave'] == undefined) { data['slave'] = false; }
+        
+        
         var login_args =
             [
                 '.',
@@ -1839,13 +2026,52 @@ function new_instance(data)
                 'x',         data.prof.x,
                 'y',         data.prof.y,
                 'scl',       data.prof.scl,
-                'room',      data.room
+                'room',      data.room,
+                
+                'slave',     data.slave
             ];
+        
+        if(data.transparent) { login_args.push('transparent', 'true'); }
+        
         
         for(var i = 0; i < data.n; i++)
             {
-                require('child_process').spawn( ARGV[0], login_args, { detached: true } );
+                var spawn = require('child_process').spawn
+                    (
+                        ARGV[0],
+                        login_args,
+                        {
+                            detached: !data.slave,
+                            stdio: [null, null, null, 'ipc']
+                        }
+                    );
+                
+                if(data.slave)
+                    {
+                        spawn.on('message', function(e, msg)
+                            {
+                                alert('slave');
+                                
+                                console.log(e, msg);
+                            });
+                        
+                        slave.push(spawn);
+                    }
             }
+    }
+
+function toggle_transparent()
+    {
+        var options = {};
+        
+        options['args'] = IS_TRANSPARENT
+            ?   [ARGV[1]]
+            :   ARGV.slice(1).concat(['transparent', 'true']);
+        
+        
+        session.disconnect();
+        app.relaunch(options);
+        app.quit();
     }
 
 function ignore(id)
@@ -2119,17 +2345,34 @@ function signal_handler(msg)
                         ***********************/
                         if(xml.attr.x != undefined)
                             {
-                                user[id].x = xml.attr.x;
-                                move_div(id);
+                                var x = xml.attr.x;
                                 
-                                if(is_stalked(id)) { session.x(xml.attr.x); }
+                                if(x != user[id].x)
+                                    {
+                                        user[id].x = x;
+                                        move_div(id);
+                                        
+                                        if(is_stalked(id))  { session.x(x); }
+                                        if(KEEP_LOOKING_ID == id)
+                                            {
+                                                console.log('KEEP LOOKING', x, session.x());
+                                                
+                                                session._scl = x < session.x() ? -100 : 100;
+                                                session._send_x_y_scl();
+                                            }
+                                    }
                             }
                         if(xml.attr.y != undefined)
                             {
-                                user[id].y = xml.attr.y;
-                                move_div(id);
-
-                                if(is_stalked(id)) { session.y(xml.attr.y); }
+                                var y = xml.attr.y;
+                                
+                                if(y != user[id].y)
+                                    {
+                                        user[id].y = xml.attr.y;
+                                        move_div(id);
+                                        
+                                        if(is_stalked(id)) { session.y(xml.attr.y); }
+                                    }
                             }
                         if(xml.attr.scl != undefined)
                             {
@@ -2145,7 +2388,6 @@ function signal_handler(msg)
                         if(xml.attr.stat != undefined)
                             {
                                 var {stat} = xml.attr;
-                                
                                 if(stat == user[id].stat) { return; }
                                 
                                 
@@ -2241,16 +2483,19 @@ function command_handler(com)
         else if(com[0] == 'g')           { session.g(com[1]);                   }
         else if(com[0] == 'b')           { session.b(com[1]);                   }
         else if(com[0] == 'rgb')         { session.rgb(com[1], com[2], com[3]); }
-        else if(com[0] == 'x')           { session.x(com[1]);                   }
+        else if(com[0] == 'x')           { session.x(com[1] == 'random' ? parseInt(Math.random()*600) : com[1]); }
         else if(com[0] == 'y')           { session.y(com[1]);                   }
         else if(com[0] == 'scl')         { session.scl();                       }
         else if(com[0] == 'ignore')      { ignore(com[1]);                      }
         else if(com[0] == 'reenter')     { session.reenter();                   }
         else if(com[0] == 'site')        { session.site(com[1])                 }
-        else if(com[0] == 'timeout')     { session.timeout(com[1])              }
+        else if(com[0] == 'timeout')     { session.timeout(com[1]);             }
+        else if(com[0] == 'comment')     { session.comment(com[1]);             }
+        else if(com[0] == 'enqueuecomment') { session.enqueue_comment(com[1]);  }
         else if(com[0] == 'searchid')    { search_trip('id', com[1]);           }
         else if(com[0] == 'searchtrip')  { search_trip('trip', com[1]);         }
         else if(com[0] == 'searchname')  { search_trip('name', full_arg);       }
+        else if(com[0] == 'searchrecursive') { search_trip('namerecursive', full_arg); }
         else if(com[0] == 'proxy')       { toggle_proxy();                      }
         else if(com[0] == 'tinyurl')     { tinyurl(com[1]);                     }
         else if(com[0] == 'popup')       { POPUP_ENABLED = !POPUP_ENABLED;      }
@@ -2269,7 +2514,28 @@ function command_handler(com)
         else if(com[0] == 'random')      { set_random(com[1]);                  }
         else if(com[0] == 'room')        { change_room(full_arg);               }
         else if(com[0] == 'mute')        { mute(com[1]);                        }
+        else if(com[0] == 'stalk')       { toggle_stalk(com[1]);                }
+        else if(com[0] == 'repeat')      { toggle_repeat(com[1]);               }
         else if(com[0] == 'relogin')     { relogin();                           }
+        else if(com[0] == 'lookat')
+            {
+                var id = com[1];
+                if( !user[id] ) { return; }
+                
+                session._scl = user[id].x < session.x() ? -100 : 100;
+                session._send_x_y_scl();
+            }
+        else if(com[0] == 'keeplooking')
+            {
+                var id = com[1];
+                if( !user[id] ) { return; }
+                
+                KEEP_LOOKING_ID = id;
+            }
+        else if(com[0] == 'get_close')
+            {
+                // Unimplemented
+            }
         else if(com[0] == 'clearall')
             {
                 muted            = {};
@@ -2278,6 +2544,13 @@ function command_handler(com)
                 
                 stalk  = {};
                 repeat = {};
+                
+                KEEP_LOOKING_ID  = false;
+                GET_CLOSE_ID     = false;
+            }
+        else if(com[0] == 'searchlog')
+            {
+                search_log(com[1]);
             }
         else if(com[0] == 'addname')
             {
@@ -2300,32 +2573,47 @@ function command_handler(com)
             }
         else if(com[0] == 'new')
             {
-                var options = { n: 1, room: session.room(), prof: session.get_data() };
+                var options = { n: 1, room: session.room(), prof: session.get_data(), transparent: false };
                 
-                if(com.length == 1)
+                if(com.includes('n'))
                     {
-                        options.n = 1;
+                        var index = com.indexOf('n');
+                        if(!com[index+1]) { return; }
+                        
+                        options.n = com[index+1];
                     }
-                else
+                if(com.includes('room'))
                     {
-                        options.n = com[1];
+                        var index = com.indexOf('room');
+                        if(!com[index+1]) { return; }
                         
-                        if(com.length == 3)
-                            {
-                                Number.isInteger( parseInt(com[2]) )
-                                    ? options.room = com[2]
-                                    : options.prof = config.profiles[ com[2] ];
-                            }
+                        options.room = com[index+1];
+                    }
+                if(com.includes(n))
+                    {
+                        var index = com.indexOf('prof');
+                        if(!com[index+1]) { return; }
                         
-                        else if(com.length == 4)
-                            {
-                                options.room = com[2];
-                                options.prof = config.profiles[ com[3] ];
-                            }
+                        options.prof = config.profiles[ com[index+1] ];
+                    }
+                if(com.includes('transparent'))
+                    {
+                        options.transparent = true;
                     }
                 
                 
                 new_instance(options);
+            }
+        else if(com[0] == 'transparent')
+            {
+                toggle_transparent();
+            }
+        else if(com[0] == 'slave')
+            {
+                var options = { n: 1, room: session.room(), prof: session.get_data(), slave: true };
+                var n = com[1] || 1;
+                
+                for(var i = 0; i < n; i++) { new_instance(options); }
             }
         else if(com[0] == 'reloadbots')
             {
@@ -2341,6 +2629,11 @@ function command_handler(com)
             }
         else if(com[0] == 'exit')
             {
+                if(config['save_log_on_exit'])
+                    {
+                        save_log();
+                    }
+                
                 session.disconnect();
                 app.quit();
             }
@@ -2360,10 +2653,18 @@ function process_arguments()
         
         for(var i = 2; i < ARGV.length; i += 2)
             {
-                login_data[ARGV[i]] = ARGV[i+1];
+                if(ARGV[i] == 'slave')
+                    {
+                        IS_MASTER     = !ARGV[i+1];
+                        POPUP_ENABLED = false;
+                    }
+                else
+                    {
+                        login_data[ARGV[i]] = ARGV[i+1];
+                    }
             }
     }
-
+var prev_x, prev_y;
 window.onload = function()
 {
     /*************************
@@ -2450,13 +2751,14 @@ window.onload = function()
     config_menu['add_trip_list'] = $('#config_menu_add_trip_list');
     
     
-    config_menu['sound']         = $('#config_menu_sound');
-    config_menu['comment_speed'] = $('#config_menu_comment_speed');
-    config_menu['x_y_mode']      = $('#config_menu_x_y_mode');
-    config_menu['show_comments'] = $('#config_menu_show_comments');
-    config_menu['background']    = $('#config_menu_background');
-    config_menu['load_content']  = $('#config_menu_load_content');
-    config_menu['get_all_main']  = $('#config_menu_get_all_main');
+    config_menu['sound']            = $('#config_menu_sound');
+    config_menu['comment_speed']    = $('#config_menu_comment_speed');
+    config_menu['x_y_mode']         = $('#config_menu_x_y_mode');
+    config_menu['show_comments']    = $('#config_menu_show_comments');
+    config_menu['background']       = $('#config_menu_background');
+    config_menu['load_content']     = $('#config_menu_load_content');
+    config_menu['get_all_main']     = $('#config_menu_get_all_main');
+    config_menu['save_log_on_exit'] = $('#config_menu_save_log_on_exit');
     
     
     config_menu['login_accept'] = $('#config_menu_login_accept_button');
@@ -2605,13 +2907,14 @@ window.onload = function()
         });
     room_view.button['config_client'].on('click', function()
         {
-            config_menu['sound']        .val(config['sound']);
-            config_menu['comment_speed'].val(config['comment_speed']);
-            config_menu['x_y_mode']     .val(config['x_y_mode']);
-            config_menu['show_comments'].val(config['show_comments']);
-            config_menu['background']   .val(config['background']);
-            config_menu['load_content'] .val(config['load_content']);
-            config_menu['get_all_main'] .val(config['get_all_main']);
+            config_menu['sound']            .val(config['sound']);
+            config_menu['comment_speed']    .val(config['comment_speed']);
+            config_menu['x_y_mode']         .val(config['x_y_mode']);
+            config_menu['show_comments']    .val(config['show_comments']);
+            config_menu['background']       .val(config['background']);
+            config_menu['load_content']     .val(config['load_content']);
+            config_menu['get_all_main']     .val(config['get_all_main']);
+            config_menu['save_log_on_exit'] .val(config['save_log_on_exit']);
             
             config_menu['client'].toggle();
             room_view.dropdown['config'].hide();
@@ -2677,13 +2980,14 @@ window.onload = function()
         });
     $('#config_menu_client_accept_button').on('click', function()
         {
-            config['sound']         = config_menu['sound']        .val() == 'true';
-            config['comment_speed'] = config_menu['comment_speed'].val();
-            config['x_y_mode']      = config_menu['x_y_mode']     .val();
-            config['show_comments'] = config_menu['show_comments'].val() == 'true';
-            config['background']    = config_menu['background']   .val();
-            config['load_content']  = config_menu['load_content'] .val() == 'true';
-            config['get_all_main']  = config_menu['get_all_main'] .val() == 'true';
+            config['sound']             = config_menu['sound']           .val() == 'true';
+            config['comment_speed']     = config_menu['comment_speed']   .val();
+            config['x_y_mode']          = config_menu['x_y_mode']        .val();
+            config['show_comments']     = config_menu['show_comments']   .val() == 'true';
+            config['background']        = config_menu['background']      .val();
+            config['load_content']      = config_menu['load_content']    .val() == 'true';
+            config['get_all_main']      = config_menu['get_all_main']    .val() == 'true';
+            config['save_log_on_exit']  = config_menu['save_log_on_exit'].val() == 'true';
             
             save_config();
             
@@ -3128,6 +3432,60 @@ window.onload = function()
     POPUP_ENABLED = config['popup'];
     if(login_data['proxy']) { room_view.button['proxy'].css('background-color', 'rgb(100, 100, 100)'); }
     
+    
+    IS_TRANSPARENT = config.transparent || ARGV.includes('transparent');
+    
+    if(IS_TRANSPARENT)
+        {
+            ALWAYS_ON_TOP = true;
+            MAX_Y = 305;
+            
+            room_view.log.hide();
+            $('#log_button, #log_window_button, #save_log_button, #data_button').hide();
+            $('#reenter_button, #relogin_button, #proxy_button, #new_button').hide();
+            
+            $( () => $('.text_input').draggable
+                ({
+                    cancel: false,
+                    
+                    start: function(e)
+                        {
+                            prev_x = e.screenX;
+                            prev_y = e.screenY;
+                            
+                            LOG_POS = { left: room_view.input.css('left'), top: room_view.input.css('top') };
+                        },
+                    drag:  function(e)
+                        {
+                            var [pos_x, pos_y] = win.getPosition();
+                            
+                            var x_diff = e.screenX - prev_x;
+                            var y_diff = e.screenY - prev_y;
+                            
+                            prev_x = e.screenX;
+                            prev_y = e.screenY;
+                            
+                            var x = pos_x + x_diff;
+                            var y = pos_y + y_diff;
+                            
+                            win.setPosition(x, y);
+                            
+                            //return false;
+                        },
+                    stop: function(e)
+                        {
+                            room_view.input.css('left', LOG_POS.left);
+                            room_view.input.css('top',  LOG_POS.top );
+                        }
+                })
+            );
+
+            $('.text_input').on('mousedown', function(e)
+                {
+                    if(e.which == 3) { show_command_context_menu(); }
+                    //room_view.input.left()
+                });
+        }
     
     
     /********

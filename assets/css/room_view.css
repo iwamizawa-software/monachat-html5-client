@@ -242,6 +242,8 @@
     border-bottom: 0px;
     border-left: 0px;
     border-right: 0px;
+
+    z-index: 4;
 }
 
 /***********

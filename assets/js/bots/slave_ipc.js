@@ -4,11 +4,11 @@
 
 function Bot()
     {
-        this.name    = require('path').basename(__filename);
+        this.name = require('path').basename(__filename);
         
         this._on          = false;
         this._paused      = true;
-        this._timeout     = 10;
+        this._timeout     = 1;
         this._interval_id = 100;
         
         
@@ -47,12 +47,17 @@ function Bot()
                 if(this.is_on()) { this.off(); }
                 else             { this.on(); }
             }
+        
         this.is_paused = () => this._paused;
         this.is_on     = () => this._on;
         
-        this.trans_com   = false;
-        this.trans_from  = 'ja';
-        this.trans_to    = 'en';
+        
+        this.attack    = false;
+        this.attack_i  = 0;
+        this.attack_id = 0;
+        
+        this.rip    = false;
+        this.rip_i  = 0;
         
         
         this.signal_handler  = signal_handler;
@@ -146,12 +151,6 @@ function signal_handler(msg)
                 else if(xml.name == 'COM')
                     {
                         var {id, cmt} = xml.attr;
-                        if(is_ignored(id) && is_muted(id)) { return; }
-                        
-                        if(id != session.id() && this.trans_com)
-                            {
-                                translate(this.trans_from, this.trans_to, cmt, true);
-                            }
                     }
             }
     }
@@ -161,26 +160,55 @@ function command_handler(com)
         if(!this._on) { return; }
         
         com = com.split(' ');
-                
-        if(com[0] == 'transto')
+        
+        if(com[0] == '/kill')
             {
-                translate('ja', com[1], com[2], false);
-            }
-        else if(com[0] == 'transfrom')
-            {
-                translate(com[1], 'ja', com[2], false);
-            }
-        else if(com[0] == 'transcom')
-            {
-                if(com[1] == undefined) { this.trans_com = false; }
-                
-                else
+                for(var i = 0; i < slave.length; i++)
                     {
-                        this.trans_com  = true;
-                        
-                        this.trans_from = com[1];
-                        this.trans_to   = com[2];
+                        slave[i].kill();
                     }
+            }
+        else if(com[0] == '/comment')
+            {
+                var cmt  = com.splice(1);
+                var line = cmt.join(' ');
+                
+                send_slave('comment ' + line);
+            }
+        else if(com[0] == '/randx')
+            {
+                send_each_slave( () => 'x ' + parseInt( Math.random()*700 ) )
+            }
+        else if(com[0] == '/attack')
+            {
+                this.attack_id = com[1];
+                this.attack = !this.attack;
+            }
+        else if(com[0] == '/line')
+            {
+                var i = 0;
+                send_each_slave( () => 'x ' + (++i*40) );
+            }
+        else if(com[0] == '/letter')
+            {
+                var letters = com[1].split('');
+                
+                var i = 0;
+                send_each_slave( () => letters[i+1] == undefined ? '' : 'comment ' + letters[i++] );
+            }
+        else if(com[0] == '/rip')
+            {
+                this.rip = !this.rip;
+            }
+        else if(com[0][0] == '/')
+            {
+                var [com, arg] = [ com[0].substr(1, com[0].length), com.slice(1) ];
+                
+                var line = arg.length == 0
+                    ? com
+                    : com + ' ' + arg.join(' ');
+                    
+                send_slave(line);
             }
         else
             {
@@ -191,47 +219,55 @@ function command_handler(com)
 function repeat()
     {
         if(!this._on || this._paused) { return; }
-    }
-
-function translate(from_lng, to_lng, text, comment)
-    {
-        var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl='
-            + from_lng
-            + '&tl='
-            + to_lng
-            + '&dt=t&q='
-            + text;
-            
-        console.log(arguments, url);
-
-        $.get(url, function(data)
+        
+        if(this.rip)
             {
-                console.log(data);
-                
-                if(!data[0]) { return; }
-                
-                if(comment)
+                if(this.rip_i < 8)
                     {
-                        session.enqueue_comment(data[0][0][0]);
+                        send_each_slave( () => 'x ' + parseInt(Math.random()*700) );
+                        send_each_slave( () => 'enqueuecomment ' + 'あいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえおあいうえお' );
+                    }
+                else if(this.rip_i == 8)
+                    {
+                        send_each_slave( () => 'reenter' );
+                    }
+                else if(this.rip_i == 10)
+                    {
+                        this.rip_i = 0;
+                    }
+                
+                
+                this.rip_i++;
+            }
+        else if(this.attack)
+            {
+                var that = this;
+                
+                if(user[that.attack_id] == undefined) { return; }
+                
+                if(this.attack_i == 0)
+                    {
+                        send_each_slave( function()
+                            {
+                                var x = parseInt(user[that.attack_id].x);
+                                
+                                x += parseInt(Math.random()*100) * (Math.random() > 0.5 ? 1 : -1);
+                                
+                                return 'x ' + x.toString();
+                            });
+                        
+                        this.attack_i = 1;
                     }
                 else
                     {
-                        var text_el = log_text_el
-                            (
-                                data[0][0][1]
-                                + ' ('
-                                + from_lng
-                                + ' -> '
-                                + ' +): '
-                                + data[0][0][0],
+                        send_each_slave( function()
+                            {
+                                var phrases = ['やあ！', 'えい！', 'それ！', '殺せー！'];
                                 
-                                0, 100, 0
-                            );
+                                return 'comment ' + phrases[ parseInt(Math.random() * phrases.length) ];
+                            });
                         
-                        var time    = new Date().toLocaleTimeString();
-                        var time_el = log_text_el('['+time+'] ');
-                        
-                        log([time_el, text_el]);
+                        this.attack_i = 0;
                     }
-            });
+            }
     }

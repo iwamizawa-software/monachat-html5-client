@@ -14,7 +14,7 @@ const SERVER_LIST =
         'ooheya'      : ["MONABIG8093", 9093],
         'chibichato'  : ["ANIMAL8098",  9090],
         'moa'         : ["MOA8088",     9092],
-        'chiikibetsu' : ["AREA8089",    9095],
+        'chiikibetsu' : ["AREA8089",    9090],
         'wadaibetsu'  : ["ROOM8089",    9090],
         'tateyokoheya': ["MOXY8097",    9093],
         'cool'        : ["COOL8099",    9090],
@@ -286,9 +286,35 @@ function connect_normal()
 
 function check_proxy_list()
     {
+        var that = this;
+        
         if(this.proxy_list.length == 0)
             {
-                this.download_proxy_list();
+                console.log('Downloading proxy list...');
+                
+                $.ajax
+                    ({
+                        method: 'get',
+                        url: 'https://jsonproxy.github.io/type/socks/n/1000',
+                        
+                        success: function(json, data, xhr)
+                            {
+                                if(Object.keys(json).length == 0)
+                                    {
+                                        that.download_proxy_list();
+                                    }
+                                else
+                                    {
+                                        that.proxy_list = json;
+                                        that.connect_proxy();
+                                    }
+                            },
+                        error: function(err)
+                            {
+                                console.log(err);
+                                that.download_proxy_list();
+                            }
+                    });
             }
         else
             {
@@ -425,6 +451,7 @@ function set_client_events()
         this.client.on('end', function()
             {
                 console.log('Disconnected from server.');
+                clearInterval(this.ping_timer_id);
                 
                 //if(log) { format_log('error', ['Disconnected from server.']); }
                 
@@ -452,8 +479,6 @@ function ping()
 function download_proxy_list()
     {
         var that = this;
-        
-        console.log('Downloading proxy list...');
         
         if(this._site == 1)
             {
@@ -1070,8 +1095,8 @@ function random(country)
             + 'hati4 hikk hiyoko hokkyoku6 hosh ichi ichi2 ichineko iiajan iyou jien joruju '
             + 'joruju2 kabin kagami kamemona kappappa kasiwa kato kikko2 kita koit koya kunoichi '
             + 'kuromimi kyaku maji marumimi maturi mina miwa mona monaka mora mosamosa1 mosamosa2 '
-            + 'mosamosa3 mosamosa4 mossari moudamepo mouk mouk1 mouk2 nanyo nezumi nida niku nin3 '
-            + 'niraime niraime2 niramusume niraneko nyog oni oniini oomimi osa papi polygon ppa2 '
+            + 'mosamosa3 mosamosa4 mossari moudamepo mouk mouk1 mouk2 nanyo nazoko nezumi nida niku '
+            + 'nin3 niraime niraime2 niramusume niraneko nyog oni oniini oomimi osa papi polygon ppa2 '
             + 'puru ranta remona riru ri_man sai sens shaitama shak shob shodai sii2 sika sira '
             + 'siranaiwa sugoi3 sumaso2 suwarifusa tahara tatigiko taxi tibifusa tibigiko tibisii '
             + 'tiraneyo tofu tokei tuu uma unknown2 unko urara usi wachoi welneco2 yamazaki1 '

@@ -1,4 +1,4 @@
-﻿{
+{
 	"name": "名無しさん",
 	"character": "mona",
 	"stat": "通常",
@@ -15,20 +15,20 @@
 	"server": "MONA8094",
 	"timeout": "1",
 	"site": "1",
-	"profiles": {
-	},
-	"default_bots": {
-	},
-    "download_always": false,
+	"profiles": {},
+	"default_bots": {},
+	"download_always": false,
 	"sound": true,
 	"comment_speed": "10",
 	"x_y_mode": "x",
 	"show_comments": true,
 	"log_text_background": true,
 	"background": "rgb(200, 200, 200)",
+	"save_log_on_exit": false,
 	"load_content": true,
 	"load_all_main": true,
 	"language": "jp",
+    "transparent": false,
 	"popup": true,
 	"popup_trigger": ["pipirupirupirupipirupi", "ぴぴるぴるぴるぴぴるぴ"],
 	"get_all_main": false

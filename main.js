@@ -5,11 +5,8 @@ const {ipcMain}            = require('electron');
 const path                 = require('path');
 const url                  = require('url');
 
-
-/*
 var jsonfile = require('jsonfile');
 var config   = jsonfile.readFileSync('./config.json');
-*/
 
 
 global.argv = process.argv;
@@ -29,13 +26,22 @@ function createWindow()
         /****************
         * Create window
         *****************/
-        win = new BrowserWindow
-            ({
-                width          : 812,
-                height         : 465,
+        var win_options =
+            {
+                width : 812,
+                height: 465,
                 autoHideMenuBar: true
-                //frame:           false
-            });
+            };
+        
+        if(config.transparent || process.argv.includes('transparent'))
+            {
+                win_options['frame']       = false;
+                win_options['transparent'] = true;
+                win_options['alwaysOnTop'] = true;
+            }
+            
+        
+        win = new BrowserWindow(win_options);
 
         log_win = new BrowserWindow
             ({
@@ -79,9 +85,18 @@ function createWindow()
         /********************
         * Set close handler
         ********************/
-        win.on('closed', function()
+        win.on('close', function(e)
             {
-                process.exit();
+                if(config['save_log_on_exit'])
+                    {
+                        win.webContents.send('save_log');
+                    }
+                else
+                    {
+                        process.exit();
+                    }
+                
+                e.preventDefault();
             });
         log_win.on('close', function(e)
             {
@@ -116,8 +131,26 @@ ipcMain.on('stopsearch', function()
 ipcMain.on('end', function(e, el_arr)
     {
         process.exit();
-        
     });
+
+
+var index = process.argv.indexOf('slave');
+var val   = process.argv[index+1];
+
+if(index != -1 && val)
+    {
+        process.on('message', function(msg)
+            {
+                win.webContents.send('master_msg', msg);
+            });
+    }
+else
+    {
+        process.on('message', function(msg)
+            {
+                win.webContents.send('slave_msg', msg);
+            });
+    }
 
 
 app.on('ready', function()

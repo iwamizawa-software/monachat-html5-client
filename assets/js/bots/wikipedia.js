@@ -210,7 +210,7 @@ function get_definition(lngcode, word)
                     },
                 error: function()
                     {
-                        log('error', ['Could not retrieve page.']);
+                        format_log('error', ['Could not retrieve page.']);
                     }
             });
     }
