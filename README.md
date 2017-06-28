@@ -42,6 +42,8 @@
 
 * Windows (64bit)
 
+  v0.8.0: http://tinyurl.com/monachat-html5-client-0-8-0
+  <br>
   v0.7.0: http://tinyurl.com/monachat-html5-client-0-7-0
   <br>
   v0.6.0: http://tinyurl.com/mhzrx74
