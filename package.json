@@ -1,8 +1,9 @@
 {
     "name": "monachat_javascript_client",
     "description": "Monachat javascript client",
-    "version": "0.7.0",
+    "version": "0.9.0",
     "author": "Alvaro Fernandez (nishinishi, American man...)",
+    "repository": "https://github.com/nishinishi9999/monachat-html5-client",
     "main": "main.js",
     
     "dependencies": {
@@ -11,7 +12,8 @@
         "xmldoc": ">=1.0.0",
         "jsonfile": ">=2.4.0",
         "node-notifier": ">=5.1.2",
-        "spectrum-colorpicker": ">=1.8.0"
+        "spectrum-colorpicker": ">=1.8.0",
+        "request": ">=2.81.0"
     },
     "devDependencies": {
         "electron": ">= 1.6.2"
@@ -19,5 +21,6 @@
     
      "scripts": {
         "package-win": "electron-packager . --arch=x64 --platform=win32 --electron-version=1.6.2"
-    }
+    },
+    "license": "GPL-3.0"
 }

@@ -95,8 +95,9 @@ function Monachat(data, callback)
         this.get_data  = get_data;
         this.set_data  = set_data;
         
-        this.room      = room;
-        this.server    = server;
+        this.room        = room;
+        this.server      = server;
+        this.server_name = server_name;
         
         this.proxy   = proxy;
         this.site    = site;
@@ -405,7 +406,7 @@ function connect_proxy()
                     }
             });
     }
-
+var prev_data = '';
 function set_client_events()
     {
         var that = this;
@@ -413,6 +414,21 @@ function set_client_events()
         this.client.on('data', function(data)
             {
                 if(loader != undefined) { loader.hide(); }
+                
+                //console.log('SOCKET', data);
+                //console.log('LAST', data[data.length-1], data[data.length-1] == '\0');
+                
+                if( data[data.length-1] != '\0' )
+                    {
+                        prev_data += data;
+                        return;
+                    }
+                if(prev_data != '')
+                    {
+                        data = prev_data + data;
+                        prev_data = '';
+                    }
+                
                 
                 data = data.split('\0')
                     .filter( (msg) => msg != '' );
@@ -649,6 +665,29 @@ function server(server)
                         return true;
                     }
             }
+    }
+
+function server_name()
+    {
+        for(var name in SERVER_LIST)
+            {
+                if( SERVER_LIST[name][0] == this._server )
+                    {
+                        return name == 'iriguchi'       ? '入り口'
+                            :  name == 'atochi'         ? '跡地'
+                            :  name == 'ooheya'         ? '大部屋'
+                            :  name == 'chibichato'     ? 'ちびちゃと'
+                            :  name == 'moa'            ? 'モア'
+                            :  name == 'chiikibetsu'    ? '地域別'
+                            :  name == 'wadaibetsu'     ? '話題別'
+                            :  name == 'tateyokoheya'   ? '縦横部屋'
+                            :  name == 'cool'           ? 'クール'
+                            :  name == 'monafb'         ? 'monafb'
+                            : 'Monachat';
+                    }
+            }
+        
+        return 'Monachat';
     }
 
 function reenter()

@@ -130,7 +130,7 @@ ipcMain.on('stopsearch', function()
     });
 ipcMain.on('end', function(e, el_arr)
     {
-        process.exit();
+        app.quit();
     });
 
 

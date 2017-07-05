@@ -3,6 +3,8 @@
 .main_room_button {
     width: 95px;
     height: 35px;
+
+    line-height: 30px;
 }
 .room_view_button {
     position: absolute;
@@ -11,6 +13,17 @@
     height: 32px;
 
     background-color: white;
+}
+
+.band_el {
+    position: relative;
+    height: 34px;
+    width: 4px;
+
+    left: -8px;
+    top: -33px;
+
+    border-radius: 50% 0% 0% 50%;
 }
 
 /************

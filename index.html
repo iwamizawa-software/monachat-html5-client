@@ -88,13 +88,12 @@
                     <input text id='main_room_input'></input>
                 </div>
                 
+                <div id='loader_small'></div>
                 <img src='./assets/icon/GitHub-Mark-32px.png' id='github_icon'/>
             </div>
         </div>
         
         <div id='room_view' class='container'>
-            <div id='character_menu'></div>
-            
             <button id='log_button'        class='room_view_button'>Log</button>
             <button id='log_window_button' class='room_view_button'>Log win</button>
             <button id='data_button'       class='room_view_button'>Data</button>
@@ -287,8 +286,12 @@
                         <input id="config_menu_show_comments" class='config_menu_input'/>
                     </div>
                     <div class='config_menu_div'>
-                        <label for='config_menu_background'>Background:</label>
+                        <label for='config_menu_background'>Log background:</label>
                         <input id="config_menu_background" class='config_menu_input'/>
+                    </div>
+                    <div class='config_menu_div'>
+                        <label for='config_menu_data_background'>Name background:</label>
+                        <input id="config_menu_data_background" class='config_menu_input'/>
                     </div>
                     <div class='config_menu_div'>
                         <label for='config_menu_load_content'>Load content:</label>
@@ -324,8 +327,14 @@
                 <button id='config_menu_bots_accept_button' class='room_view_button'>Accept</button>
             </div>
         </div>
+        
         <audio id='audio'></audio>
         
+        <div id='character_menu'></div>
+        
+        <div id="eye_icon">
+            <div id="eye_inner"></div>
+        </div>
         <div id='loader'></div>
         <!--
         <map name="char-map">

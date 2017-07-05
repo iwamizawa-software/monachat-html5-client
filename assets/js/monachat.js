@@ -20,6 +20,8 @@ const Monachat = require('./assets/js/monachat.jsm');
 const util     = require('./assets/js/util.js');
 const contrast = require('./assets/js/contrast.js');
 
+const encode_img = require('./assets/js/encode_image.js');
+
 const win = require('electron').remote.getCurrentWindow();
 
 
@@ -109,6 +111,8 @@ var slave = [];
 var session;
 
 var loader;
+var loader_small;
+var eye_icon;
 
 /************
 * Room view
@@ -129,6 +133,7 @@ var IS_LOADING_MAIN = false;
 var IS_MASTER       = true;
 var KEEP_LOOKING_ID = false;
 var ALWAYS_ON_TOP   = false;
+var SHOW_ALL_ROOMS  = false;
 var MAX_Y           = 275;
 
 var LOG_TEXT_BACKGROUND;
@@ -137,6 +142,7 @@ var POPUP_ENABLED;
 var SOUND_ON;
 var IS_TRANSPARENT;
 var LOG_POS;
+var PREV_ROOM;
 
 
 /*******************
@@ -298,7 +304,7 @@ function left_to_x(left)
 
 function y_to_top(y)
     {
-        y = MAX_Y; //// temporal
+        y = MAX_Y; //// temporal and fixed by css
         
         if     (y < 235) { return y_to_top(235); }
         else if(y > MAX_Y) { return y_to_top(MAX_Y); }
@@ -613,7 +619,7 @@ function format_log(type, args)
                 var second_hr_el = document.createElement('HR');
                 var nbsp_el      = log_nbsp_el(55);
                 
-                var room_el = log_text_el('ROOM ' + room);
+                var room_el = log_text_el('ROOM ' + room.toString());
                 
                 
                 log([first_hr_el]);
@@ -1035,20 +1041,26 @@ function refresh_main()
     {
         clear_screen();
         
-        loader.show();
+        loader_small.show();
                 
+        /****************************************************
+        * If a room is loaded, put the loader for 4 seconds
+        ****************************************************/
         if(!IS_LOADING_MAIN)
             {
                 IS_LOADING_MAIN = true;
                 
                 setTimeout( function()
                     {
-                        loader.hide();
+                        loader_small.hide();
                         IS_LOADING_MAIN = false;
                     }, 4000 );
             }
         
         
+        /*********************
+        * Remove all buttons
+        *********************/
         main_view.button_table.children().remove();
         
         
@@ -1063,7 +1075,7 @@ function refresh_main()
             }
 
 
-        $('#main_title').text('Monachat ('+room_n+' rooms, '+user_n+' users)');
+        $('#main_title').text( session.server_name() + ' ('+room_n+' rooms, '+user_n+' users)' );
 
         
         /**************************
@@ -1084,9 +1096,31 @@ function refresh_main()
                 
                 n = sorted_rooms[i];
                 
+                var scale =
+                    {
+                        '1':  '5dade2',
+                        '2':  '3498db',
+                        '3':  '48c9b0',
+                        '4':  '48c9b0',
+                        '5':  '45b39d',
+                        '6':  '16a085',
+                        '7':  '58d68d',
+                        '8':  '2ecc71',
+                        '9':  '52be80',
+                        '10': '27ae60',
+                        '11': 'f1c40f',
+                        '12': 'e74c3c',
+                        '13': 'cb4335',
+                        '14': 'c0392b',
+                        '15': 'a93226'
+                    };
+                
+                
                 button_el = $(document.createElement('button'))
                     .text('Room ' + n + ': ' + c)
                     .attr('class', 'main_room_button')
+                    //.css('background-color', scale[c] ? scale[c] : '2c3e50')
+                    //.css('border', '2px solid ' + (scale[c] ? scale[c] : '2c3e50'))
                     .on('click', function()
                         {
                             session._name      = main_view.data['name'].val();
@@ -1100,8 +1134,18 @@ function refresh_main()
                             session._g = _g;
                             session._b = _b;
                             
+                            loader.hide();
+                            loader_small.hide();
+                            
                             change_room(n);
                         })[0];
+                
+                let band_el = $(document.createElement('DIV'))
+                    .addClass('band_el')
+                    .css('background-color', scale[c] ? scale[c] : '2c3e50')[0];
+                
+                $(button_el).append(band_el);
+
                         
                         
                 td_el = $(document.createElement('TD'))
@@ -1295,35 +1339,53 @@ function append_div(id)
                 * Create user data text object
                 *******************************/
                 var user_data = $(document.createElement('TEXT'))
-                    .attr('class', 'user_div_data')
+                    .addClass('user_data')
                     .html(
-                            '<br>'
-                            + (user[id].name || 'nanashi')
+                            (user[id].name || 'nanashi')
                             + '<br>' + WHITE_TRIP_SYM
                             + user[id].ihash.substr(-6)
                             + (user[id].trip == '' ? '' : ('<br>' + BLACK_TRIP_SYM + user[id].trip))
                          )[0];
+                
+                var data_div = $(document.createElement('DIV'))
+                    .addClass('user_data_div')[0];
+                
+                $(data_div).append(user_data);
+                
+                
+                if(config.user_data_background)
+                    {
+                        $(data_div).css('display', 'table')
+                            .css('background-color', 'black')
+                            .css('color', 'white')
+                            .css('opacity', '0.6')
+                            .css('top', '-5px')
+                            .css('padding', '2px')
+                            .css('margin-left', 'auto')
+                            .css('margin-right', 'auto');
+                    }
                 
                 
                 /**********************
                 * Create stat element
                 **********************/
                 var stat_div = $(document.createElement('DIV'))
-                    .attr('class', 'user_div_stat')
-                    .attr('id', 'user_div_stat_'+id)
+                    .attr('class', 'user_stat_div')
+                    .attr('id', 'user_stat_div_'+id)
                     .css('z-index', 3);
                 
                 if(user[id].stat != '通常')
                     {
-                        var stat   = user[id].stat;
-                        
-                        var width  = 128;
-                        var len = get_px_len(stat);
+                        var width = 128;
+                        var len   = get_px_len(user[id].stat);
                         
                         $(stat_div).text(user[id].stat)
                             .width(get_px_len(user[id].stat))
-                            .css('display', 'block')
-                            .css('left', width/2 - len/2 - 10);
+                            .css('left', 54 - len/2);
+                    }
+                else
+                    {
+                        $(stat_div).hide();
                     }
                 
                 
@@ -1331,17 +1393,20 @@ function append_div(id)
                 * Append them to room_view
                 ***************************/
                 $(div).append(img)
-                    .append(user_data)
+                    .append(data_div)
                     .append(stat_div);
                 
                 $(div).css('display', 'none');
                 room_view.el.append(div);
                 
-                $(div).fadeIn
-                ({
-                    duration: 300,
-                    complete: () => $(div).css('display', 'default')
-                });
+                if(!is_muted(id))
+                    {
+                        $(div).fadeIn
+                            ({
+                                duration: 300,
+                                complete: () => $(div).css('display', 'default')
+                            });
+                    }
             }
         
         
@@ -1673,26 +1738,60 @@ function show_command_context_menu()
                                                 function(path) { util.upload_image(path[0]); }
                                             );
                                     }
+                            },
+                            {
+                                label: 'Send file',
+                                click()
+                                    {
+                                        dialog.showOpenDialog
+                                            (
+                                                function(path) { util.upload_file(path[0]); }
+                                            );
+                                    }
                             }
                         ]
                 },
                 { type: 'separator' },
-                { label: 'Sound ' + (SOUND_ON  ? 'on'  : 'off' ), click() { SOUND_ON  = !SOUND_ON;  } },
-                { label: 'Popup ' + (POPUP_ALL ? 'all' : 'some'), click() { POPUP_ALL = !POPUP_ALL; } },
+                {
+                    label: 'Config',
+                    submenu:
+                        [
+                            {
+                                label: 'Sound ' + (SOUND_ON  ? 'on'  : 'off' ), click()
+                                    {
+                                        SOUND_ON  = !SOUND_ON;
+                                    }
+                            },
+                            {
+                                label: 'Popup ' + (POPUP_ALL ? 'all' : 'some'), click()
+                                    {
+                                        POPUP_ALL = !POPUP_ALL;
+                                    }
+                            },
+                            {
+                                label: (ALWAYS_ON_TOP ? 'Always' : 'Never') + ' on top', click()
+                                    {
+                                        ALWAYS_ON_TOP = !ALWAYS_ON_TOP;
+                                        win.setAlwaysOnTop(ALWAYS_ON_TOP);
+                                    }
+                            },
+                            {
+                                label: 'Show buttons', click()
+                                    {
+                                        $('#log_button, #log_window_button, #save_log_button, #data_button').toggle();
+                                        $('#reenter_button, #relogin_button, #proxy_button, #new_button').toggle();
+                                    }
+                            }
+                        ]
+                },
+                { type: 'separator'},
                 {
                     label: 'New', click()
                     {
                         new_instance( { n: 1, room: session.room(), prof: session.get_data() } );
                     }
                 },
-                { type: 'separator'},
-                { label: 'Transparent', click() { toggle_transparent(); } },
-                { label: (ALWAYS_ON_TOP ? 'Always' : 'Never') + ' on top', click()
-                    {
-                        ALWAYS_ON_TOP = !ALWAYS_ON_TOP;
-                        win.setAlwaysOnTop(ALWAYS_ON_TOP);
-                    }
-                }
+                { label: 'Transparent', click() { toggle_transparent(); } }
             ];
             
         menu = Menu.buildFromTemplate(template);
@@ -1720,14 +1819,12 @@ function show_config_login_menu()
     
 function change_room(room)
     {
+        PREV_ROOM = session.room();
+        
         clear_screen();
         
         if(room == 'main')
             {
-                /**********************************
-                * Clear room and room button list
-                **********************************/
-                
                 /******************************************************
                 * Clear main only if you go to main from another room
                 ******************************************************/
@@ -1735,6 +1832,8 @@ function change_room(room)
                     {
                         main = {};
                     }
+                    
+                eye_icon.show();
 
                 /********************
                 * Refresh main data
@@ -1762,15 +1861,13 @@ function change_room(room)
                 
                 room_view.el.hide();
                 main_view.el.show();
-                
-                //format_log('room', [room]);
             }
         else
             {
                 main_view.el.hide();
                 room_view.el.show();
                 
-                format_log('room', [room]);
+                eye_icon.hide();
             }
         
         
@@ -2205,18 +2302,12 @@ function signal_handler(msg)
                 else if(xml.name == 'UINFO')
                     {
                         var {n, c, id, ihash, name} = xml.attr;
-                        
-                        //console.log('uinfo', xml.attr);
-                        //alert('uinfo');
                     }
                 else if(xml.name == 'COUNT')
                     {
                         if(session.room() != 'main')
                             {
                                 var [n, c] = [xml.attr.n, xml.attr.c];
-                                
-                                //console.log('room count', xml);
-                                //console.log('c:', c, 'n:', n);
                                 
                                 document.title = 'Monachat '
                                     + '[room: '+ n + ' users: ' + c + '] '
@@ -2226,8 +2317,6 @@ function signal_handler(msg)
                         else
                             {
                                 document.title = 'Monachat';
-                                
-                                //console.log('main count', xml);
                                 
                                 /*******************************
                                 * Refresh and update main_view
@@ -2245,7 +2334,7 @@ function signal_handler(msg)
                     }
                 else if(xml.name == 'ROOM')
                     {
-                        console.log('room', xml);
+                        if(session.room() != 'main') { format_log('room', [session.room()]); }
                         
                         for(var i = 0; i < xml.children.length; i++)
                             {
@@ -2401,16 +2490,16 @@ function signal_handler(msg)
                                 ***************/
                                 if(stat == '通常')
                                     {
-                                        $('#user_div_stat_'+id).hide();
+                                        $('#user_stat_div_'+id).hide();
                                     }
                                 else
                                     {
                                         var width = 128;
                                         var len   = get_px_len(stat);
                                         
-                                        $('#user_div_stat_'+id).text(stat)
+                                        $('#user_stat_div_'+id).text(stat)
                                             .width(get_px_len(user[id].stat))
-                                            .css('left', width/2 - len/2 - 10)
+                                            .css('left', 54 - len/2)
                                             .show();
                                     }
                             }
@@ -2517,6 +2606,8 @@ function command_handler(com)
         else if(com[0] == 'stalk')       { toggle_stalk(com[1]);                }
         else if(com[0] == 'repeat')      { toggle_repeat(com[1]);               }
         else if(com[0] == 'relogin')     { relogin();                           }
+        else if(com[0] == 'log')         { ipcRenderer.send('toggle_log_window'); }
+        else if(com[0] == 'back')        { change_room(PREV_ROOM);              }
         else if(com[0] == 'lookat')
             {
                 var id = com[1];
@@ -2532,9 +2623,20 @@ function command_handler(com)
                 
                 KEEP_LOOKING_ID = id;
             }
-        else if(com[0] == 'get_close')
+        else if(com[0] == 'getclose')
             {
-                // Unimplemented
+                var id = com[1];
+                if(!user[id]) { return; }
+                
+                var target_x = user[id].x;
+                var step     = 20;
+                var diff     = step * ( parseFloat(session.x) < target_x ? 1 : -1 );
+                
+                for(let x = parseFloat(session.x()), i = 0; Math.abs(x - target_x) > step; x += diff, i++)
+                    {
+                        console.log(x, target_x);
+                        //setTimeout( () => session.x(x), i*500 );
+                    }
             }
         else if(com[0] == 'clearall')
             {
@@ -2547,6 +2649,11 @@ function command_handler(com)
                 
                 KEEP_LOOKING_ID  = false;
                 GET_CLOSE_ID     = false;
+            }
+        else if(com[0] == 'buttons')
+            {
+                $('#log_button, #log_window_button, #save_log_button, #data_button').toggle();
+                $('#reenter_button, #relogin_button, #proxy_button, #new_button').toggle();
             }
         else if(com[0] == 'searchlog')
             {
@@ -2756,6 +2863,7 @@ window.onload = function()
     config_menu['x_y_mode']         = $('#config_menu_x_y_mode');
     config_menu['show_comments']    = $('#config_menu_show_comments');
     config_menu['background']       = $('#config_menu_background');
+    config_menu['data_background']  = $('#config_menu_data_background');
     config_menu['load_content']     = $('#config_menu_load_content');
     config_menu['get_all_main']     = $('#config_menu_get_all_main');
     config_menu['save_log_on_exit'] = $('#config_menu_save_log_on_exit');
@@ -2779,15 +2887,16 @@ window.onload = function()
     
     main_view.data['el'] = $('#main_data');
     
-    main_view.data['profile']       = $('#main_data_profile');
-    main_view.data['name']          = $('#main_data_name');
-    main_view.data['character']     = $('#main_data_character');
-    main_view.data['stat']          = $('#main_data_stat');
-    main_view.data['trip']          = $('#main_data_trip');
-    main_view.data['x']             = $('#main_data_x');
-    main_view.data['y']             = $('#main_data_y');
-    main_view.data['color_picker']  = $('#main_data_color_picker');
-    main_view.data['character_img'] = $('#main_data_character_img');
+    main_view.data['profile']         = $('#main_data_profile');
+    main_view.data['name']            = $('#main_data_name');
+    main_view.data['character']       = $('#main_data_character');
+    main_view.data['character_arrow'] = $('#main_data_character_arrow');
+    main_view.data['stat']            = $('#main_data_stat');
+    main_view.data['trip']            = $('#main_data_trip');
+    main_view.data['x']               = $('#main_data_x');
+    main_view.data['y']               = $('#main_data_y');
+    main_view.data['color_picker']    = $('#main_data_color_picker');
+    main_view.data['character_img']   = $('#main_data_character_img');
     
     
     main_view['server'] = $('#main_server_select');
@@ -2799,7 +2908,30 @@ window.onload = function()
     **********************/
     audio = $('#audio');
     
-    loader = $('#loader');
+    loader       = $('#loader');
+    loader_small = $('#loader_small');
+    eye_icon     = $('#eye_icon');
+    
+    
+    /*******************
+    * Global shortcuts
+    *******************/
+    $('html').on('keydown', function(e)
+        {
+            if(e.key == 'F11')
+                {
+                    /**********
+                    * Restart
+                    **********/
+                    session.disconnect();
+                    app.relaunch();
+                    app.quit();
+                }
+            else if(e.key == 'F12')
+                {
+                    require('electron').remote.getCurrentWindow().toggleDevTools();
+                }
+        });
     
     
     /******************
@@ -2912,6 +3044,7 @@ window.onload = function()
             config_menu['x_y_mode']         .val(config['x_y_mode']);
             config_menu['show_comments']    .val(config['show_comments']);
             config_menu['background']       .val(config['background']);
+            config_menu['data_background']  .val(config['user_data_background']);
             config_menu['load_content']     .val(config['load_content']);
             config_menu['get_all_main']     .val(config['get_all_main']);
             config_menu['save_log_on_exit'] .val(config['save_log_on_exit']);
@@ -2980,14 +3113,15 @@ window.onload = function()
         });
     $('#config_menu_client_accept_button').on('click', function()
         {
-            config['sound']             = config_menu['sound']           .val() == 'true';
-            config['comment_speed']     = config_menu['comment_speed']   .val();
-            config['x_y_mode']          = config_menu['x_y_mode']        .val();
-            config['show_comments']     = config_menu['show_comments']   .val() == 'true';
-            config['background']        = config_menu['background']      .val();
-            config['load_content']      = config_menu['load_content']    .val() == 'true';
-            config['get_all_main']      = config_menu['get_all_main']    .val() == 'true';
-            config['save_log_on_exit']  = config_menu['save_log_on_exit'].val() == 'true';
+            config['sound']                = config_menu['sound']           .val() == 'true';
+            config['comment_speed']        = config_menu['comment_speed']   .val();
+            config['x_y_mode']             = config_menu['x_y_mode']        .val();
+            config['show_comments']        = config_menu['show_comments']   .val() == 'true';
+            config['background']           = config_menu['background']      .val();
+            config['user_data_background'] = config_menu['data_background'] .val() == 'true';
+            config['load_content']         = config_menu['load_content']    .val() == 'true';
+            config['get_all_main']         = config_menu['get_all_main']    .val() == 'true';
+            config['save_log_on_exit']     = config_menu['save_log_on_exit'].val() == 'true';
             
             save_config();
             
@@ -3019,7 +3153,6 @@ window.onload = function()
             
             for(let i = 0; i < children.length; i++)
                 {
-                    console.log(children[i]);
                     let character = $(children[i]).attr('character');
                     var img_el    = new Image();
             
@@ -3041,7 +3174,11 @@ window.onload = function()
                     $(children[i]).append(img_el);
                 }
             
-            character_menu.toggle();
+            character_menu.css('left', '250px')
+                .css('top', '10px')
+                .css('width', '500px')
+                .css('height', '270px')
+                .toggle();
         });
     room_view.data['color_picker'].on('change', function()
         {
@@ -3212,6 +3349,10 @@ window.onload = function()
                         }
                 }
         });
+    room_view.input.on('mousedown', function(e)
+        {
+            if(e.which == 3) { show_command_context_menu(); }
+        });
 
     
     /*******************
@@ -3231,6 +3372,32 @@ window.onload = function()
             
             main_view.data['character_img'].attr('src', './assets/character/'+session.character()+'.png');
         });
+    room_view.data['color_picker'].on('change', function()
+        {
+            if(character_menu.css('display') == 'none') { return; }
+            
+            var imgs = $('.character_menu_img');
+            if(!imgs) { return; }
+            
+            for(let i = 0; i < imgs.length; i++)
+                {
+                    let character = $(imgs[i]).parent().attr('character');
+                    
+                    $(imgs[i]).one('load', function()
+                        {
+                            var {_r, _g, _b} = room_view.data['color_picker'].spectrum('get');
+                            
+                            change_character_color(this, _r, _g, _b);
+                        });
+                        
+                    $(imgs[i]).attr('src', './assets/character/' + character + '.png')
+                        .on('click', function()
+                            {
+                                room_view.data['character'].val(character);
+                                character_menu.hide();
+                            });
+                }
+        });
     
     main_view.data['character'].on('keyup', function()
         {
@@ -3248,6 +3415,45 @@ window.onload = function()
                 };
         });
 
+    main_view.data['character_arrow'].on('click', function()
+        {
+            if(character_menu.css('display') != 'none') { character_menu.hide(); return; }
+            
+            var children = $('.character_menu_div');
+            $('.character_menu_img').remove();
+            
+            for(let i = 0; i < children.length; i++)
+                {
+                    let character = $(children[i]).attr('character');
+                    var img_el    = new Image();
+            
+                    $(img_el).one('load', function()
+                        {
+                            var {_r, _g, _b} = main_view.data['color_picker'].spectrum('get');
+                            
+                            change_character_color(this, _r, _g, _b);
+                        });
+            
+                    $(img_el).attr('src', './assets/character/'+character+'.png')
+                        .addClass('character_menu_img')
+                        .on('click', function()
+                            {
+                                main_view.data['character'].val(character);
+                                main_view.data['character'].trigger('keyup'); //to change the character image
+                                
+                                character_menu.hide();
+                            });
+                    
+                    $(children[i]).append(img_el);
+                }
+            
+            character_menu.css('left', '193px')
+                .css('top', '10px')
+                .css('width', '593px')
+                .css('height', '287px')
+                .toggle();
+        });
+
     main_view['server'].on('change', function(e)
         {
             main = {};
@@ -3262,9 +3468,15 @@ window.onload = function()
             if(e.key == 'Enter')
                 {
                     change_room(main_view['room'].val());
+                    loader_small.hide();
                 }
         });
 
+    eye_icon.on('click', function()
+        {
+            room_view.el.toggle();
+            main_view.el.toggle();
+        });
     $('#github_icon').on
         (
             'click',
@@ -3479,12 +3691,6 @@ window.onload = function()
                         }
                 })
             );
-
-            $('.text_input').on('mousedown', function(e)
-                {
-                    if(e.which == 3) { show_command_context_menu(); }
-                    //room_view.input.left()
-                });
         }
     
     
@@ -3503,6 +3709,9 @@ window.onload = function()
     if(session.room() == 'main')
         {
             $('.container').hide();
+            
+            eye_icon.show();
+            
             refresh_data_menu(main_view.data);
             
             var character = main_view.data['character'].val();

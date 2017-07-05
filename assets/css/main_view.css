@@ -117,6 +117,6 @@
     position: absolute;
     cursor: hand;
 
-    left: 530px;
+    left: calc(100% - 266px);
     bottom:  15px;
 }

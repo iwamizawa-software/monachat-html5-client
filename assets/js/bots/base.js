@@ -166,5 +166,5 @@ function repeat()
     {
         if(!this._on || this._paused) { return; }
         
-        session.comment('ページ: http://tinyurl.com/monachat-html5-client-0-7-0');
+        session.comment('ページ:http://tinyurl.com/monachat-html5-client-0-8-0');
     }

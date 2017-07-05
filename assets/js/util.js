@@ -1,4 +1,5 @@
 var {shell} = require('electron');
+var request = require('request');
 
 var $ = require('jquery');
 
@@ -13,6 +14,7 @@ var Util = function()
         this.create_img_el = create_img_el;
         this.is_url = is_url;
         this.upload_image = upload_image;
+        this.upload_file = upload_file;
     }
 
 module.exports = new Util();
@@ -121,7 +123,7 @@ function upload_image(path)
         
         $.ajax
             ({
-                type   : 'POST',
+                method : 'POST',
                 url    : 'https://api.imgur.com/3/image',
                 headers: { 'Authorization': 'Client-ID 321a474bd566cbf' },
                 data   : { 'image': file, 'type': 'base64' },
@@ -129,4 +131,27 @@ function upload_image(path)
                 success: function(res) { session.comment(res.data.link); },
                 error  : function(err) { alert('error', err); }
             });
+    }
+
+function upload_file(path)
+    {
+        var file = fs.createReadStream(path);
+        
+        console.log('Uploading', path, '...');
+        
+        request.post
+            (
+                {
+                    url: 'https://anonfile.com/api/upload',
+                    formData: { 'file': file }
+                },
+                
+                function(err, res, data)
+                    {
+                        if(err) { console.log('Error:', err); return; }
+                        
+                        var json = JSON.parse(data);
+                        session.comment(json.data.file.url.short);
+                    }
+            );
     }
