@@ -87,4 +87,4 @@ American man...
 
 # 連絡先
 
-バグや提案トがあればこのメールに送ってください: nishinishi9999@gmail.com
+バグや提案があればこのメールに連絡してください: nishinishi9999@gmail.com
