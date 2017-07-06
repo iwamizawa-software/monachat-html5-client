@@ -42,7 +42,7 @@
 
 * Windows (64bit)
 
-  v0.9.0: http://tinyurl.com/monachat-html5-client-v0-9-0
+  v0.9.0: https://git.io/vQwX4
   <br>
   v0.8.0: http://tinyurl.com/monachat-html5-client-0-8-0
   <br>
@@ -55,6 +55,10 @@
   v0.5.0: http://tinyurl.com/monachat-html5-client-v0-5-0
   <br>
   v0.4.0: http://tinyurl.com/monachat-html5-client-0-4-0
+  
+* Windows (32bit)
+
+  v0.9.0: https://git.io/vQwXJ
 
 * Linux
 
