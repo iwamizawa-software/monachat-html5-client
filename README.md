@@ -71,8 +71,6 @@
   - インターフェース
   - <a href='https://github.com/nishinishi9999/monachat-html5-client/wiki/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%83%AA%E3%82%B9%E3%83%88'>コマンド</a>
   - <a href='https://github.com/nishinishi9999/monachat-html5-client/wiki/%E3%82%B3%E3%83%B3%E3%83%86%E3%82%AD%E3%82%B9%E3%83%88%E3%83%A1%E3%83%8B%E3%83%A5'>右クリックコンテキストメニュ</a>
-  
-  - monachatクラス
   - <a href='https://github.com/nishinishi9999/monachat-html5-client/wiki/%E3%83%9C%E3%83%83%E3%83%88%E4%BD%9C%E6%88%90%E3%80%81%E8%BF%BD%E5%8A%A0'>ボット作成、追加</a>
 
 <br>
