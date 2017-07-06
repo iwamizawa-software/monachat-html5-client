@@ -20,8 +20,6 @@ const Monachat = require('./assets/js/monachat.jsm');
 const util     = require('./assets/js/util.js');
 const contrast = require('./assets/js/contrast.js');
 
-const encode_img = require('./assets/js/encode_image.js');
-
 const win = require('electron').remote.getCurrentWindow();
 
 
@@ -3665,7 +3663,7 @@ window.onload = function()
                             prev_x = e.screenX;
                             prev_y = e.screenY;
                             
-                            LOG_POS = { left: room_view.input.css('left'), top: room_view.input.css('top') };
+                            LOG_POS = { left: room_view.input.css('left'), top: room_view.input.css('bottom') };
                         },
                     drag:  function(e)
                         {
@@ -3687,7 +3685,7 @@ window.onload = function()
                     stop: function(e)
                         {
                             room_view.input.css('left', LOG_POS.left);
-                            room_view.input.css('top',  LOG_POS.top );
+                            room_view.input.css('bottom',  LOG_POS.bottom );
                         }
                 })
             );

@@ -194,7 +194,7 @@ function command_handler(com)
                 var letters = com[1].split('');
                 
                 var i = 0;
-                send_each_slave( () => letters[i+1] == undefined ? '' : 'comment ' + letters[i++] );
+                send_each_slave( () => letters[i] == undefined ? '' : 'comment ' + letters[i++] );
             }
         else if(com[0] == '/rip')
             {
