@@ -66,7 +66,7 @@
 
 <br>
 
-# ドキュメンテーション
+# マニュアル
 
   - インターフェース
   - <a href='https://github.com/nishinishi9999/monachat-html5-client/wiki/%E3%82%B3%E3%83%9E%E3%83%B3%E3%83%89%E3%83%AA%E3%82%B9%E3%83%88'>コマンド</a>
