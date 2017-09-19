@@ -42,7 +42,9 @@
 
 * Windows (64bit)
 
-  v0.9.0: https://git.io/vQwX4 (分からない人はこっち)
+  v1.0.0-beta: https://git.io/v5ATh (分からない人はこっち)
+  <br>
+  v0.9.0: https://git.io/vQwX4
   <br>
   v0.8.0: http://tinyurl.com/monachat-html5-client-0-8-0
   <br>
