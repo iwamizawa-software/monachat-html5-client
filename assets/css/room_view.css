@@ -50,8 +50,8 @@
     height: 20px;
     border: 1px solid black;
 
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 6px;
+    padding-right: 6px;
 
     opacity: 1;
     z-index: 3;
@@ -68,9 +68,9 @@
     border: 1px solid black;
     border-radius: 12px;
 
-    padding-left: 15px;
+    padding-left:  15px;
     padding-right: 15px;
-    padding-top: 1px;
+    padding-top:    1px;
     padding-bottom: 1px;
     
     animation-name: comment_div_keyframes;
@@ -339,7 +339,7 @@
     background-color: white;
 
     bottom: 50px;
-    left: 620px;
+    left: 656px;
 
     z-index: 4;
 }
@@ -351,5 +351,5 @@
 @keyframes comment_div_keyframes
     {
         0%   { top: -20px; }
-        100% { top: -300px; }
+        100% { top: -600px; }
     }

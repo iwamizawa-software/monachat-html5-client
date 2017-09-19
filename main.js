@@ -12,6 +12,7 @@ var config   = jsonfile.readFileSync('./config.json');
 global.argv = process.argv;
 
 
+var INDEX_FILE           = config['language'] == 'EN' ? 'index.html' : 'index_jp.html';
 var IS_LOG_WINDOW_HIDDEN = true;
 
 
@@ -28,8 +29,8 @@ function createWindow()
         *****************/
         var win_options =
             {
-                width : 812,
-                height: 465,
+                width : 900,//812,
+                height: 500,//465,
                 autoHideMenuBar: true
             };
         
@@ -63,7 +64,7 @@ function createWindow()
         ******************/
         win.loadURL( url.format
             ({
-                pathname: path.join(__dirname, 'index.html'),
+                pathname: path.join(__dirname, INDEX_FILE),
                 protocol: 'file:',
                 slashes:  true
             }));

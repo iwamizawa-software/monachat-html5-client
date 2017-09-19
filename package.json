@@ -1,7 +1,7 @@
 {
     "name": "monachat_javascript_client",
     "description": "Monachat javascript client",
-    "version": "0.9.0",
+    "version": "1.0.0-beta",
     "author": "Alvaro Fernandez (nishinishi, American man...)",
     "repository": "https://github.com/nishinishi9999/monachat-html5-client",
     "main": "main.js",
@@ -20,6 +20,7 @@
     },
     
      "scripts": {
+        "start": "electron .",
         "package-win": "electron-packager . --arch=x64 --platform=win32 --electron-version=1.6.2"
     },
     "license": "GPL-3.0"

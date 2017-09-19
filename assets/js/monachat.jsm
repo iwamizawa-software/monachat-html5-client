@@ -78,6 +78,10 @@ function Monachat(data, callback)
         this.download_proxy_list = download_proxy_list.bind(this);
         this.ping_proxies        = ping_proxies;
         
+        
+        this.CONNECT_TRIES = 0;
+        
+        
         this.name      = name;
         this.id        = id;
         this.character = character;
@@ -261,6 +265,8 @@ function connect_normal()
                 ****************/
                 that.ping_timer_id = setInterval( () => that.ping(), 20000 );
                 
+                that.CONNECT_TRIES = 0;
+                
                 /******************************
                 * Set socket listening events
                 ******************************/
@@ -281,6 +287,11 @@ function connect_normal()
                                         bots[i].resume();
                                     }
                             }
+                    }
+
+                if(PID != undefined && PID != 'MASTER')
+                    {
+                        if(send_slave_id != undefined) { send_slave_id(); }
                     }
             });
     }
@@ -376,6 +387,8 @@ function connect_proxy()
                         ****************/
                         that.ping_timer_id = setInterval( () => that.ping(), 20000 );
                         
+                        that.CONNECT_TRIES = 0;
+                        
                         /******************************************
                         * Socket is deactivated previous this call
                         ******************************************/
@@ -403,6 +416,11 @@ function connect_proxy()
                                             }
                                     }
                             }
+
+                        if(PID != undefined && PID != 'MASTER')
+                            {
+                                if(send_slave_id != undefined) { send_slave_id(); }
+                            }
                     }
             });
     }
@@ -418,6 +436,9 @@ function set_client_events()
                 //console.log('SOCKET', data);
                 //console.log('LAST', data[data.length-1], data[data.length-1] == '\0');
                 
+                /*****************************
+                * Concatenate broken signals
+                *****************************/
                 if( data[data.length-1] != '\0' )
                     {
                         prev_data += data;
@@ -458,6 +479,26 @@ function set_client_events()
                         
                         console.log('Trying to reconnect...');
                         
+                        that.CONNECT_TRIES++;
+                        
+                        if(CONNECT_TRIES == 5)
+                            {
+                                that.proxy = true;
+                                
+                                if(log != undefined)
+                                    {
+                                        var error = log_text_el
+                                            (
+                                                LANGUAGE == 'EN'
+                                                    ? 'Could not connect to server, using proxy.'
+                                                    : 'サーバーに接続出来ませんでした、プロクシーを使用します。',
+                                                
+                                                255, 0, 0
+                                            );
+                                        
+                                        log([error]);
+                                    }
+                            }
                         setTimeout( () => that.connect(), 5000 ); ////not that._timeout
                     }
             });
@@ -593,21 +634,23 @@ function _enter_room()
     {
         if(this._anonymous) { return this._enter_room_anonymous(); }
         
+        console.log('trip:"'+this._trip+'"', this._trip == '');
+        
         var msg =
             '<ENTER '
-            + 'room="' + this._server + '/' + this._room + '" '
+            + 'room="'   + this._server + '/' + this._room  + '" '
             + 'umax="0" '
-            + 'type="'   + this._character + '" '
-            + 'name="'   + this._name      + '" '
-            + 'x="'      + this._x         + '" '
-            + (this._trip == '' ? '' : ('trip="'   + this._trip      + '" '))
+            + 'type="'   + this._character                  + '" '
+            + 'name="'   + this._name                       + '" '
+            + 'x="'      + this._x                          + '" '
+            + (this._trip == '' ? '' : ('trip="' + this._trip + '" '))
             + 'attrib="yes" '
-            + 'y="'      + this._y         + '" '
-            + 'r="'      + reverse_rgb_scale(this._r)         + '" '
-            + 'g="'      + reverse_rgb_scale(this._g)         + '" '
-            + 'b="'      + reverse_rgb_scale(this._b)         + '" '
-            + 'scl="'    + this._scl       + '" '
-            + 'stat="'   + this._stat      + '" '
+            + 'y="'      + this._y                          + '" '
+            + 'r="'      + reverse_rgb_scale(this._r)       + '" '
+            + 'g="'      + reverse_rgb_scale(this._g)       + '" '
+            + 'b="'      + reverse_rgb_scale(this._b)       + '" '
+            + 'scl="'    + this._scl                        + '" '
+            + 'stat="'   + this._stat                       + '" '
             + '/>\0';
 
         
@@ -962,6 +1005,26 @@ function ignore(ihash)
         this.send('<IG ihash="'+ihash+'" stat="'+stat+'" />\0');
     }
 
+function ev()
+    {
+        if(
+            ['anemona', 'unknown2', 'kabin', 'sugoi3', 'sii2', 'tuu', 'kappappa', 'nin3', 'niraneko', 'moudamepo']
+                .includes(this._character)
+          )
+            {
+                this.send('<SET cmd="ev" pre="0" param="0" />\0');
+            }
+        else if( this._character == 'ppa2' )
+            {
+                var rand = parseInt( Math.random() * 6 );
+                this.send('<SET cmd="ev" pre="vari'+rand+'" param="'+rand+'" />\0');
+            }
+        else if( ['kikko2', 'sumaso2', 'welneko2'].includes(this._character) )
+            {
+                this.send('<SET cmd="play" />\0');
+            }
+    }
+
 function send(msg)
     {
         if(this.client.writable)
@@ -971,6 +1034,8 @@ function send(msg)
         else if(format_log != undefined && msg != '<NOP >\0')
             {
                 format_log('error', ['Client is disconnected.']);
+                
+                this.reconnect(1);
             }
     }
 
@@ -1106,7 +1171,7 @@ function copy(data)
                         name     : data.name,
                         character: data.character,
                         stat     : data.stat,
-                        trip     : data.trip,
+                        trip     : data.trip == '' ? '' : data.trip,
                         r        : data.r,
                         g        : data.g,
                         b        : data.b,

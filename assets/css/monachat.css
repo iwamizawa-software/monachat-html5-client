@@ -90,8 +90,8 @@ hr {
 
     animation: loading 2s infinite;
 
-    left: 350px;
-    top:  120px;
+    left: 380px;
+    top:  110px;
 
     z-index: 10;
 }
@@ -131,7 +131,7 @@ hr {
     
     position: absolute;
     
-    right: 106px;
+    right: 540px;
     top: 30px;
 
     width: 25px;

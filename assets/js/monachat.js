@@ -27,6 +27,7 @@ const win = require('electron').remote.getCurrentWindow();
 * Constants
 ************/
 const ARGV           = require('electron').remote.getGlobal('argv');
+const VERSION        = '1.0.0';
 const JP_REGEX       = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/;
 const BLACK_TRIP_SYM = '\u2666';
 const WHITE_TRIP_SYM = '\u2662';
@@ -85,8 +86,10 @@ var main_view = { button: {}, el: '', data: {}, dropdown: {} };
 var data_menu   = {};
 
 var muted       = {};
+var muted_stat  = {};
 var stalk       = {};
 var repeat      = {};
+var filtered    = {};
 
 var config      = {};
 var login_data  = {};
@@ -96,7 +99,8 @@ var ignoring    = {};
 var config_menu = {};
 
 
-var slave = [];
+var slave    = [];
+var slave_id = [];
 
 
 /***********************************
@@ -126,13 +130,16 @@ var main_title;
 /***************
 * Global flags
 ***************/
+var LANGUAGE;
 var POPUP_ALL       = false;
 var IS_LOADING_MAIN = false;
 var IS_MASTER       = true;
 var KEEP_LOOKING_ID = false;
 var ALWAYS_ON_TOP   = false;
 var SHOW_ALL_ROOMS  = false;
+var LOOP_ID         = false;
 var MAX_Y           = 275;
+var PID             = 'MASTER';
 
 var LOG_TEXT_BACKGROUND;
 var GET_ALL_MAIN;
@@ -195,6 +202,7 @@ try
         trip_list      = jsonfile.readFileSync('./trip.json');
         character_list = jsonfile.readFileSync('./character_list.json');
         
+        LANGUAGE            = config['language'];
         SOUND_ON            = config['sound'];
         POPUP_ENABLED       = config['popup'];
         GET_ALL_MAIN        = config['get_all_main'];
@@ -202,7 +210,7 @@ try
         
         var room_view_css = document.styleSheets[4];
         
-        room_view_css.insertRule('.comment_div { animation-duration: ' + config['comment_speed'] + 's; }', 0);
+        room_view_css.insertRule('.comment_div { animation-duration: ' + config['comment_speed']*2 + 's; }', 0);
         room_view_css.insertRule('.log { background-color: ' + config['background'] + '; }', 0);
     }
 catch(err)
@@ -250,6 +258,22 @@ function send_each_slave(f)
             }
     }
 
+function send_slave_id()
+    {
+        session.send('<SET com="slaveid" pid="'+PID+'" />\0');
+    }
+
+function send_slave_with_id(id, data)
+    {
+        for(var i = 0; i < slave.length; i++)
+            {
+                if(slave[i].id != undefined && slave[i].id == id)
+                    {
+                        slave[i].send(data);
+                    }
+            }
+    }
+
 ipcRenderer.on('save_log', function(e)
     {
         save_log();
@@ -278,15 +302,23 @@ function User(xml)
     }
 
 
+/*************************
+* Signal limits: 30, 704
+* Screen limits: 60, 740
+*************************/
+var SCREEN_MIN_X = 60;
+var SCREEN_MAX_X = 662;
+var SIGNAL_MIN_X = 30;
+var SIGNAL_MAX_X = 704;
 function x_to_left(x)
     {
-        if     (x <  30)              { return x_to_left(30);  }
-        else if(x > 704)              { return x_to_left(704); }
-        else if(isNaN(parseFloat(x))) { return x_to_left(30);  }
+        if     (x < SIGNAL_MIN_X)     { return x_to_left(SIGNAL_MIN_X); }
+        else if(x > SIGNAL_MAX_X)     { return x_to_left(SIGNAL_MAX_X); }
+        else if(isNaN(parseFloat(x))) { return x_to_left(SIGNAL_MIN_X); }
         else
             {
-                var [a, b]     = [30, 704];
-                var [min, max] = [60, 740];
+                var [a, b]     = [SIGNAL_MIN_X, SIGNAL_MAX_X];
+                var [min, max] = [SCREEN_MIN_X, SCREEN_MAX_X];
                 
                 return parseInt((((b-a)*(x-min))/(max-min)) + a);
             }
@@ -294,8 +326,8 @@ function x_to_left(x)
 
 function left_to_x(left)
     {
-        var [a, b]     = [60, 740];
-        var [min, max] = [30, 704];
+        var [a, b]     = [SCREEN_MIN_X, SCREEN_MAX_X];
+        var [min, max] = [SIGNAL_MIN_X, SIGNAL_MAX_X];
         
         return parseInt((((b-a)*(left-min))/(max-min)) + a);
     }
@@ -435,7 +467,10 @@ function log(el_arr)
         
         room_view.log.append(div_el);
         
-        ipcRenderer.send( 'append_log', el_arr.map( (el) => el.outerHTML ) );
+        if(el_arr != undefined && el_arr.length > 0)
+            {
+                ipcRenderer.send( 'append_log', el_arr.map( (el) => el.outerHTML ) );
+            }
         
         
         
@@ -530,9 +565,11 @@ function create_option_el(value)
             .attr('value', value)[0];
     }
 
-function is_ignored(id)  { return (user[id] != undefined && session._ignored[user[id].ihash] == true); }
-function is_ignoring(id) { return (user[id] != undefined && ignoring[user[id].ihash]         == true); }
-function is_muted(id)    { return (user[id] != undefined && muted[user[id].ihash]            == true); }
+function is_ignored(id)    { return (user[id] != undefined && session._ignored[user[id].ihash] == true); }
+function is_ignoring(id)   { return (user[id] != undefined && ignoring[user[id].ihash]         == true); }
+function is_muted(id)      { return (user[id] != undefined && muted[user[id].ihash]            == true); }
+function is_filtered(id)   { return (user[id] != undefined && filtered[user[id].ihash]         == true); }
+function is_muted_stat(id) { return (user[id] != undefined && muted_stat[user[id].ihash]       == true); }
 
 function format_user_data(id, n)
     {
@@ -568,6 +605,12 @@ function format_log(type, args)
     {
         if(session.room() == 'main') { return; }
         
+        var text =
+            {
+                has_logged_in : LANGUAGE == 'EN' ? ' has logged in.'       : ' が入室しました。' ,
+                has_exited    : LANGUAGE == 'EN' ? ' has exited the room.' : ' が退室しました。'
+            };
+        
         
         var time_el = log_time_el();
         var r_arrow = log_text_el('--> ');
@@ -576,7 +619,7 @@ function format_log(type, args)
         if(type == 'enter')
             {
                 var id = args[0];
-                if(is_muted(id)) { return; }
+                if(is_muted(id) || is_filtered(id)) { return; }
                 
                 
                 var user_el = log_text_el
@@ -586,7 +629,7 @@ function format_log(type, args)
                     );
                 
                 
-                var info_el = log_text_el(' has logged in.');
+                var info_el = log_text_el(text['has_logged_in']);
 
                 
                 log([time_el, r_arrow, user_el, info_el]);
@@ -594,7 +637,7 @@ function format_log(type, args)
         else if(type == 'exit')
             {
                 var id = args[0];
-                if(is_muted(id)) { return; }
+                if(is_muted(id) || is_filtered(id)) { return; }
                 
                 
                 var user_el = log_text_el
@@ -604,7 +647,7 @@ function format_log(type, args)
                         user[id].r, user[id].g, user[id].b
                     );
                 
-                var info_el = log_text_el(' has exited the room.');
+                var info_el = log_text_el(text['has_exited']);
 
                 
                 log([time_el, l_arrow, user_el, info_el]);
@@ -615,7 +658,7 @@ function format_log(type, args)
                 
                 var first_hr_el  = document.createElement('HR');
                 var second_hr_el = document.createElement('HR');
-                var nbsp_el      = log_nbsp_el(55);
+                var nbsp_el      = log_nbsp_el(68);
                 
                 var room_el = log_text_el('ROOM ' + room.toString());
                 
@@ -627,13 +670,18 @@ function format_log(type, args)
         else if(type == 'stat')
             {
                 var id = args[0];
-                if(is_muted(id)) { return; }
+                if(is_muted(id) || is_filtered(id)) { return; }
                 
                 var {r, g, b, stat} = user[id];
                 
                 var user_el = log_text_el( format_user_data(id, 3), r, g, b );
                 
-                var info_el = log_text_el(' changed status to ' + stat);
+                var info_el = log_text_el
+                    (
+                        LANGUAGE == 'EN'
+                            ? ' changed status to ' + stat
+                            : ' が状態を「' + stat + '」に変更しました。'
+                    );
 
                 
                 log([time_el, user_el, info_el]);
@@ -641,7 +689,7 @@ function format_log(type, args)
         else if(type == 'ig')
             {
                 var [id, ihash, stat] = args;
-                if(is_muted(id)) { return; }
+                if(is_muted(id) || is_filtered(id)) { return; }
                 
                 var ig_ihash = ihash;
                 
@@ -671,10 +719,19 @@ function format_log(type, args)
                         user[ig_id].r, user[ig_id].g, user[ig_id].b
                     );
                 
-                var stat_el = log_text_el( stat == 'on' ? 'ignored ' : 'stopped ignoring ' );
-                    
-                
-                log([time_el, id_el, stat_el, ig_el]);
+                if(LANGUAGE == 'EN')
+                    {
+                        var stat_el = log_text_el( stat == 'on' ? 'ignored ' : 'stopped ignoring ' );
+                        
+                        log([time_el, id_el, stat_el, ig_el]);
+                    }
+                else
+                    {
+                        var stat_1_el = log_text_el(' が ');
+                        var stat_2_el = log_text_el(' を' + (stat == 'on' ? '無視' : '無視解除') + 'しました。 ');
+                        
+                        log([time_el, id_el, stat_1_el, ig_el, stat_2_el]);
+                    }
             }
         else if(type == 'com')
             {
@@ -697,7 +754,7 @@ function format_log(type, args)
                         room[id] = user[id];
                     }
                 
-                if(is_muted(id)) { return; }
+                if(is_muted(id) || is_filtered(id)) { return; }
                 
                 var {name, trip, ihash, r, g, b} = user[id];
                 
@@ -844,7 +901,7 @@ function format_log(type, args)
                 /************************************************************
                 * Send a popup to the OS if the comments contains a trigger
                 ************************************************************/
-                if(is_ignored(id) || is_muted(id)) { return; }
+                if(is_ignored(id) || is_muted(id) || is_filtered(id)) { return; }
                 
                 if(POPUP_ALL)
                     {
@@ -1073,14 +1130,20 @@ function refresh_main()
             }
 
 
-        $('#main_title').text( session.server_name() + ' ('+room_n+' rooms, '+user_n+' users)' );
+        $('#main_title').text
+            (
+                LANGUAGE == 'EN'
+                    ? (session.server_name() + ' ('+room_n+' rooms, '+user_n+' users)')
+                    : (session.server_name() + ' ('+room_n+'室, '+user_n+'ユーザー)')
+            );
+        eye_icon.show();
 
         
         /**************************
         * Add all room with users
         **************************/
         var tr_el, td_el, button_el;
-        var tr_length = 5;
+        var tr_length = 6;
         
         tr_el = $(document.createElement('TR'))
             .attr('class', 'main_button_table_tr')[0];
@@ -1115,7 +1178,12 @@ function refresh_main()
                 
                 
                 button_el = $(document.createElement('button'))
-                    .text('Room ' + n + ': ' + c)
+                    .text
+                        (
+                            LANGUAGE == 'EN'
+                                ? ('Room ' + n + ': ' + c)
+                                : (n + '室: ' + c + '人' )
+                        )
                     .attr('class', 'main_room_button')
                     //.css('background-color', scale[c] ? scale[c] : '2c3e50')
                     //.css('border', '2px solid ' + (scale[c] ? scale[c] : '2c3e50'))
@@ -1289,7 +1357,7 @@ function append_div(id)
                         
                         $( () => $(div).draggable
                             ({
-                                containment: [0, 180, 668, 206],
+                                containment: [0, 180, 750, 206],
                                 start: function(e)
                                     {
                                         drag_offset_x = e.offsetX;
@@ -1303,19 +1371,21 @@ function append_div(id)
                                     },
                                 stop : function(e)
                                     {
+                                        var name_width = get_px_len(user[id].name);
+                                        var width = 128 > name_width ? 128 : name_width;
+                                        
                                         var x = session.get_scl() == 100
                                             ? drag_offset_x
                                             : (128 - drag_offset_x);
                                         
-                                        var y = drag_offset_y;
+                                        //var y = drag_offset_y;
+                                        
                   
                                         //console.log(e.clientY, e.offsetY, y, top_to_y(e.clientY))
                   
                                         //session._y = top_to_y(e.clientY);
                                         //session._y = e.clientY;
                                         session.x( left_to_x(e.clientX - x + 1) );
-                                        
-                                        console.log(e.clientY);
                                     }
                             })
                          );
@@ -1374,12 +1444,13 @@ function append_div(id)
                 
                 if(user[id].stat != '通常')
                     {
-                        var width = 128;
+                        var name_width = get_px_len(user[id].name);
+                        var width = 128 > name_width ? 128 : name_width;
                         var len   = get_px_len(user[id].stat);
                         
                         $(stat_div).text(user[id].stat)
-                            .width(get_px_len(user[id].stat))
-                            .css('left', 54 - len/2);
+                            .width(len+6)
+                            .css('left', width/2 - len/2 - 9);
                     }
                 else
                     {
@@ -1397,7 +1468,7 @@ function append_div(id)
                 $(div).css('display', 'none');
                 room_view.el.append(div);
                 
-                if(!is_muted(id))
+                if(!is_muted(id) && !is_filtered(id))
                     {
                         $(div).fadeIn
                             ({
@@ -1453,21 +1524,27 @@ function add_comment_div(id, cmt)
                 format_log('error', ['id '+id+' doesnt exist.']);
                 return;
             }
-        else if(is_muted(id))
+        else if(is_muted(id) || is_filtered(id))
             {
                 return;
             }
 
 
-        var width = 128;
-        var len   = get_px_len(cmt);
+        var name_width = get_px_len(user[id].name);
+        var width      = name_width > 128 ? name_width : 128;
+        var len        = get_px_len(cmt) + 6;
         
         
-        /***********************************************
-        * Set background colour to white if it's black
-        ***********************************************/
+        /**********************************************
+        * Set background colour to white if it's dark
+        **********************************************/
         var {r, g, b} = user[id];
         if(r == 0 && g == 0 && b == 0) { [r, g, b] = [255, 255, 255]; }
+        
+        if(r < 80 && g < 80 && b < 80)
+            {
+                [r, g, b] = [255, 255, 255];
+            }
         
         
         var div_el = $(document.createElement('DIV'))
@@ -1475,7 +1552,7 @@ function add_comment_div(id, cmt)
             .addClass('comment_div')
             .css('background-color', 'rgb('+r+', '+g+', '+b+')')
             .css('width', len+10)
-            .css('left', width/2 - len/2 - 10)
+            .css('left', width/2 - len/2 - 15)
             .on('click', () => clipboard.writeText(cmt) )[0];
 
         
@@ -1556,7 +1633,7 @@ function show_users_dropdown()
             }
         
         
-        room_view.dropdown['users'].css( 'top', 370 - room_view.dropdown['users'].height() );        
+        room_view.dropdown['users'].css( 'bottom', 50);
         room_view.dropdown['users'].toggle();
     }
 
@@ -1628,6 +1705,17 @@ function refresh_new_menu()
 
 function show_user_context_menu(id)
     {
+        var text =
+            {
+                names_registered : LANGUAGE == 'EN' ? ' Names registered: ' : ' 登録済名前: ',
+                copy             : LANGUAGE == 'EN' ? 'Copy'                : 'コピー',
+                ignore           : LANGUAGE == 'EN' ? 'Ignore'              : '無視',
+                mute             : LANGUAGE == 'EN' ? 'Mute'                : 'ミュート',
+                search_name      : LANGUAGE == 'EN' ? 'Search name'         : '名前検索',
+                stalk            : LANGUAGE == 'EN' ? 'Stalk '               : 'ストーカー ',
+                repeat           : LANGUAGE == 'EN' ? 'Repeat '              : '繰り返し '
+            };
+        
         var {name, ihash} = user[id];
         
         var trip  = trip_list[ihash];
@@ -1663,23 +1751,33 @@ function show_user_context_menu(id)
                             log([ log_time_el(), log_text_el(' ' + format_user_data(id, 5),        0, 255, 255) ]);
                             log([ log_time_el(), log_text_el(' r: ' + r + ' g: ' + g + ' b: ' + b, 0, 255, 255) ]);
                             log([ log_time_el(), log_text_el(' x: ' + x + ' y: ' + y,              0, 255, 255) ]);
-                            log([ log_time_el(), log_text_el(' Names registered: ' + trip.length,  0, 255, 255) ]);
+                            log([ log_time_el(), log_text_el(text['names_registered'] + trip.length,  0, 255, 255) ]);
                             log_newline(1);
                         }
                 },
                 { type: 'separator' },
                 { label: names,          click() { search_trip('id', id) } },
                 { type: 'separator' },
-                { label: 'Copy',         click() { copy(id);   } },
-                { label: 'Ignore',       click() { ignore(id); } },
-                { label: 'Mute',         click() { mute(id);   } },
-                { label: 'Search trips', click() { search_trip('name', user[id].name); } },
+                { label: text['copy'],         click() { copy(id);   } },
+                { label: text['ignore'],       click() { ignore(id); } },
+                { label: text['mute'],         click() { mute(id);   } },
+                /**
                 {
-                    label: 'Stalk '  + (is_stalked(id) ? 'On' : 'Off'),
+                    label: 'Selective mute',
+                    submenu:
+                        [
+                            { label: 'Mute com' , click() { console.log('UNIMPLEMENTED!') } },
+                            { label: 'Mute stat', click() { console.log('UNIMPLEMENTED!') } }
+                        ]
+                },
+                **/
+                { label: text['search_name'], click() { search_trip('namerecursive', user[id].name); } },
+                {
+                    label: text['stalk']  + (is_stalked(id) ? 'On' : 'Off'),
                     click() { toggle_stalk(id); }
                 },
                 {
-                    label: 'Repeat ' + (is_repeated(id) ? 'On' : 'Off'),
+                    label: text['repeat'] + (is_repeated(id) ? 'On' : 'Off'),
                     click() { toggle_repeat(id); }
                 }
             ];
@@ -1690,6 +1788,28 @@ function show_user_context_menu(id)
 
 function show_command_context_menu()
     {
+        var text =
+            {
+                next_room     : LANGUAGE == 'EN' ? 'Next room'          : '次の部屋',
+                previous_room : LANGUAGE == 'EN' ? 'Previous room'      : '前の部屋',
+                profile       : LANGUAGE == 'EN' ? 'Profile'            : 'プロファイル     ',
+                save_profile  : LANGUAGE == 'EN' ? 'Save profile'       : 'プロファイル保存',
+                'default'     : LANGUAGE == 'EN' ? 'Default'            : '初期ログインデータ',
+                random        : LANGUAGE == 'EN' ? 'Random'             : 'ランダムキャラ',
+                nanashi       : LANGUAGE == 'EN' ? 'Nanashi'            : '名無し',
+                invisible     : LANGUAGE == 'EN' ? 'Invisible'          : '透明',
+                anonymous     : LANGUAGE == 'EN' ? 'Anonymous'          : 'アノニマス',
+                upload_image  : LANGUAGE == 'EN' ? 'Upload image'       : '画像アップロード',
+                upload_file   : LANGUAGE == 'EN' ? 'Upload file'        : 'ファイルアップロード',
+                config        : LANGUAGE == 'EN' ? 'Config'             : '設定',
+                sound         : LANGUAGE == 'EN' ? 'Sound '             : '効果音 ',
+                popup         : LANGUAGE == 'EN' ? 'Popup '             : '通知 ',
+                show_buttons  : LANGUAGE == 'EN' ? 'Show buttons'       : 'ボタン表示',
+                'new'         : LANGUAGE == 'EN' ? 'New'                : '新起動',
+                transparent   : LANGUAGE == 'EN' ? 'Transparent'        : '透明'
+            };
+        
+        
         /******************************
         * Get next and previous rooms
         ******************************/
@@ -1707,19 +1827,19 @@ function show_command_context_menu()
         ******************/
         var template =
             [
-                { label: 'Next room'+next,     click() { next_room();     } },
-                { label: 'Previous room'+prev, click() { previous_room(); } },
+                { label: text['next_room']     + next, click() { next_room();     } },
+                { label: text['previous_room'] + prev, click() { previous_room(); } },
                 { type: 'separator' },
                 {
-                    label: 'Profile',
+                    label: text['profile'],
                     submenu:
                         [
-                            { label: 'Save profile', click() { add_profile();   } },
-                            { label: 'Default',      click() { set_default();   } },
-                            { label: 'Random',       click() { set_random();    } },
-                            { label: 'Nanashi',      click() { set_nanashi();   } },
-                            { label: 'Invisible',    click() { set_invisible(); } },
-                            { label: 'Anonymous',    click() { set_anonymous(); } }
+                            { label: text['save_profile'], click() { add_profile();   } },
+                            { label: text['default'],      click() { set_default();   } },
+                            { label: text['random'],       click() { set_random();    } },
+                            { label: text['nanashi'],      click() { set_nanashi();   } },
+                            { label: text['invisible'],    click() { set_invisible(); } },
+                            { label: text['anonymous'],    click() { set_anonymous(); } }
                         ]
                 },
                 { type: 'separator' },
@@ -1728,7 +1848,7 @@ function show_command_context_menu()
                     submenu:
                         [
                             {
-                                label: 'Upload image',
+                                label: text['upload_image'],
                                 click()
                                     {
                                         dialog.showOpenDialog
@@ -1738,7 +1858,7 @@ function show_command_context_menu()
                                     }
                             },
                             {
-                                label: 'Send file',
+                                label: text['upload_file'],
                                 click()
                                     {
                                         dialog.showOpenDialog
@@ -1751,17 +1871,17 @@ function show_command_context_menu()
                 },
                 { type: 'separator' },
                 {
-                    label: 'Config',
+                    label: text['config'],
                     submenu:
                         [
                             {
-                                label: 'Sound ' + (SOUND_ON  ? 'on'  : 'off' ), click()
+                                label: text['sound'] + (SOUND_ON  ? 'on'  : 'off' ), click()
                                     {
                                         SOUND_ON  = !SOUND_ON;
                                     }
                             },
                             {
-                                label: 'Popup ' + (POPUP_ALL ? 'all' : 'some'), click()
+                                label: text['popup'] + (POPUP_ALL ? 'all' : 'some'), click()
                                     {
                                         POPUP_ALL = !POPUP_ALL;
                                     }
@@ -1774,7 +1894,7 @@ function show_command_context_menu()
                                     }
                             },
                             {
-                                label: 'Show buttons', click()
+                                label: text['show_buttons'], click()
                                     {
                                         $('#log_button, #log_window_button, #save_log_button, #data_button').toggle();
                                         $('#reenter_button, #relogin_button, #proxy_button, #new_button').toggle();
@@ -1784,12 +1904,12 @@ function show_command_context_menu()
                 },
                 { type: 'separator'},
                 {
-                    label: 'New', click()
+                    label: text['new'], click()
                     {
                         new_instance( { n: 1, room: session.room(), prof: session.get_data() } );
                     }
                 },
-                { label: 'Transparent', click() { toggle_transparent(); } }
+                { label: text['transparent'], click() { toggle_transparent(); } }
             ];
             
         menu = Menu.buildFromTemplate(template);
@@ -1830,8 +1950,6 @@ function change_room(room)
                     {
                         main = {};
                     }
-                    
-                eye_icon.show();
 
                 /********************
                 * Refresh main data
@@ -1979,7 +2097,20 @@ function search_trip(type, data)
         else if(type == 'trip')
             {
                 var ihash = data;
-                if(trip_list[ihash] == undefined)
+                
+                if(ihash.length < 10)
+                    {
+                        for(var trip in trip_list)
+                            {
+                                if(trip.endsWith(ihash))
+                                    {
+                                        ihash = trip;
+                                        break;
+                                    }
+                            }
+                    }
+                
+                if(ihash.length != 10 || trip_list[ihash] == undefined)
                     {
                         format_log('error', ['No trips stored for this trip.']);
                         return;
@@ -2096,12 +2227,22 @@ function load_profile(name)
 
 function new_instance(data)
     {
+        var PID;
+        
         if(data.n == undefined || data.room == undefined || data.prof == undefined)
             {
                 return;
             }
         
-        if(data['slave'] == undefined) { data['slave'] = false; }
+        if(data.slave == undefined)
+            {
+                data.slave = false;
+                
+            }
+        else
+            {
+                PID = parseInt(Math.random()*123456789123456789);
+            }
         
         
         var login_args =
@@ -2126,11 +2267,12 @@ function new_instance(data)
                 'slave',     data.slave
             ];
         
+        if(data.slave)       { login_args.push('PID', PID); }
         if(data.transparent) { login_args.push('transparent', 'true'); }
         
         
         for(var i = 0; i < data.n; i++)
-            {
+            {                
                 var spawn = require('child_process').spawn
                     (
                         ARGV[0],
@@ -2150,6 +2292,7 @@ function new_instance(data)
                                 console.log(e, msg);
                             });
                         
+                        spawn.PID = PID;
                         slave.push(spawn);
                     }
             }
@@ -2200,6 +2343,31 @@ function mute(id)
                 muted[ihash] = !muted[ihash];
                 
                 if($('#user_div_'+id)) { $('#user_div_'+id).toggle(); }
+            }
+    }
+
+function mute_stat(id)
+    {
+        if(user[id] == undefined) { return }         
+        
+        var ihash = user[id].ihash;
+        
+        muted_stat[ihash] = !muted_stat[ihash];
+    }
+
+function filter(params)
+    {
+        for(var id in room)
+            {
+                for(var param in room[id])
+                    {
+                        if(room[id][param] == params[param])
+                            {
+                                filtered[ room[id].ihash ] = filtered[ room[id].ihash ];
+                                
+                                if($('#user_div_'+id)) { $('#user_div_'+id).toggle(); }
+                            }
+                    }
             }
     }
 
@@ -2307,10 +2475,15 @@ function signal_handler(msg)
                             {
                                 var [n, c] = [xml.attr.n, xml.attr.c];
                                 
-                                document.title = 'Monachat '
-                                    + '[room: '+ n + ' users: ' + c + '] '
-                                    + '@ '
-                                    + format_user_data(session.id(), 3);
+                                document.title = LANGUAGE == 'EN'
+                                    ? ( 'Monachat '
+                                        + '[room: '+ n + ' users: ' + c + '] '
+                                        + '@ '
+                                        + format_user_data(session.id(), 3) )
+                                    : ( 'もなちゃと '
+                                        + '[' + n + '室 ' + c + '人]'
+                                        + ' @ '
+                                        + format_user_data(session.id(), 3) );
                             }
                         else
                             {
@@ -2369,7 +2542,7 @@ function signal_handler(msg)
                         console.log('enter', xml.attr);
                         
                         
-                        if(!is_muted(id))
+                        if(!is_muted(id) && !is_filtered(id))
                             {
                                 if(id != session.id()) { format_log('enter', [id]); }
                                 
@@ -2411,7 +2584,7 @@ function signal_handler(msg)
                                 
                                 remove_div(id);
                                 
-                                if(!is_muted(id))
+                                if(!is_muted(id) && !is_filtered(id))
                                     {
                                         format_log('exit', [id]);
                                         
@@ -2480,7 +2653,10 @@ function signal_handler(msg)
                                 
                                 user[id].stat = stat;
                                 
-                                if(!is_muted(id)) { format_log('stat', [id]); }
+                                if(!is_muted(id) && is_filtered(id) && !is_muted_stat(id))
+                                    {
+                                        format_log('stat', [id]);
+                                    }
                                 
                                 
                                 /***************
@@ -2492,12 +2668,13 @@ function signal_handler(msg)
                                     }
                                 else
                                     {
-                                        var width = 128;
+                                        var name_width = get_px_len(user[id].name);
+                                        var width = 128 > name_width ? 128 : name_width;
                                         var len   = get_px_len(stat);
                                         
                                         $('#user_stat_div_'+id).text(stat)
-                                            .width(get_px_len(user[id].stat))
-                                            .css('left', 54 - len/2)
+                                            .width(len+6)
+                                            .css('left', width/2 - len/2 - 9)
                                             .show();
                                     }
                             }
@@ -2523,7 +2700,7 @@ function signal_handler(msg)
                         
                         console.log('Comment:', cmt);
                         
-                        if(!is_muted(id))
+                        if(!is_muted(id) && !is_filtered(id))
                             {
                                 if(config['show_comments']) { add_comment_div(id, cmt); }
                                 format_log('com', [id, cmt]);
@@ -2577,8 +2754,8 @@ function command_handler(com)
         else if(com[0] == 'reenter')     { session.reenter();                   }
         else if(com[0] == 'site')        { session.site(com[1])                 }
         else if(com[0] == 'timeout')     { session.timeout(com[1]);             }
-        else if(com[0] == 'comment')     { session.comment(com[1]);             }
-        else if(com[0] == 'enqueuecomment') { session.enqueue_comment(com[1]);  }
+        else if(com[0] == 'comment')     { session.comment(com.slice(1).join(' ')); }
+        else if(com[0] == 'enqueuecomment') { session.enqueue_comment(com.slice(1).join(' '));  }
         else if(com[0] == 'searchid')    { search_trip('id', com[1]);           }
         else if(com[0] == 'searchtrip')  { search_trip('trip', com[1]);         }
         else if(com[0] == 'searchname')  { search_trip('name', full_arg);       }
@@ -2589,6 +2766,7 @@ function command_handler(com)
         else if(com[0] == 'profile')     { load_profile(full_arg);              }
         else if(com[0] == 'saveprofile') { add_profile();                       }
         else if(com[0] == 'delprofile')  { delete_profile(full_arg);            }
+        else if(com[0] == 'ev')          { session.ev();                        }
         else if(com[0] == 'savelog')     { save_log();                          }
         else if(com[0] == 'next')        { next_room();                         }
         else if(com[0] == 'prev')        { previous_room();                     }
@@ -2606,6 +2784,17 @@ function command_handler(com)
         else if(com[0] == 'relogin')     { relogin();                           }
         else if(com[0] == 'log')         { ipcRenderer.send('toggle_log_window'); }
         else if(com[0] == 'back')        { change_room(PREV_ROOM);              }
+        else if(com[0] == 'filter')
+            {
+                var params = {};
+                
+                for(var i = 1; i < com.length; i +=2)
+                    {
+                        params[com[i]] = com[i+1];
+                    }
+                
+                filter(params);
+            }
         else if(com[0] == 'lookat')
             {
                 var id = com[1];
@@ -2613,6 +2802,25 @@ function command_handler(com)
                 
                 session._scl = user[id].x < session.x() ? -100 : 100;
                 session._send_x_y_scl();
+            }
+        else if(com[0] == 'loop')
+            {
+                if(com.length == 1)
+                    {
+                        clearInterval(LOOP_ID);
+                        LOOP_ID = false;
+                        
+                        return;
+                    }
+                
+                if(LOOP_ID) { clearInterval(LOOP_ID); }
+                
+                var time = parseInt(com[1]);
+                if(time < 100) { return; }
+                
+                com = com.slice(2).join(' ');
+                
+                LOOP_ID = setInterval( () => command_handler(com), time );
             }
         else if(com[0] == 'keeplooking')
             {
@@ -2634,6 +2842,13 @@ function command_handler(com)
                     {
                         console.log(x, target_x);
                         //setTimeout( () => session.x(x), i*500 );
+                    }
+            }
+        else if(com[0] == 'ifid')
+            {
+                if(session.id() == com[1])
+                    {
+                        command_handler(com.slice(2).join(' '));
                     }
             }
         else if(com[0] == 'clearall')
@@ -2723,8 +2938,9 @@ function command_handler(com)
         else if(com[0] == 'reloadbots')
             {
                 bots = [];
-                
                 load_bots();
+                
+                log( [log_text_el('Bots reloaded.')] );
             }
         else if(com[0] == 'restart')
             {
@@ -2732,11 +2948,16 @@ function command_handler(com)
                 app.relaunch();
                 app.quit();
             }
-        else if(com[0] == 'exit')
+        else if(com[0] == 'exit' || com[0] == 'kill')
             {
                 if(config['save_log_on_exit'])
                     {
                         save_log();
+                    }
+                
+                if(PID != 'MASTER')
+                    {
+                        session.send('<SET type="kill" pid="'+PID+'" />\0');
                     }
                 
                 session.disconnect();
@@ -2762,6 +2983,10 @@ function process_arguments()
                     {
                         IS_MASTER     = !ARGV[i+1];
                         POPUP_ENABLED = false;
+                    }
+                else if(ARGV[i] == 'PID')
+                    {
+                        PID = ARGV[i+1];
                     }
                 else
                     {
@@ -2880,6 +3105,7 @@ window.onload = function()
     main_view.el = $('#main_view');
     
     main_view.button['reenter'] = $('#main_reenter_button');
+    main_view.button['relogin'] = $('#main_relogin_button');
     
     main_view.button_table = $('#main_button_table');
     
@@ -3062,6 +3288,21 @@ window.onload = function()
             
             room_view.dropdown['config'].hide();
         });
+    room_view.el[0].ondragover = function(e){ e.preventDefault(); };
+    room_view.el[0].ondrop     = function(e)
+        {
+            e.preventDefault();
+            
+            var file = e.dataTransfer.files[0];
+            
+            if( file.type.includes('image') ) {　util.upload_image(file.path); }
+            else                              {　util.upload_file(file.path);  }
+        };
+    
+    
+    /************************
+    * Room view config menu
+    ************************/
     $('#config_menu_trigger_cancel_button').on('click', function()
         {
             config_menu['trigger'].toggle();
@@ -3174,7 +3415,7 @@ window.onload = function()
             
             character_menu.css('left', '250px')
                 .css('top', '10px')
-                .css('width', '500px')
+                .css('width', '593px')
                 .css('height', '270px')
                 .toggle();
         });
@@ -3321,7 +3562,17 @@ window.onload = function()
                                     command_handler(com);
                                 }
                         }
-                    else { session.comment(text); }
+                    else
+                        {
+                            if( text.length > 50 && util.is_url(text) && !(text.includes('youtube') || text.includes('youtu.be')) )
+                                {
+                                    tinyurl(text);
+                                }
+                            else
+                                {
+                                    session.comment(text);
+                                }
+                        }
                     
                     e.target.value = '';
                     
@@ -3357,6 +3608,7 @@ window.onload = function()
     * Main view events
     *******************/
     main_view.button['reenter'].on('click', function() { session.reenter(); });
+    main_view.button['relogin'].on('click', function() { session.relogin(); });
     
     main_view.data['color_picker'].on('change', function()
         {
@@ -3634,6 +3886,21 @@ window.onload = function()
             
             $('#bot_list').append(tr_el);
         }
+
+
+    /**************************************************
+    * Change text and element formatting for japanese
+    **************************************************/
+    if(LANGUAGE == 'JP')
+        {
+            $('.room_view_button').css('font', 'var(--default_font)') /////
+                .css('font-size', '13px');
+            
+            $('#config_menu_client_add_config').css('left', '-11px');
+            $('#config_menu_client_add_trip_list').css('left', '-11px');
+            $('#config_menu_client_accept_button').css('top', '-16px');
+            $('#config_menu_client_cancel_button').css('top', '24px');
+        }
     
     
     /****************************************************************
@@ -3707,8 +3974,6 @@ window.onload = function()
     if(session.room() == 'main')
         {
             $('.container').hide();
-            
-            eye_icon.show();
             
             refresh_data_menu(main_view.data);
             

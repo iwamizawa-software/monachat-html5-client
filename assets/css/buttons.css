@@ -1,7 +1,7 @@
 /** buttons.css **/
 
 .main_room_button {
-    width: 95px;
+    width: 97px;
     height: 35px;
 
     line-height: 30px;
@@ -95,6 +95,12 @@
 
     top: 27px;
     right: 220px;
+}
+#main_relogin_button {
+    position: absolute;
+
+    top: 27px;
+    right: 295px;
 }
 #main_button_table {
     position: absolute;

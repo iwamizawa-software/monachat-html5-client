@@ -153,8 +153,54 @@ function command_handler(com)
         
         com = com.split(' ');
         
-        if(com[0] == 'test')
+        /*********************************
+        * Accepted syntax:
+        *   Range: 1-10
+        *   Top  : 10
+        *   List : 1 2 3 4 5 6 7 8 9 10
+        *********************************/
+        if(com[0] == 'dice')
             {
+                var arg　    = com[1];
+                var entries = [];
+                
+                if(arg == '0')
+                    {
+                        session.enqueue_comment('サイコロ（'+entries.length+'面）を投げます');
+                        session.enqueue_comment('そうしようとすると、あれ・・・？投げるサイコロがありませんよ？');
+                        
+                        return;
+                    }
+                else if(com.length > 2)
+                    {
+                        entries = com.slice(1);
+                        
+                        session.enqueue_comment('エントリー: ' + entries.join(' '));
+                        session.enqueue_comment('クルックル・・・クルックル・・・クルックル・・・パッ');
+                    }
+                else if(arg.includes('-'))
+                    {
+                        var [undefined, a, b] = arg.match(/(\d+)-(\d+)/);
+                        for(var i = parseInt(a); i <= b; i++) { entries.push(i); }
+                        
+                        session.enqueue_comment('サイコロ（'+entries.length+'面 (範囲: ' + a + '-' + b + ')）を投げます')
+                        session.enqueue_comment('コロッコロッコロッコロ・・・パ');
+                    }
+                else if(Number.isInteger(parseInt(arg)))
+                    {
+                        var [a, b] = [1, parseInt(arg)];
+                        for(var i = a; i <= b; i++) { entries.push(i); }
+                        
+                        session.enqueue_comment('サイコロ（'+entries.length+'面）を投げます');
+                        session.enqueue_comment('コロッコロッコロッコロ・・・パ');
+                    }
+                else
+                    {
+                        return;
+                    }
+                
+                var res = entries[ parseInt(Math.random() * entries.length) ];
+                session.enqueue_comment(res + 'です');
             }
         else
             {
@@ -165,6 +211,4 @@ function command_handler(com)
 function repeat()
     {
         if(!this._on || this._paused) { return; }
-        
-        //session.comment('ページ:http://tinyurl.com/monachat-html5-client-0-8-0');
     }

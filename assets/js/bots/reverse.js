@@ -150,7 +150,7 @@ function signal_handler(msg)
                                 reverse += cmt[cmt.length - i - 1];
                             }
                         
-                        session.comment(reverse);
+                        session.enqueue_comment(reverse);
                     }
             }
     }

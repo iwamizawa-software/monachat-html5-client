@@ -56,6 +56,8 @@ function Bot()
         this.attack_i  = 0;
         this.attack_id = 0;
         
+        this.falseid   = [];
+        
         this.rip    = false;
         this.rip_i  = 0;
         
@@ -121,27 +123,54 @@ function signal_handler(msg)
                 else if(xml.name == 'EXIT')
                     {
                         var {id} = xml.attr;
+                        
+                        if(PID == 'MASTER')
+                            {
+                                if(slave_id.includes(id))
+                                    {
+                                        for(var i = 0; i < slave.length; i++)
+                                            {
+                                                if(slave[i].id == id)
+                                                    {
+                                                        slave[id].id = undefined;
+                                                    }
+                                            }
+                                    }
+                            }
                     }
                 else if(xml.name == 'SET')
                     {
                         var {id} = xml.attr;
                         
-                        /***********************
-                        * It moves three times
-                        ***********************/
-                        if(xml.attr.x != undefined)
+                        if(xml.attr.pid != undefined)
                             {
-                            }
-                        if(xml.attr.y != undefined)
-                            {
-                            }
-                        if(xml.attr.scl != undefined)
-                            {
-                            }
-                        
-                        if(xml.attr.stat != undefined)
-                            {
-                                var {stat} = xml.attr;
+                                if(PID != 'MASTER') { return; }
+                                
+                                var com = xml.attr.com;
+                                
+                                if(com == 'slaveid')
+                                    {
+                                        for(var i = 0; i < slave.length; i++)
+                                            {
+                                                if(slave[i].PID == xml.attr.pid)
+                                                    {
+                                                        if(slave[i]['id'] == undefined)
+                                                            {
+                                                                slave[i]['id'] = xml.attr.id;
+                                                            }
+                                                    }
+                                            }
+                                    }
+                                else
+                                    {
+                                        var index = valid_slave(pid, id);
+                                        if(!index) { return; }
+                                        
+                                        if(com == 'kill')
+                                            {
+                                                slave.splice(index, 1);
+                                            }
+                                    }
                             }
                     }
                 else if(xml.name == 'IG')
@@ -167,10 +196,12 @@ function command_handler(com)
                     {
                         slave[i].kill();
                     }
+                
+                slave = [];
             }
         else if(com[0] == '/comment')
             {
-                var cmt  = com.splice(1);
+                var cmt  = com.slice(1);
                 var line = cmt.join(' ');
                 
                 send_slave('comment ' + line);
@@ -191,14 +222,93 @@ function command_handler(com)
             }
         else if(com[0] == '/letter')
             {
-                var letters = com[1].split('');
+                var letters = com.slice(1).join(' ').split('');
                 
                 var i = 0;
                 send_each_slave( () => letters[i] == undefined ? '' : 'comment ' + letters[i++] );
             }
+        else if(com[0] == '/talk')
+            {
+                send_slave_with_id(com[1], 'comment ' + com.slice(2).join(' '));
+            }
+        else if(com[0] == '/talkrandom')
+            {
+                var index = parseInt(Math.random()*slave.length);
+                send_slave_with_id( slave[index].id, 'comment ' + com.slice(1).join(' ') );
+                
+                send_each_slave( () => 'ifid ' + Object.keys(room) )
+            }
+        else if(com[0] == '/randrgb')
+            {
+                send_each_slave( function()
+                    {
+                        return 'rgb '
+                            + parseInt(Math.random()*255) + ' '
+                            + parseInt(Math.random()*255) + ' '
+                            + parseInt(Math.random()*255);
+                    });
+            }
+        else if(com[0] == '/copyall')
+            {
+                var keys = Object.keys(room);
+                var i    = 0;
+                
+                var connected = slave.filter( (obj) => obj.connected );
+                
+                for(var j = 0; j < connected.length; j++)
+                    {
+                        connected[j].send('copy ' + keys[i++ % keys.length]);
+                    }
+            }
+        else if(com[0] == '/distribute')
+            {
+                if(Object.keys(main).length == 0) { return; }
+                
+                var rooms = Object.keys(main).filter( (key) => main[key] != 0 );
+                
+                var connected = slave.filter( (obj) => obj.connected );
+                console.log(rooms);
+                for(var i = 0; i < connected.length; i++)
+                    {
+                        var line = 'room ' + rooms[i%rooms.length];
+                        console.log(line);
+                        connected[i].send('room ' + rooms[i % rooms.length]);
+                    }
+            }
+        else if(com[0] == '/divide')
+            {
+                var coms = com.splice(1).join(' ').split('|').filter( (com) => com != '' );
+
+                var connected = slave.filter( (obj) => obj.connected );
+
+                for(var i = 0; i < connected.length; i++)
+                    {
+                        connected[i].send( coms[i%coms.length] );
+                    }
+            }
         else if(com[0] == '/rip')
             {
                 this.rip = !this.rip;
+            }
+        else if(com[0] == '/listn')
+            {
+                for(var i = 0; i < slave.length; i++)
+                    {
+                        try { slave[i].send('stat ' + (i+1)); }
+                        catch(err) { console.error(err); }
+                    }
+            }
+        else if(com[0] == '/listid')
+            {
+                for(var i = 0; i < slave.length; i++)
+                    {
+                        try { slave[i].send('stat ' + slave[i].id); }
+                        catch(err) { console.error(err); }
+                    }
+            }
+        else if(com[0] == 'to')
+            {
+                send_slave_with_id(com[1], com.slice(2).join(' '));
             }
         else if(com[0][0] == '/')
             {
@@ -214,6 +324,19 @@ function command_handler(com)
             {
                 return false;
             }
+    }
+
+function valid_slave(pid, id)
+    {
+        for(var i = 0; i < slave.length; i++)
+            {
+                if(slave.PID == pid && slave.id != undefined && slave.id == id)
+                    {
+                        return [pid, id];
+                    }
+            }
+        
+        return false;
     }
 
 function repeat()

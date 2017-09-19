@@ -153,8 +153,73 @@ function command_handler(com)
         
         com = com.split(' ');
         
-        if(com[0] == 'test')
+        if(com[0] == 'weather')
             {
+                var city   = com.slice(1).join(' ');
+                var apikey = '62261a49d1a79b9462e1372237e1a75b';
+                
+                var url = 'http://api.openweathermap.org/data/2.5/weather?'
+                    + 'q='      + city
+                    + '&units=' + 'metric'
+                    + '&appid=' + apikey;
+                
+                console.log(url);
+                
+                $.ajax
+                    ({
+                        method: 'GET',
+                        url: url,
+                        
+                        success: function(json, data, xhr)
+                            {
+                                console.log(json);
+                                
+                                var date_sunrise = new Date(0);
+                                var date_sunset  = new Date(0);
+                                
+                                date_sunrise.setUTCSeconds(json.sys.sunrise);
+                                date_sunset.setUTCSeconds(json.sys.sunset);
+                                
+                                var sunrise = date_sunrise.toLocaleTimeString();
+                                var sunset  = date_sunset.toLocaleTimeString();
+                                
+                                
+                                var cmt =
+                                    [
+                                        json.name
+                                            + ','
+                                            + json.sys.country,
+                                        
+                                        '日出: '
+                                            + sunrise,
+                                        
+                                        '日没: '
+                                            + sunset,
+                                        
+                                        '気温: '
+                                            + json.main.temp
+                                            + 'ºＣ',
+                                        
+                                        '最大気温: '
+                                            + json.main.temp_max
+                                            + 'ºＣ',
+                                        
+                                        '最小気温: '
+                                            + json.main.temp_min
+                                            + 'ºＣ',
+                                        
+                                        '湿度: '
+                                            + json.main.humidity
+                                            + '％'
+                                    ];
+                                
+                                for(var i = 0; i < cmt.length; i++) { session.enqueue_comment(cmt[i]); }
+                            },
+                        error: function(err)
+                            {
+                                console.error('Error:', err);
+                            }
+                    });
             }
         else
             {
@@ -165,6 +230,4 @@ function command_handler(com)
 function repeat()
     {
         if(!this._on || this._paused) { return; }
-        
-        //session.comment('ページ:http://tinyurl.com/monachat-html5-client-0-8-0');
     }
