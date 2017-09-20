@@ -37,7 +37,7 @@
 # ダウンロード
 
 
-最新バージョン: v0.9.0
+最新バージョン: v1.0.0-beta
 
 
 * Windows (64bit)
@@ -65,6 +65,10 @@
 * Linux
 
   v1.0.0-beta: https://git.io/v5pXE
+
+* Mac
+
+  テスター募集中
 
 <br>
 
