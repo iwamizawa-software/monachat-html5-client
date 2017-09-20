@@ -64,7 +64,7 @@
 
 * Linux
 
-  まだ
+  v1.0.0-beta: https://git.io/v5pXE
 
 <br>
 
