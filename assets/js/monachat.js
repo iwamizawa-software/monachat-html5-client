@@ -849,6 +849,19 @@ function format_log(type, args)
                                                 log([time_el, user_el, two_dot, cmt_el]);
                                                 log([iframe_el]);
                                             }
+                                        else if(cmt.match('nicovideo.jp/'))
+                                            {
+                                                var src;
+                                                src = cmt.replace('www.nicovideo','embed.nicovideo');
+
+                                                var iframe_el = $(document.createElement('iframe'))
+                                                    .attr('width', 373)
+                                                    .attr('height', 210)
+                                                    .attr('src', src);
+
+                                                log([time_el, user_el, two_dot, cmt_el]);                                         
+                                                log([iframe_el]);
+                                            }
                                         else if(type.match('text/html'))
                                             {
                                                 $.ajax
