@@ -2710,6 +2710,10 @@ function signal_handler(msg)
                                 if(is_repeated(id)) { session.comment(cmt); }
                             }
                     }
+                else if(xml.name == 'RSET')
+                    {
+                        // ignore
+                    }
                 else
                     {
                         console.log('Unknown message');
