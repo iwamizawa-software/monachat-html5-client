@@ -2903,6 +2903,16 @@ function command_handler(com)
                         //setTimeout( () => session.x(x), i*500 );
                     }
             }
+        else if(com[0] == 'randrgb')
+            {
+                command_handler
+                    (
+                        'rgb '
+                        + parseInt(Math.random()*255) + ' '
+                        + parseInt(Math.random()*255) + ' '
+                        + parseInt(Math.random()*255)
+                    );
+            }
         else if(com[0] == 'ifid')
             {
                 if(session.id() == com[1])
