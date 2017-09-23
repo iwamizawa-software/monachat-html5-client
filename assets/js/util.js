@@ -139,6 +139,9 @@ function upload_file(path)
         
         console.log('Uploading', path, '...');
         
+        var text_el = create_text_el('Uploading ' + path + '...');
+        log([log_time_el(), text_el]);
+        
         request.post
             (
                 {

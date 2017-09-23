@@ -103,6 +103,8 @@ function Monachat(data, callback)
         this.server      = server;
         this.server_name = server_name;
         
+        this.ev = ev;
+        
         this.proxy   = proxy;
         this.site    = site;
         this.timeout = timeout;

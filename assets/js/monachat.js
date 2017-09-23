@@ -277,6 +277,7 @@ function send_slave_with_id(id, data)
 ipcRenderer.on('save_log', function(e)
     {
         save_log();
+        
         ipcRenderer.send('end');
     });
 
@@ -568,8 +569,20 @@ function create_option_el(value)
 function is_ignored(id)    { return (user[id] != undefined && session._ignored[user[id].ihash] == true); }
 function is_ignoring(id)   { return (user[id] != undefined && ignoring[user[id].ihash]         == true); }
 function is_muted(id)      { return (user[id] != undefined && muted[user[id].ihash]            == true); }
-function is_filtered(id)   { return (user[id] != undefined && filtered[user[id].ihash]         == true); }
 function is_muted_stat(id) { return (user[id] != undefined && muted_stat[user[id].ihash]       == true); }
+
+function is_filtered(id)
+    {
+        if(user[id] == undefined && Object.keys(filtered).length > 0) { return false; }
+        
+        for(var param in user[id])
+            {
+                if( filtered[param] != undefined && filtered[param].includes(user[id][param]) )
+                    {
+                        return true;
+                    }
+            }
+    }
 
 function format_user_data(id, n)
     {
@@ -857,7 +870,9 @@ function format_log(type, args)
                                                 var iframe_el = $(document.createElement('iframe'))
                                                     .attr('width', 373)
                                                     .attr('height', 210)
-                                                    .attr('src', src);
+                                                    .attr('src', src)
+                                                    .attr('frameborder', 0)
+                                                    .attr('allowfullscreen', 1)[0];
 
                                                 log([time_el, user_el, two_dot, cmt_el]);                                         
                                                 log([iframe_el]);
@@ -2374,11 +2389,30 @@ function filter(params)
             {
                 for(var param in room[id])
                     {
+                        /****************************************************
+                        * If the user and params include the same parameter
+                        ****************************************************/
                         if(room[id][param] == params[param])
                             {
-                                filtered[ room[id].ihash ] = filtered[ room[id].ihash ];
+                                if(filtered[param] == undefined) { filtered[param] = []; }
                                 
-                                if($('#user_div_'+id)) { $('#user_div_'+id).toggle(); }
+                                /************************************
+                                * Add parameter if it doesn't exist
+                                ************************************/
+                                if( !filtered[param].includes(params[param]) )
+                                    {
+                                        filtered[param].push(params[param]);
+                                
+                                    }
+                                /*****************
+                                * Else remove it
+                                *****************/
+                                else
+                                    {
+                                        filtered[param].splice( filtered[param].indexOf(params[param]), 1 );
+                                    }
+                                
+                                if($('#user_div_'+id)) { $('#user_div_'+id).toggle() };
                             }
                     }
             }
@@ -2803,6 +2837,14 @@ function command_handler(com)
         else if(com[0] == 'back')        { change_room(PREV_ROOM);              }
         else if(com[0] == 'filter')
             {
+                if(com.length == 1)
+                    {
+                        filtered = {};
+                        $('.user_div').show()
+                        
+                        return;
+                    }
+
                 var params = {};
                 
                 for(var i = 1; i < com.length; i +=2)
