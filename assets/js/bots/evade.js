@@ -8,7 +8,7 @@ function Bot()
         
         this._on          = false;
         this._paused      = true;
-        this._timeout     = 60;
+        this._timeout     = 1;
         this._interval_id = 100;
         
         
@@ -125,7 +125,6 @@ function signal_handler(msg)
                         ***********************/
                         if(xml.attr.x != undefined)
                             {
-                                evade();
                             }
                         if(xml.attr.y != undefined)
                             {
@@ -168,18 +167,22 @@ function command_handler(com)
 function repeat()
     {
         if(!this._on || this._paused) { return; }
+        
+        evade();
     }
 
 function evade()
     {
         var pos = [];
         
-        for(var id in room) { pos.push(room[id]); }
-        pos.sort( (user1, user2) => user1.x - user2.x );
-        pos.unshift({x: -96});
-        pos.push({x: 754});
+        for(var id in room) { if(id != session.id()) { pos.push(room[id]); } }
         
-        console.log(pos);
+        pos.sort( (user1, user2) => user1.x - user2.x );
+        pos.unshift({x: -98});
+        pos.push({x: 808});
+        
+        //console.log('EVADE');
+        //console.log(pos);
         
         var diff = 0;
         var x;
@@ -189,17 +192,17 @@ function evade()
                 var x1 = parseInt(pos[i].x);
                 var x2 = parseInt(pos[i+1].x);
                 
-                console.log('X', x1, x2);
+                //console.log('X', x1, x2, x2-x1);
                 
                 if( x2 - x1 > diff )
                     {
-                        diff = x2 - x1;
+                        diff = x2 - 20 - x1;
                         x    = parseInt((x1+x2) / 2);
                         
-                        console.log(diff, x);
+                        //console.log(x1, x2, diff, x);
                     }
             }
 
         console.log('EVADE', x);
-        session.x(x+40);
+        session.x(x);
     }

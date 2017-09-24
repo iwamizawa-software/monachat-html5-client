@@ -265,7 +265,7 @@ function connect_normal()
                 /****************
                 * Set ping loop
                 ****************/
-                that.ping_timer_id = setInterval( () => that.ping(), 20000 );
+                //that.ping_timer_id = setInterval( () => that.ping(), 20000 );
                 
                 that.CONNECT_TRIES = 0;
                 
@@ -387,7 +387,7 @@ function connect_proxy()
                         /****************
                         * Set ping loop
                         ****************/
-                        that.ping_timer_id = setInterval( () => that.ping(), 20000 );
+                        //that.ping_timer_id = setInterval( () => that.ping(), 20000 );
                         
                         that.CONNECT_TRIES = 0;
                         
@@ -1031,10 +1031,16 @@ function send(msg)
     {
         if(this.client.writable)
             {
+                var that = this;
+                
+                clearTimeout(this.ping_timer_id);
+                this.ping_timer_id = setInterval(() => that.ping(), 20000);
+                
                 this.client.write(msg);
             }
         else if(format_log != undefined && msg != '<NOP >\0')
             {
+                clearTimeout(this.ping_timer_id);
                 format_log('error', ['Client is disconnected.']);
                 
                 this.reconnect(1);

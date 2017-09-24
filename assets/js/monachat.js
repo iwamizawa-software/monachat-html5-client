@@ -3314,7 +3314,16 @@ window.onload = function()
 
     room_view.button['config_login'].on('click', function()
         {
-            show_config_login_menu();
+            if(config_menu['login'].css('display') == 'none')
+                {
+                    $('.config_menu').hide();
+                    show_config_login_menu();
+                }
+            else
+                {
+                    config_menu['login'].hide();
+                }
+
             room_view.dropdown['config'].hide();
         });
     room_view.button['config_trigger'].on('click', function()
@@ -3326,8 +3335,17 @@ window.onload = function()
                 }
 
             $('#config_trigger_list').val(list);
-            
-            config_menu['trigger'].toggle();
+
+            if(config_menu['trigger'].css('display') == 'none')
+                {
+                    $('.config_menu').hide();
+                    config_menu['trigger'].show();
+                }
+            else
+                {
+                    config_menu['trigger'].hide();
+                }
+
             room_view.dropdown['config'].hide();
         });
     room_view.button['config_client'].on('click', function()
@@ -3342,17 +3360,37 @@ window.onload = function()
             config_menu['get_all_main']     .val(config['get_all_main']);
             config_menu['save_log_on_exit'] .val(config['save_log_on_exit']);
             
-            config_menu['client'].toggle();
+            
+            if(config_menu['client'].css('display') == 'none')
+                {
+                    $('.config_menu').hide();
+                    config_menu['client'].show();
+                }
+            else
+                {
+                    config_menu['client'].hide();
+                }
+            
             room_view.dropdown['config'].hide();
         });
     room_view.button['config_bots'].on('click', function()
         {
-            config_menu['bots'].toggle();
             var child = $('.bot_list_checkbox');
             
             for(var i = 0; i < child.length; i++)
                 {
                     $(child[i]).attr('checked', bots[i].is_on());
+                }
+
+            
+            if(config_menu['bots'].css('display') == 'none')
+                {
+                    $('.config_menu').hide();
+                    config_menu['bots'].show();
+                }
+            else
+                {
+                    config_menu['bots'].hide();
                 }
             
             room_view.dropdown['config'].hide();
