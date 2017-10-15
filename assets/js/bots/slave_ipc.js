@@ -1,7 +1,6 @@
 /***********
 * Base bot
 ***********/
-
 function Bot()
     {
         this.name = require('path').basename(__filename);
@@ -30,23 +29,23 @@ function Bot()
                 this._timeout = s;
                 this.pause();
                 this.resume();
-            }
+            };
         
         this.on = function()
             {
                 this._on = true;
                 this.resume();
-            }
+            };
         this.off = function()
             {
                 this._on = false;
                 this.pause();
-            }
+            };
         this.toggle = function()
             {
                 if(this.is_on()) { this.off(); }
                 else             { this.on(); }
-            }
+            };
         
         this.is_paused = () => this._paused;
         this.is_on     = () => this._on;
@@ -74,6 +73,12 @@ function signal_handler(msg)
     {
         if(!this._on) { return; }
         
+        
+        var id, ihash, stat;
+        var cmt;
+        var n, c;
+        
+        
         /************************
         * Discard first message
         ************************/
@@ -83,22 +88,22 @@ function signal_handler(msg)
             }
         else
             {
-                var xml = new xmldoc.XmlDocument(msg);
-                
+                var xml  = new xmldoc.XmlDocument(msg);
+                var attr = xml.attr;
                 
                 if(xml.name == 'CONNECT')
                     {
-                        var {id} = xml.attr;
+                        id = xml.attr.id;
                     }
                 else if(xml.name == 'UINFO')
                     {
-                        var {n, c, id, name, ihash} = xml.attr;
+                        [n, c, id, name, ihash] = [attr.n, attr.c, attr.id, attr.name, attr.ihash];
                     }
                 else if(xml.name == 'COUNT')
                     {
                         if(session.room() != 'main')
                             {
-                                var {n, c} = xml.attr;
+                                [n, c] = [xml.attr.n, xml.attr.c];
                             }
                         else
                             {
@@ -106,23 +111,25 @@ function signal_handler(msg)
                     }
                 else if(xml.name == 'ROOM')
                     {
+                        var child;
+                        
                         for(var i = 0; i < xml.children.length; i++)
                             {
-                                var child = xml.children[i];
-                                var id    = child.attr.id;
+                                child = xml.children[i];
+                                id    = child.attr.id;
                             }
                     }
                 else if(xml.name == 'ENTER')
                     {
-                        var {id} = xml.attr;
+                        id = xml.attr.id;
                     }
                 else if(xml.name == 'USER')
                     {
-                        var {id} = xml.attr;
+                        id = xml.attr.id;
                     }
                 else if(xml.name == 'EXIT')
                     {
-                        var {id} = xml.attr;
+                        id = xml.attr.id;
                         
                         if(PID == 'MASTER')
                             {
@@ -140,9 +147,9 @@ function signal_handler(msg)
                     }
                 else if(xml.name == 'SET')
                     {
-                        var {id} = xml.attr;
+                        id = xml.attr.id;
                         
-                        if(xml.attr.pid != undefined)
+                        if(xml.attr.pid !== undefined)
                             {
                                 if(PID != 'MASTER') { return; }
                                 
@@ -154,7 +161,7 @@ function signal_handler(msg)
                                             {
                                                 if(slave[i].PID == xml.attr.pid)
                                                     {
-                                                        if(slave[i]['id'] == undefined)
+                                                        if(slave[i].id === undefined)
                                                             {
                                                                 slave[i]['id'] = xml.attr.id;
                                                             }
@@ -175,11 +182,11 @@ function signal_handler(msg)
                     }
                 else if(xml.name == 'IG')
                     {
-                        var {id, ihash, stat} = xml.attr;
+                        [id, ihash, stat] = [attr.id, attr.ihash, attr.stat];
                     }
                 else if(xml.name == 'COM')
                     {
-                        var {id, cmt} = xml.attr;
+                        [id, cmt] = [xml.attr.id, xml.attr.cmt];
                     }
             }
     }
@@ -187,6 +194,12 @@ function signal_handler(msg)
 function command_handler(com)
     {
         if(!this._on) { return; }
+        
+        
+        var cmt, line;
+        var connected;
+        var arg;
+        
         
         com = com.split(' ');
         
@@ -201,14 +214,28 @@ function command_handler(com)
             }
         else if(com[0] == '/comment')
             {
-                var cmt  = com.slice(1);
-                var line = cmt.join(' ');
+                cmt  = com.slice(1);
+                line = cmt.join(' ');
                 
                 send_slave('comment ' + line);
             }
+        else if(com[0] == '/commentrand')
+            {
+                cmt  = com.slice(1);
+                line = cmt.join(' ');
+                
+                //send_each_slave( () => setTimeout( 'comment ' + line, parseInt(Math.rand()*4000) );
+                
+                connected = slave.filter( (obj) => obj.connected );
+
+                for(let i = 0; i < connected.length; i++)
+                    {
+                        setTimeout( () => connected[i].send( 'comment ' + cmt ), parseInt(Math.random()*4000) );
+                    }
+            }
         else if(com[0] == '/randx')
             {
-                send_each_slave( () => 'x ' + parseInt( Math.random()*700 ) )
+                send_each_slave( () => 'x ' + parseInt( Math.random()*700 ) );
             }
         else if(com[0] == '/attack')
             {
@@ -225,7 +252,7 @@ function command_handler(com)
                 var letters = com.slice(1).join(' ').split('');
                 
                 var i = 0;
-                send_each_slave( () => letters[i] == undefined ? '' : 'comment ' + letters[i++] );
+                send_each_slave( () => letters[i] === undefined ? '' : 'comment ' + letters[i++] );
             }
         else if(com[0] == '/talk')
             {
@@ -236,7 +263,7 @@ function command_handler(com)
                 var index = parseInt(Math.random()*slave.length);
                 send_slave_with_id( slave[index].id, 'comment ' + com.slice(1).join(' ') );
                 
-                send_each_slave( () => 'ifid ' + Object.keys(room) )
+                send_each_slave( () => 'ifid ' + Object.keys(room) );
             }
         else if(com[0] == '/randrgb')
             {
@@ -253,7 +280,7 @@ function command_handler(com)
                 var keys = Object.keys(room);
                 var i    = 0;
                 
-                var connected = slave.filter( (obj) => obj.connected );
+                connected = slave.filter( (obj) => obj.connected );
                 
                 for(var j = 0; j < connected.length; j++)
                     {
@@ -262,24 +289,24 @@ function command_handler(com)
             }
         else if(com[0] == '/distribute')
             {
-                if(Object.keys(main).length == 0) { return; }
+                if(Object.keys(main).length === 0) { return; }
                 
-                var rooms = Object.keys(main).filter( (key) => main[key] != 0 );
+                var rooms = Object.keys(main).filter( (key) => main[key] !== 0 );
                 
-                var connected = slave.filter( (obj) => obj.connected );
-                console.log(rooms);
+                connected = slave.filter( (obj) => obj.connected );
+                
                 for(var i = 0; i < connected.length; i++)
                     {
-                        var line = 'room ' + rooms[i%rooms.length];
-                        console.log(line);
+                        line = 'room ' + rooms[i%rooms.length];
+                        
                         connected[i].send('room ' + rooms[i % rooms.length]);
                     }
             }
         else if(com[0] == '/divide')
             {
-                var coms = com.splice(1).join(' ').split('|').filter( (com) => com != '' );
+                var coms = com.splice(1).join(' ').split('|').filter( (com) => com !== '' );
 
-                var connected = slave.filter( (obj) => obj.connected );
+                connected = slave.filter( (obj) => obj.connected );
 
                 for(var i = 0; i < connected.length; i++)
                     {
@@ -312,9 +339,9 @@ function command_handler(com)
             }
         else if(com[0][0] == '/')
             {
-                var [com, arg] = [ com[0].substr(1, com[0].length), com.slice(1) ];
+                [com, arg] = [ com[0].substr(1, com[0].length), com.slice(1) ];
                 
-                var line = arg.length == 0
+                line = arg.length === 0
                     ? com
                     : com + ' ' + arg.join(' ');
                     
@@ -330,7 +357,7 @@ function valid_slave(pid, id)
     {
         for(var i = 0; i < slave.length; i++)
             {
-                if(slave.PID == pid && slave.id != undefined && slave.id == id)
+                if(slave.PID == pid && slave.id !== undefined && slave.id == id)
                     {
                         return [pid, id];
                     }
@@ -366,9 +393,9 @@ function repeat()
             {
                 var that = this;
                 
-                if(user[that.attack_id] == undefined) { return; }
+                if(user[that.attack_id] === undefined) { return; }
                 
-                if(this.attack_i == 0)
+                if(this.attack_i === 0)
                     {
                         send_each_slave( function()
                             {

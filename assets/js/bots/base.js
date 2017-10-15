@@ -30,23 +30,23 @@ function Bot()
                 this._timeout = s;
                 this.pause();
                 this.resume();
-            }
+            };
         
         this.on = function()
             {
                 this._on = true;
                 this.resume();
-            }
+            };
         this.off = function()
             {
                 this._on = false;
                 this.pause();
-            }
+            };
         this.toggle = function()
             {
                 if(this.is_on()) { this.off(); }
                 else             { this.on(); }
-            }
+            };
         
         this.is_paused = () => this._paused;
         this.is_on     = () => this._on;
@@ -64,6 +64,10 @@ function signal_handler(msg)
     {
         if(!this._on) { return; }
         
+        var id, ihash, stat;
+        var cmt;
+        var n, c;
+        
         /************************
         * Discard first message
         ************************/
@@ -73,22 +77,23 @@ function signal_handler(msg)
             }
         else
             {
-                var xml = new xmldoc.XmlDocument(msg);
+                var xml  = new xmldoc.XmlDocument(msg);
+                var attr = xml.attr;
                 
                 
                 if(xml.name == 'CONNECT')
                     {
-                        var {id} = xml.attr;
+                        id = xml.attr.id;
                     }
                 else if(xml.name == 'UINFO')
                     {
-                        var {n, c, id, name, ihash} = xml.attr;
+                        //[n, c, id, name, ihash] = [ attr.n, attr.c, attr.id, attr.name, attr.ihash ];
                     }
                 else if(xml.name == 'COUNT')
                     {
                         if(session.room() != 'main')
                             {
-                                var {n, c} = xml.attr;
+                                [n, c] = [xml.attr.n, xml.attr.c];
                             }
                         else
                             {
@@ -96,53 +101,55 @@ function signal_handler(msg)
                     }
                 else if(xml.name == 'ROOM')
                     {
+                        var child;
+                        
                         for(var i = 0; i < xml.children.length; i++)
                             {
-                                var child = xml.children[i];
-                                var id    = child.attr.id;
+                                child = xml.children[i];
+                                id    = child.attr.id;
                             }
                     }
                 else if(xml.name == 'ENTER')
                     {
-                        var {id} = xml.attr;
+                        id = xml.attr.id;
                     }
                 else if(xml.name == 'USER')
                     {
-                        var {id} = xml.attr;
+                        id = xml.attr.id;
                     }
                 else if(xml.name == 'EXIT')
                     {
-                        var {id} = xml.attr;
+                        id = xml.attr.id;
                     }
                 else if(xml.name == 'SET')
                     {
-                        var {id} = xml.attr;
+                        id = xml.attr.id;
                         
                         /***********************
                         * It moves three times
                         ***********************/
-                        if(xml.attr.x != undefined)
+                        if(xml.attr.x !== undefined)
                             {
                             }
-                        if(xml.attr.y != undefined)
+                        if(xml.attr.y !== undefined)
                             {
                             }
-                        if(xml.attr.scl != undefined)
+                        if(xml.attr.scl !== undefined)
                             {
                             }
                         
-                        if(xml.attr.stat != undefined)
+                        if(xml.attr.stat !== undefined)
                             {
-                                var {stat} = xml.attr;
+                                stat = xml.attr;
                             }
                     }
                 else if(xml.name == 'IG')
                     {
-                        var {id, ihash, stat} = xml.attr;
+                        [id, ihash, stat] = [attr.id, attr.ihash, attr.stat];
                     }
                 else if(xml.name == 'COM')
                     {
-                        var {id, cmt} = xml.attr;
+                        [id, cmt] = [xml.attr.id, xml.attr.cmt];
                     }
             }
     }

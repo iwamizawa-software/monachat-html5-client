@@ -84,6 +84,11 @@
     cursor: hand;
 }
 
+.log_video_el {
+    max-width: 90%;
+    cursor: auto;
+}
+
 #text_input text { left: 20px; }
 .log {
     -webkit-user-select: auto !important;

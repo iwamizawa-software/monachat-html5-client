@@ -14,18 +14,17 @@ try
         
         var room_view_css = document.styleSheets[4];
         
-        room_view_css.insertRule('.log { background-color: ' + config['background'] + '; }', 0);
+        room_view_css.insertRule('.log { background-color: ' + config.background + '; }', 0);
     }
 catch(err)
     {
         throw err;
-        process.exit();
     }
 
 
 function open_with_browser(e, url)
     {
-        e.preventDefault()
+        e.preventDefault();
         
         shell.openExternal(url);
     }
@@ -78,4 +77,4 @@ ipcRenderer.on('append_log', function(e, el_arr)
 window.onload = function()
     {
         log_window['log'] = $('#log_window_log');
-    }
+    };

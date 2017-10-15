@@ -6,15 +6,14 @@ const {shell}        = require('electron');
 const {clipboard}    = require('electron');
 const {ipcRenderer}  = require('electron');
 
-var child = require('child_process');
-var p = new child.ChildProcess();
+//var child = require('child_process');
 
 const fs       = require('fs');
 
 const xmldoc   = require('xmldoc');
 const jsonfile = require('jsonfile');
 const notifier = require('node-notifier');
-const spectrum = require('spectrum-colorpicker');
+const spectrum = require('spectrum-colorpicker'); // Neccesary or it bugs on start
 
 const Monachat = require('./assets/js/monachat.jsm');
 const util     = require('./assets/js/util.js');
@@ -27,8 +26,7 @@ const win = require('electron').remote.getCurrentWindow();
 * Constants
 ************/
 const ARGV           = require('electron').remote.getGlobal('argv');
-const VERSION        = '1.0.0';
-const JP_REGEX       = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/;
+//const JP_REGEX       = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/;
 const BLACK_TRIP_SYM = '\u2666';
 const WHITE_TRIP_SYM = '\u2662';
 
@@ -83,7 +81,7 @@ var main        = {};
 var room_view = { button: {}, el: '', data: {}, new_menu: {}, dropdown: {} };
 var main_view = { button: {}, el: '', data: {}, dropdown: {} };
 
-var data_menu   = {};
+//var data_menu   = {};
 
 var muted       = {};
 var muted_stat  = {};
@@ -100,7 +98,7 @@ var config_menu = {};
 
 
 var slave    = [];
-var slave_id = [];
+var slave_id = []; // For master in slave_ipc
 
 
 /***********************************
@@ -121,11 +119,6 @@ var eye_icon;
 ************/
 var audio;
 
-/************
-* Main view
-************/
-var main_title;
-
 
 /***************
 * Global flags
@@ -136,7 +129,7 @@ var IS_LOADING_MAIN = false;
 var IS_MASTER       = true;
 var KEEP_LOOKING_ID = false;
 var ALWAYS_ON_TOP   = false;
-var SHOW_ALL_ROOMS  = false;
+//var SHOW_ALL_ROOMS  = false;
 var LOOP_ID         = false;
 var MAX_Y           = 275;
 var PID             = 'MASTER';
@@ -189,7 +182,7 @@ var bots = [];
 * If this is not set, the stop event
 * target is set to room_view
 ****************************************/
-var drag_offset_x;
+//var drag_offset_x;
 
 
 /*********************
@@ -202,20 +195,20 @@ try
         trip_list      = jsonfile.readFileSync('./trip.json');
         character_list = jsonfile.readFileSync('./character_list.json');
         
-        LANGUAGE            = config['language'];
-        SOUND_ON            = config['sound'];
-        POPUP_ENABLED       = config['popup'];
-        GET_ALL_MAIN        = config['get_all_main'];
-        LOG_TEXT_BACKGROUND = config['log_text_background'];
+        LANGUAGE            = config.language;
+        SOUND_ON            = config.sound;
+        POPUP_ENABLED       = config.popup;
+        GET_ALL_MAIN        = config.get_all_main;
+        LOG_TEXT_BACKGROUND = config.log_text_background;
         
         var room_view_css = document.styleSheets[4];
         
-        room_view_css.insertRule('.comment_div { animation-duration: ' + config['comment_speed']*2 + 's; }', 0);
-        room_view_css.insertRule('.log { background-color: ' + config['background'] + '; }', 0);
+        room_view_css.insertRule('.comment_div { animation-duration: ' + config.comment_speed*2 + 's; }', 0);
+        room_view_css.insertRule('.log { background-color: ' + config.background + '; }', 0);
     }
 catch(err)
     {
-        //throw err;
+        throw err;
         //process.exit();
     }
     
@@ -240,6 +233,15 @@ ipcRenderer.on('slave_msg', function(e, msg)
         console.log('Message from child: ', msg);
     });
 
+
+/***************************************************
+* Name        : send_slave
+* Description : Sends a message to all slaves
+* Takes       : msg (str) - Message for the slaves
+* Returns     : Nothing
+* Notes       : Nothing
+* TODO        : Nothing
+***************************************************/
 function send_slave(msg)
     {
         for(var i = 0; i < slave.length; i++)
@@ -267,7 +269,7 @@ function send_slave_with_id(id, data)
     {
         for(var i = 0; i < slave.length; i++)
             {
-                if(slave[i].id != undefined && slave[i].id == id)
+                if(slave[i].id !== undefined && slave[i].id == id)
                     {
                         slave[i].send(data);
                     }
@@ -386,10 +388,10 @@ function save_config()
         /*********************
         * Check if it's void
         *********************/
-        if(config['name'] == undefined) { return; }
+        if(config.name === undefined) { return; }
         
         try { jsonfile.writeFileSync('./config.json', config); }
-        catch(err) { throw err; alert(err); }
+        catch(err) { alert(err); throw err; }
     }
 
 function save_trip()
@@ -397,13 +399,10 @@ function save_trip()
         /*********************
         * Check if it's void
         *********************/
-        var len = 0;
-        for(var trip in trip_list) { len++; break; }
-        
-        if(len > 0)
+        if(Object.keys(trip_list).length > 0)
             {
                 try { jsonfile.writeFileSync('./trip.json', trip_list); }
-                catch(err) { throw err; alert(err); }
+                catch(err) { alert(err); throw err; }
             }
     }
 
@@ -413,16 +412,16 @@ function load_bots()
 
         for(let i = 0; i < bot_list.length; i++)
             {
-                if( require.cache[ require.resolve('./assets/js/bots/' + bot_list[i]) ] != undefined)
+                if( require.cache[ require.resolve('./assets/js/bots/' + bot_list[i]) ] !== undefined)
                     {
                         delete require.cache[ require.resolve('./assets/js/bots/' + bot_list[i]) ];
                     }
                 
                 bots.push( require('./assets/js/bots/' + bot_list[i]) );
                 
-                if(config.default_bots[bots[i].name] != undefined)
+                if(config.default_bots[bots[i].name] !== undefined)
                     {
-                        config.default_bots[bots[i].name] == true
+                        config.default_bots[ bots[i].name ] === true
                             ? bots[i].on()
                             : bots[i].off();
                     }
@@ -431,7 +430,7 @@ function load_bots()
 
 function open_with_browser(e, url)
     {
-        e.preventDefault()
+        e.preventDefault();
         
         shell.openExternal(url);
     }
@@ -468,7 +467,7 @@ function log(el_arr)
         
         room_view.log.append(div_el);
         
-        if(el_arr != undefined && el_arr.length > 0)
+        if(el_arr !== undefined && el_arr.length > 0)
             {
                 ipcRenderer.send( 'append_log', el_arr.map( (el) => el.outerHTML ) );
             }
@@ -497,9 +496,9 @@ function log_nbsp_el(n)
 
 function log_text_el(line, r, g, b)
     {
-        var r = r || 0;
-        var g = g || 0;
-        var b = b || 0;
+        r = r || 0;
+        g = g || 0;
+        b = b || 0;
         
         var text_el = $(document.createElement('TEXT'))
             .text(line)
@@ -566,18 +565,18 @@ function create_option_el(value)
             .attr('value', value)[0];
     }
 
-function is_ignored(id)    { return (user[id] != undefined && session._ignored[user[id].ihash] == true); }
-function is_ignoring(id)   { return (user[id] != undefined && ignoring[user[id].ihash]         == true); }
-function is_muted(id)      { return (user[id] != undefined && muted[user[id].ihash]            == true); }
-function is_muted_stat(id) { return (user[id] != undefined && muted_stat[user[id].ihash]       == true); }
+function is_ignored(id)    { return (user[id] !== undefined && session._ignored[user[id].ihash] === true); }
+function is_ignoring(id)   { return (user[id] !== undefined && ignoring[user[id].ihash]         === true); }
+function is_muted(id)      { return (user[id] !== undefined && muted[user[id].ihash]            === true); }
+function is_muted_stat(id) { return (user[id] !== undefined && muted_stat[user[id].ihash]       === true); }
 
 function is_filtered(id)
     {
-        if(user[id] == undefined && Object.keys(filtered).length > 0) { return false; }
+        if(user[id] === undefined && Object.keys(filtered).length > 0) { return false; }
         
         for(var param in user[id])
             {
-                if( filtered[param] != undefined && filtered[param].includes(user[id][param]) )
+                if( filtered[param] !== undefined && filtered[param].includes(user[id][param]) )
                     {
                         return true;
                     }
@@ -586,7 +585,7 @@ function is_filtered(id)
 
 function format_user_data(id, n)
     {
-        if(user[id] == undefined)
+        if(user[id] === undefined)
             {
                 user[id] = new User
                     ({ attr:
@@ -601,9 +600,9 @@ function format_user_data(id, n)
         
         var {name, character, stat, trip, ihash, r, g, b, x, y} = user[id];
         
-        var line = name
-        if(n > 1) { line += ' ' + WHITE_TRIP_SYM + ihash.substr(-6);          }
-        if(n > 2) { line += ' ' + (trip == '' ? '' : (BLACK_TRIP_SYM + trip)) }
+        var line = name;
+        if(n > 1) { line += ' ' + WHITE_TRIP_SYM + ihash.substr(-6); }
+        if(n > 2) { line += ' ' + (trip === '' ? '' : (BLACK_TRIP_SYM + trip)); }
         if(n > 3) { line += ' ' + stat; }
         if(n > 4) { line += ' ' + character; }
         if(n > 5) { line += ' r:' + r + ' g:' + g + ' b:' + b; }
@@ -618,6 +617,12 @@ function format_log(type, args)
     {
         if(session.room() == 'main') { return; }
         
+        var id, stat, room, ihash, r, g, b;
+        var user_el, info_el, nbsp_el;
+        var first_hr_el, second_hr_el;
+        
+        var i;
+        
         var text =
             {
                 has_logged_in : LANGUAGE == 'EN' ? ' has logged in.'       : ' が入室しました。' ,
@@ -631,49 +636,49 @@ function format_log(type, args)
         
         if(type == 'enter')
             {
-                var id = args[0];
+                id = args[0];
                 if(is_muted(id) || is_filtered(id)) { return; }
                 
                 
-                var user_el = log_text_el
+                user_el = log_text_el
                     (
                         format_user_data(id, 5),
                         user[id].r, user[id].g, user[id].b
                     );
                 
                 
-                var info_el = log_text_el(text['has_logged_in']);
+                info_el = log_text_el( text.has_logged_in );
 
                 
                 log([time_el, r_arrow, user_el, info_el]);
             }
         else if(type == 'exit')
             {
-                var id = args[0];
+                id = args[0];
                 if(is_muted(id) || is_filtered(id)) { return; }
                 
                 
-                var user_el = log_text_el
+                user_el = log_text_el
                     (
                         format_user_data(id, 5),
                         
                         user[id].r, user[id].g, user[id].b
                     );
                 
-                var info_el = log_text_el(text['has_exited']);
+                info_el = log_text_el( text.has_exited );
 
                 
                 log([time_el, l_arrow, user_el, info_el]);
             }
         else if(type == 'room')
             {
-                var room = args[0];
+                room = args[0];
                 
-                var first_hr_el  = document.createElement('HR');
-                var second_hr_el = document.createElement('HR');
-                var nbsp_el      = log_nbsp_el(68);
+                first_hr_el  = document.createElement('HR');
+                second_hr_el = document.createElement('HR');
+                nbsp_el      = log_nbsp_el(68);
                 
-                var room_el = log_text_el('ROOM ' + room.toString());
+                room_el = log_text_el('ROOM ' + room.toString());
                 
                 
                 log([first_hr_el]);
@@ -682,14 +687,14 @@ function format_log(type, args)
             }
         else if(type == 'stat')
             {
-                var id = args[0];
+                id = args[0];
                 if(is_muted(id) || is_filtered(id)) { return; }
                 
-                var {r, g, b, stat} = user[id];
+                [r, g, b, stat] = [ user[id].r, user[id].g, user[id].b, user[id].stat ];
                 
-                var user_el = log_text_el( format_user_data(id, 3), r, g, b );
+                user_el = log_text_el( format_user_data(id, 3), r, g, b );
                 
-                var info_el = log_text_el
+                info_el = log_text_el
                     (
                         LANGUAGE == 'EN'
                             ? ' changed status to ' + stat
@@ -701,12 +706,12 @@ function format_log(type, args)
             }
         else if(type == 'ig')
             {
-                var [id, ihash, stat] = args;
+                [id, ihash, stat] = args;
                 if(is_muted(id) || is_filtered(id)) { return; }
                 
                 var ig_ihash = ihash;
                 
-                if(user[id] == undefined)
+                if(user[id] === undefined)
                     {
                         format_log('error', ['IG: User with id '+id+' doesnt exist.']);
                         return;
@@ -714,7 +719,7 @@ function format_log(type, args)
 
                 
                 var ig_id   = get_id_from_ihash(ig_ihash);
-                if(user[ig_id] == undefined)
+                if(user[ig_id] === undefined)
                     {
                         format_log('error', ['IG: User with id '+id+' doesnt exist.']);
                         return;
@@ -748,12 +753,13 @@ function format_log(type, args)
             }
         else if(type == 'com')
             {
-                var [id, cmt] = args;
+                id = args[0];
+                var cmt = args[1];
                 
                 console.log('COM', id, cmt);
                
                //// test
-               if(user[id] == undefined)
+               if(user[id] === undefined)
                     {
                         user[id] = new User
                             ({
@@ -769,9 +775,7 @@ function format_log(type, args)
                 
                 if(is_muted(id) || is_filtered(id)) { return; }
                 
-                var {name, trip, ihash, r, g, b} = user[id];
-                
-                var user_el = log_text_el
+                user_el = log_text_el
                     (
                         format_user_data(id, 3),
                         r, g, b
@@ -787,7 +791,7 @@ function format_log(type, args)
                 ***************/
                 var cmt_el;
                 
-                if(config['load_content'] && util.is_url(cmt))
+                if(config.load_content && util.is_url(cmt))
                     {
                         cmt_el = log_a_el(cmt);
                         
@@ -808,7 +812,14 @@ function format_log(type, args)
                                         var type = jqXHR.getResponseHeader('content-type');
                                         var size = jqXHR.getResponseHeader('content-length');
                                         
+                                        var src, iframe_el;
                                         console.log([type, size]);
+                                        
+                                        /***********
+                                        * Get host
+                                        ***********/
+                                        var host = new URL(cmt).hostname;
+                                        console.log('host:', host);
                                         
                                         /************************************************
                                         * If it's an image smaller than 20mb, render it
@@ -820,9 +831,10 @@ function format_log(type, args)
                                                 log([time_el, user_el, two_dot, cmt_el]);
                                                 log([img_el]);
                                             }
-                                        else if(type == 'video/webm' && size/1024 < 20000)
+                                        else if(type == 'video/webm' && size/1024 < 200000)
                                             {
                                                 var video_el = $(document.createElement('video'))
+                                                    .addClass('log_video_el')
                                                     .attr('src', cmt)
                                                     .attr('controls', '')[0];
                                                 
@@ -838,20 +850,18 @@ function format_log(type, args)
                                                 log([time_el, user_el, two_dot, cmt_el]);
                                                 log([audio_el]);
                                             }
-                                        else if(cmt.match(/youtube.com|youtu.be/))
+                                        else if(host == 'www.youtube.com' || host == 'youtu.be')
                                             {
-                                                var src;
-                                                
-                                                if(cmt.match('youtube.com/'))
+                                                if(host == 'www.youtube.com')
                                                     {
                                                         src = cmt.replace('watch?v=', 'embed/');
                                                     }
-                                                else if(cmt.match('youtu.be'))
+                                                else if(host == 'youtu.be')
                                                     {
                                                         src = cmt.replace('.be/', 'be.com/embed/');
                                                     }
                                                 
-                                                var iframe_el = $(document.createElement('iframe'))
+                                                iframe_el = $(document.createElement('iframe'))
                                                     .attr('width', 373)
                                                     .attr('height', 210)
                                                     .attr('src', src)
@@ -862,12 +872,11 @@ function format_log(type, args)
                                                 log([time_el, user_el, two_dot, cmt_el]);
                                                 log([iframe_el]);
                                             }
-                                        else if(cmt.match('nicovideo.jp/'))
+                                        else if(host == 'www.nicovideo.jp')
                                             {
-                                                var src;
                                                 src = cmt.replace('www.nicovideo','embed.nicovideo');
 
-                                                var iframe_el = $(document.createElement('iframe'))
+                                                iframe_el = $(document.createElement('iframe'))
                                                     .attr('width', 373)
                                                     .attr('height', 210)
                                                     .attr('src', src)
@@ -930,6 +939,7 @@ function format_log(type, args)
                 * Send a popup to the OS if the comments contains a trigger
                 ************************************************************/
                 if(is_ignored(id) || is_muted(id) || is_filtered(id)) { return; }
+                [name, ihash] = [ user[id].name, user[id].ihash ];
                 
                 if(POPUP_ALL)
                     {
@@ -941,9 +951,9 @@ function format_log(type, args)
                     }
                 if(POPUP_ENABLED)
                     {
-                        for(var i = 0; i < config['popup_trigger'].length; i++)
+                        for(i = 0; i < config.popup_trigger.length; i++)
                             {
-                                if(cmt.match(config['popup_trigger'][i]))
+                                if(cmt.match(config.popup_trigger[i]))
                                     {
                                         popup
                                             (
@@ -957,18 +967,18 @@ function format_log(type, args)
         else if(type == 'triplist')
             {
                 var data = args.shift();
-                var id   = args.shift();
+                id   = args.shift();
                 
                 
-                var info_el = log_text_el('Trips found for ' + data + ' (id ' + id + '):');
+                info_el = log_text_el('Trips found for ' + data + ' (id ' + id + '):');
                 
                 log_newline(1);
                 log([info_el]);
                 
 
-                for(var i = 0; i < args.length; i++)
+                for(i = 0; i < args.length; i++)
                     {
-                        var nbsp_el = log_nbsp_el(4);
+                        nbsp_el = log_nbsp_el(4);
                         
                         var res_el = log_text_el(args[i]);
                         
@@ -1099,7 +1109,7 @@ function get_sorted_rooms()
         
         for(var key in main)
             {
-                if(main[key] != 0) { sorted.push(key); }
+                if(main[key] !== '0') { sorted.push(key); }
             }
 
         sorted = sorted.sort(sort_rooms);
@@ -1154,7 +1164,7 @@ function refresh_main()
         for(var key in main)
             {
                 user_n += parseInt(main[key]);
-                if(main[key] != 0) { room_n++; }
+                if(main[key] != '0') { room_n++; }
             }
 
 
@@ -1181,7 +1191,8 @@ function refresh_main()
         for(let i = 0; i < sorted_rooms.length; i++)
             {
                 let [n, c] = [ sorted_rooms[i], main[ sorted_rooms[i] ] ];
-                if(c == 0) { continue; }
+                
+                if(c == '0') { continue; }
                 
                 n = sorted_rooms[i];
                 
@@ -1217,12 +1228,12 @@ function refresh_main()
                     //.css('border', '2px solid ' + (scale[c] ? scale[c] : '2c3e50'))
                     .on('click', function()
                         {
-                            session._name      = main_view.data['name'].val();
-                            session._character = main_view.data['character'].val();
-                            session._stat      = main_view.data['stat'].val();
-                            session._trip      = main_view.data['trip'].val();
+                            session._name      = main_view.data.name.val();
+                            session._character = main_view.data.character.val();
+                            session._stat      = main_view.data.stat.val();
+                            session._trip      = main_view.data.trip.val();
                             
-                            var {_r, _g, _b} = main_view.data['color_picker'].spectrum('get');
+                            var {_r, _g, _b} = main_view.data.color_picker.spectrum('get');
                             
                             session._r = _r;
                             session._g = _g;
@@ -1263,8 +1274,6 @@ function refresh_main()
 
 function change_character_color(img, r, g, b)
     {
-        var {width, height} = img;
-        
         buffer_ctx.drawImage(img, 0, 0);
         var data = buffer_ctx.getImageData(0, 0, 128, 128);
         
@@ -1316,7 +1325,7 @@ function check_transparency(id, e)
                 buffer_ctx.drawImage(img, 0, 0);
                 var data = buffer_ctx.getImageData(0, 0, 128, 128);
                 
-                if(data.data[e.offsetY*(128*4) + e.offsetX*4 + 3] != 0)
+                if(data.data[e.offsetY*(128*4) + e.offsetX*4 + 3] !== 0)
                     {
                         show_user_context_menu(id);
                     }
@@ -1334,7 +1343,7 @@ function check_transparency(id, e)
 
                 
                 buffer_ctx.clearRect(0, 0, 128, 128);
-            }
+            };
         
         
         var character = user[id].character;
@@ -1399,8 +1408,8 @@ function append_div(id)
                                     },
                                 stop : function(e)
                                     {
-                                        var name_width = get_px_len(user[id].name);
-                                        var width = 128 > name_width ? 128 : name_width;
+                                        //var name_width = get_px_len(user[id].name);
+                                        //var width = 128 > name_width ? 128 : name_width;
                                         
                                         var x = session.get_scl() == 100
                                             ? drag_offset_x
@@ -1440,7 +1449,7 @@ function append_div(id)
                             (user[id].name || 'nanashi')
                             + '<br>' + WHITE_TRIP_SYM
                             + user[id].ihash.substr(-6)
-                            + (user[id].trip == '' ? '' : ('<br>' + BLACK_TRIP_SYM + user[id].trip))
+                            + (user[id].trip === '' ? '' : ('<br>' + BLACK_TRIP_SYM + user[id].trip))
                          )[0];
                 
                 var data_div = $(document.createElement('DIV'))
@@ -1504,7 +1513,7 @@ function append_div(id)
                                 complete: () => $(div).css('display', 'default')
                             });
                     }
-            }
+            };
         
         
         var character = user[id].character;
@@ -1547,7 +1556,7 @@ function remove_div(id)
 
 function add_comment_div(id, cmt)
     {
-        if(user[id] == undefined)
+        if(user[id] === undefined)
             {
                 format_log('error', ['id '+id+' doesnt exist.']);
                 return;
@@ -1567,7 +1576,7 @@ function add_comment_div(id, cmt)
         * Set background colour to white if it's dark
         **********************************************/
         var {r, g, b} = user[id];
-        if(r == 0 && g == 0 && b == 0) { [r, g, b] = [255, 255, 255]; }
+        if(r === 0 && g === 0 && b === 0) { [r, g, b] = [255, 255, 255]; }
         
         if(r < 80 && g < 80 && b < 80)
             {
@@ -1605,13 +1614,11 @@ function add_comment_div(id, cmt)
 
 function show_users_dropdown()
     {
-        var keys_n = 0;
-        
-        room_view.dropdown['users'].children().remove();
+        room_view.dropdown.users.children().remove();
         
         for(let id in room)
             {
-                if(room[id] == undefined) { continue; }
+                if(room[id] === undefined) { continue; }
                 
                 
                 var {name, ihash} = user[id];
@@ -1641,6 +1648,10 @@ function show_users_dropdown()
                                                     : 'white'
                                         );
                                 }
+                            else if(e.which == 2)
+                                {
+                                    search_trip('id', id);
+                                }
                             else if(e.which == 3)
                                 {
                                     ignore(id);
@@ -1657,78 +1668,78 @@ function show_users_dropdown()
                                 }
                         })[0];
                 
-                room_view.dropdown['users'].append(dropdown_el);
+                room_view.dropdown.users.append(dropdown_el);
             }
         
         
-        room_view.dropdown['users'].css( 'bottom', 50);
-        room_view.dropdown['users'].toggle();
+        room_view.dropdown.users.css( 'bottom', 50);
+        room_view.dropdown.users.toggle();
     }
 
 function refresh_data_menu(data_menu)
     {
-        data_menu['name']     .val(session.name());
-        data_menu['character'].val(session.character());
-        data_menu['stat']     .val(session.stat());
-        data_menu['trip']     .val(session.trip());
-        data_menu['x']        .val(session.x());
-        data_menu['y']        .val(session.y());
+        data_menu.name     .val(session.name());
+        data_menu.character.val(session.character());
+        data_menu.stat     .val(session.stat());
+        data_menu.trip     .val(session.trip());
+        data_menu.x        .val(session.x());
+        data_menu.y        .val(session.y());
         
         
         /********************************
         * Add profile selection options
         ********************************/
-        data_menu['profile'].children().remove();
+        data_menu.profile.children().remove();
         
         var default_el = create_option_el('Default');
-        data_menu['profile'].append(default_el);
+        data_menu.profile.append(default_el);
         
         for(let key in config.profiles)
             {
                 var option_el = create_option_el(key);
                 
-                data_menu['profile'].append(option_el);
+                data_menu.profile.append(option_el);
             }
         
-        data_menu['profile'].on('change', function(e)
+        data_menu.profile.on('change', function(e)
             {
                 var {name, character, stat, trip, r, g, b, x, y} = e.target.value == 'Default'
                     ? session._default
                     : config.profiles[e.target.value];
                 
                 
-                data_menu['name']     .val(name);
-                data_menu['character'].val(character);
-                data_menu['stat']     .val(stat);
-                data_menu['trip']     .val(trip);
-                data_menu['x']        .val(x);
-                data_menu['y']        .val(y);
+                data_menu.name     .val(name);
+                data_menu.character.val(character);
+                data_menu.stat     .val(stat);
+                data_menu.trip     .val(trip);
+                data_menu.x        .val(x);
+                data_menu.y        .val(y);
                 
-                data_menu['color_picker'].spectrum('set', 'rgb('+r+', '+g+', '+b+')');
+                data_menu.color_picker.spectrum('set', 'rgb('+r+', '+g+', '+b+')');
             });
 
         
-        data_menu['color_picker'].spectrum('set', 'rgb('+session.r()+', '+session.g()+', '+session.b()+')');
+        data_menu.color_picker.spectrum('set', 'rgb('+session.r()+', '+session.g()+', '+session.b()+')');
     }
 
 function refresh_new_menu()
     {
-        room_view.new_menu['profile'].children().remove();
+        room_view.new_menu.profile.children().remove();
         
         var default_el = create_option_el('Default');
-        room_view.new_menu['profile'].append(default_el);
+        room_view.new_menu.profile.append(default_el);
         
         for(let key in config.profiles)
             {
                 var option_el = create_option_el(key);
                 
-                room_view.new_menu['profile'].append(option_el);
+                room_view.new_menu.profile.append(option_el);
             }
         
-        room_view.new_menu['room'].val(session.room());
-        room_view.new_menu['n'].val(1);
-        room_view.new_menu['site'].val(session.site());
-        room_view.new_menu['timeout'].val(session.timeout());
+        room_view.new_menu.room.val(session.room());
+        room_view.new_menu.n.val(1);
+        room_view.new_menu.site.val(session.site());
+        room_view.new_menu.timeout.val(session.timeout());
     }
 
 function show_user_context_menu(id)
@@ -1744,7 +1755,7 @@ function show_user_context_menu(id)
                 repeat           : LANGUAGE == 'EN' ? 'Repeat '              : '繰り返し '
             };
         
-        var {name, ihash} = user[id];
+        var ihash = user[id].ihash;
         
         var trip  = trip_list[ihash];
         var names = '';
@@ -1776,19 +1787,19 @@ function show_user_context_menu(id)
                             var {r, g, b, x, y} = user[id];
                             
                             log_newline(1);
-                            log([ log_time_el(), log_text_el(' ' + format_user_data(id, 5),        0, 255, 255) ]);
-                            log([ log_time_el(), log_text_el(' r: ' + r + ' g: ' + g + ' b: ' + b, 0, 255, 255) ]);
-                            log([ log_time_el(), log_text_el(' x: ' + x + ' y: ' + y,              0, 255, 255) ]);
-                            log([ log_time_el(), log_text_el(text['names_registered'] + trip.length,  0, 255, 255) ]);
+                            log([ log_time_el(), log_text_el( ' ' + format_user_data(id, 5),        0, 255, 255 ) ]);
+                            log([ log_time_el(), log_text_el( ' r: ' + r + ' g: ' + g + ' b: ' + b, 0, 255, 255 ) ]);
+                            log([ log_time_el(), log_text_el( ' x: ' + x + ' y: ' + y,              0, 255, 255 ) ]);
+                            log([ log_time_el(), log_text_el( text.names_registered + trip.length,  0, 255, 255 ) ]);
                             log_newline(1);
                         }
                 },
                 { type: 'separator' },
-                { label: names,          click() { search_trip('id', id) } },
+                { label: names,          click() { search_trip('id', id); } },
                 { type: 'separator' },
-                { label: text['copy'],         click() { copy(id);   } },
-                { label: text['ignore'],       click() { ignore(id); } },
-                { label: text['mute'],         click() { mute(id);   } },
+                { label: text.copy,         click() { copy(id);   } },
+                { label: text.ignore,       click() { ignore(id); } },
+                { label: text.mute,         click() { mute(id);   } },
                 /**
                 {
                     label: 'Selective mute',
@@ -1799,13 +1810,13 @@ function show_user_context_menu(id)
                         ]
                 },
                 **/
-                { label: text['search_name'], click() { search_trip('namerecursive', user[id].name); } },
+                { label: text.search_name, click() { search_trip('namerecursive', user[id].name); } },
                 {
-                    label: text['stalk']  + (is_stalked(id) ? 'On' : 'Off'),
+                    label: text.stalk  + (is_stalked(id) ? 'On' : 'Off'),
                     click() { toggle_stalk(id); }
                 },
                 {
-                    label: text['repeat'] + (is_repeated(id) ? 'On' : 'Off'),
+                    label: text.repeat + (is_repeated(id) ? 'On' : 'Off'),
                     click() { toggle_repeat(id); }
                 }
             ];
@@ -1846,8 +1857,8 @@ function show_command_context_menu()
                 
         var index = get_index(room, sorted);
         
-        var next = (sorted.length > 0 && sorted[index+1] != undefined) ? ' ('+sorted[index+1]+')' : '';
-        var prev = (sorted.length > 0 && sorted[index-1] != undefined) ? ' ('+sorted[index-1]+')' : '';
+        var next = (sorted.length > 0 && sorted[index+1] !== undefined) ? ' ('+sorted[index+1]+')' : '';
+        var prev = (sorted.length > 0 && sorted[index-1] !== undefined) ? ' ('+sorted[index-1]+')' : '';
         
         
         /******************
@@ -1855,19 +1866,19 @@ function show_command_context_menu()
         ******************/
         var template =
             [
-                { label: text['next_room']     + next, click() { next_room();     } },
-                { label: text['previous_room'] + prev, click() { previous_room(); } },
+                { label: text.next_room     + next, click() { next_room();     } },
+                { label: text.previous_room + prev, click() { previous_room(); } },
                 { type: 'separator' },
                 {
-                    label: text['profile'],
+                    label: text.profile,
                     submenu:
                         [
-                            { label: text['save_profile'], click() { add_profile();   } },
-                            { label: text['default'],      click() { set_default();   } },
-                            { label: text['random'],       click() { set_random();    } },
-                            { label: text['nanashi'],      click() { set_nanashi();   } },
-                            { label: text['invisible'],    click() { set_invisible(); } },
-                            { label: text['anonymous'],    click() { set_anonymous(); } }
+                            { label: text.save_profile, click() { add_profile();   } },
+                            { label: text.default,      click() { set_default();   } },
+                            { label: text.random,       click() { set_random();    } },
+                            { label: text.nanashi,      click() { set_nanashi();   } },
+                            { label: text.invisible,    click() { set_invisible(); } },
+                            { label: text.anonymous,    click() { set_anonymous(); } }
                         ]
                 },
                 { type: 'separator' },
@@ -1876,7 +1887,7 @@ function show_command_context_menu()
                     submenu:
                         [
                             {
-                                label: text['upload_image'],
+                                label: text.upload_image,
                                 click()
                                     {
                                         dialog.showOpenDialog
@@ -1886,7 +1897,7 @@ function show_command_context_menu()
                                     }
                             },
                             {
-                                label: text['upload_file'],
+                                label: text.upload_file,
                                 click()
                                     {
                                         dialog.showOpenDialog
@@ -1899,17 +1910,17 @@ function show_command_context_menu()
                 },
                 { type: 'separator' },
                 {
-                    label: text['config'],
+                    label: text.config,
                     submenu:
                         [
                             {
-                                label: text['sound'] + (SOUND_ON  ? 'on'  : 'off' ), click()
+                                label: text.sound + (SOUND_ON  ? 'on'  : 'off' ), click()
                                     {
                                         SOUND_ON  = !SOUND_ON;
                                     }
                             },
                             {
-                                label: text['popup'] + (POPUP_ALL ? 'all' : 'some'), click()
+                                label: text.popup + (POPUP_ALL ? 'all' : 'some'), click()
                                     {
                                         POPUP_ALL = !POPUP_ALL;
                                     }
@@ -1922,7 +1933,7 @@ function show_command_context_menu()
                                     }
                             },
                             {
-                                label: text['show_buttons'], click()
+                                label: text.show_buttons, click()
                                     {
                                         $('#log_button, #log_window_button, #save_log_button, #data_button').toggle();
                                         $('#reenter_button, #relogin_button, #proxy_button, #new_button').toggle();
@@ -1937,7 +1948,7 @@ function show_command_context_menu()
                         new_instance( { n: 1, room: session.room(), prof: session.get_data() } );
                     }
                 },
-                { label: text['transparent'], click() { toggle_transparent(); } }
+                { label: text.transparent, click() { toggle_transparent(); } }
             ];
             
         menu = Menu.buildFromTemplate(template);
@@ -1946,19 +1957,19 @@ function show_command_context_menu()
 
 function show_config_login_menu()
     {
-        config_menu['name']      .val(config.name);
-        config_menu['character'] .val(config.character);
-        config_menu['stat']      .val(config.stat);
-        config_menu['trip']      .val(config.trip);
-        config_menu['rgb']       .val(config.r+' '+config.g+' '+config.b);
-        config_menu['x']         .val(config.x);
-        config_menu['y']         .val(config.y);
-        config_menu['scl']       .val(config.scl);
-        config_menu['room']      .val(config.room);
-        config_menu['server']    .val(config.server);
-        config_menu['proxy']     .val(config.proxy);
-        config_menu['timeout']   .val(config.timeout);
-        config_menu['site']      .val(config.site);
+        config_menu.name      .val(config.name);
+        config_menu.character .val(config.character);
+        config_menu.stat      .val(config.stat);
+        config_menu.trip      .val(config.trip);
+        config_menu.rgb       .val(config.r+' '+config.g+' '+config.b);
+        config_menu.x         .val(config.x);
+        config_menu.y         .val(config.y);
+        config_menu.scl       .val(config.scl);
+        config_menu.room      .val(config.room);
+        config_menu.server    .val(config.server);
+        config_menu.proxy     .val(config.proxy);
+        config_menu.timeout   .val(config.timeout);
+        config_menu.site      .val(config.site);
         
         config_menu.login.toggle();
     }
@@ -1988,19 +1999,19 @@ function change_room(room)
                 /**************************
                 * Refresh character color
                 **************************/
-                main_view.data['character_img'].one('load', function()
+                main_view.data.character_img.one('load', function()
                     {
                         var [r, g, b] = [session.r(), session.g(), session.b()];
                         
                         change_character_color(this, r, g, b);
                     });
-                main_view.data['character_img'].attr('src', './assets/character/'+session.character()+'.png');
+                main_view.data.character_img.attr('src', './assets/character/'+session.character()+'.png');
 
                 
                 var character = session.character();
                 
                 if(!fs.existsSync('./assets/character/'+character+'.png')) { character = 'mona'; }
-                main_view.data['character_img'].attr('src', './assets/character/'+character+'.png');
+                main_view.data.character_img.attr('src', './assets/character/'+character+'.png');
                 
                 
                 room_view.el.hide();
@@ -2034,7 +2045,7 @@ function change_server(server)
 
 function copy(id)
     {
-        if(user[id] == undefined)
+        if(user[id] === undefined)
             {
                 format_log('error', ['User with id ' + id + 'doesnt exist.']);
             }
@@ -2047,7 +2058,7 @@ function copy(id)
 
 function toggle_stalk(id)
     {
-        if(user[id] == undefined)
+        if(user[id] === undefined)
             {
                 format_log('error', ['User with id ' + id + 'doesnt exist.']);
             }
@@ -2055,18 +2066,18 @@ function toggle_stalk(id)
             {
                 var ihash = user[id].ihash;
                 
-               stalk[ihash] = stalk[ihash] == undefined ? 1 : undefined;
+               stalk[ihash] = stalk[ihash] === undefined ? 1 : undefined;
             }
     }
 
 function is_stalked(id)
     {
-        return user[id] != undefined && stalk[user[id].ihash];
+        return user[id] !== undefined && stalk[user[id].ihash];
     }
 
 function toggle_repeat(id)
     {
-        if(user[id] == undefined)
+        if(user[id] === undefined)
             {
                 format_log('error', ['User with id ' + id + 'doesnt exist.']);
             }
@@ -2074,20 +2085,20 @@ function toggle_repeat(id)
             {
                 var ihash = user[id].ihash;
                 
-               repeat[ihash] = repeat[ihash] == undefined ? 1 : undefined;
+               repeat[ihash] = repeat[ihash] === undefined ? 1 : undefined;
             }
     }
 
 function is_repeated(id)
     {
-        return user[id] != undefined && repeat[user[id].ihash];
+        return user[id] !== undefined && repeat[user[id].ihash];
     }
 
 function add_trip(id)
     {
         var {name, ihash} = user[id];
         
-        if(trip_list[ihash] == undefined)
+        if(trip_list[ihash] === undefined)
             {
                 trip_list[ihash] = [name];
                 save_trip();
@@ -2104,17 +2115,21 @@ function add_trip(id)
 
 function search_trip(type, data)
     {
+        var name, trip, ihash;
+        var match;
+        var i;
+        
         if(type == 'id')
             {
                 var id = data;
-                if(user[id] == undefined)
+                if(user[id] === undefined)
                     {
                         format_log('error', ['User with id ' + id + ' doesnt exist.']);
                         return;
                     }
                 
-                var ihash = user[id].ihash;
-                if(trip_list[ihash] == undefined)
+                ihash = user[id].ihash;
+                if(trip_list[ihash] === undefined)
                     {
                         format_log('error', ['No trips stored for this trip.']);
                         return;
@@ -2124,11 +2139,11 @@ function search_trip(type, data)
             }
         else if(type == 'trip')
             {
-                var ihash = data;
+                ihash = data;
                 
                 if(ihash.length < 10)
                     {
-                        for(var trip in trip_list)
+                        for(trip in trip_list)
                             {
                                 if(trip.endsWith(ihash))
                                     {
@@ -2138,7 +2153,7 @@ function search_trip(type, data)
                             }
                     }
                 
-                if(ihash.length != 10 || trip_list[ihash] == undefined)
+                if(ihash.length != 10 || trip_list[ihash] === undefined)
                     {
                         format_log('error', ['No trips stored for this trip.']);
                         return;
@@ -2148,12 +2163,12 @@ function search_trip(type, data)
             }
         else if(type == 'name')
             {
-                var name = data;
-                var match = [name, 'unknown'];
+                name = data;
+                match = [name, 'unknown'];
                 
-                for(var trip in trip_list)
+                for(trip in trip_list)
                     {
-                        for(var i = 0; i < trip_list[trip].length; i++)
+                        for(i = 0; i < trip_list[trip].length; i++)
                             {
                                 if(trip_list[trip][i] == name)
                                     {
@@ -2174,14 +2189,14 @@ function search_trip(type, data)
             }
         else if(type == 'namerecursive')
             {
-                var name = data;
-                var match = [name, 'unknown'];
+                name = data;
+                match = [name, 'unknown'];
                 
                 search_trip('name', name);
                 
-                for(var trip in trip_list)
+                for(trip in trip_list)
                     {
-                        for(var i = 0; i < trip_list[trip].length; i++)
+                        for(i = 0; i < trip_list[trip].length; i++)
                             {
                                 if(trip_list[trip][i] == name)
                                     {
@@ -2222,7 +2237,7 @@ function add_profile()
     {
         var name = session.name();
         
-        config['profiles'][name] = session.get_data();
+        config.profiles[name] = session.get_data();
         
         save_config();
     }
@@ -2243,13 +2258,13 @@ function delete_profile(name)
 
 function load_profile(name)
     {
-        if(config['profiles'][name] == undefined)
+        if(config.profiles[name] === undefined)
             {
                 format_log('error', ['Profile '+name+' doesnt exist.']);
             }
         else
             {
-                session.profile(config['profiles'][name]);
+                session.profile(config.profiles[name]);
             }
     }
 
@@ -2257,12 +2272,12 @@ function new_instance(data)
     {
         var PID;
         
-        if(data.n == undefined || data.room == undefined || data.prof == undefined)
+        if(data.n === undefined || data.room === undefined || data.prof === undefined)
             {
                 return;
             }
         
-        if(data.slave == undefined)
+        if(data.slave === undefined)
             {
                 data.slave = false;
                 
@@ -2277,8 +2292,8 @@ function new_instance(data)
             [
                 '.',
                 'proxy',     '1',
-                'site',      data['site']    || session.site(),
-                'timeout',   data['timeout'] || session.timeout(),
+                'site',      data.site    || session.site(),
+                'timeout',   data.timeout || session.timeout(),
                 
                 'name',      data.prof.name,
                 'character', data.prof.character,
@@ -2330,7 +2345,7 @@ function toggle_transparent()
     {
         var options = {};
         
-        options['args'] = IS_TRANSPARENT
+        options.args = IS_TRANSPARENT
             ?   [ARGV[1]]
             :   ARGV.slice(1).concat(['transparent', 'true']);
         
@@ -2342,7 +2357,7 @@ function toggle_transparent()
 
 function ignore(id)
     {
-        if(user[id] == undefined)
+        if(user[id] === undefined)
             {
                 format_log('error', ['User with id '+id+' doesnt exist.']);
             }
@@ -2360,7 +2375,7 @@ function ignore(id)
 
 function mute(id)
     {
-        if(user[id] == undefined)
+        if(user[id] === undefined)
             {
                 return;
             }
@@ -2376,7 +2391,7 @@ function mute(id)
 
 function mute_stat(id)
     {
-        if(user[id] == undefined) { return }         
+        if(user[id] === undefined) { return; }         
         
         var ihash = user[id].ihash;
         
@@ -2394,7 +2409,7 @@ function filter(params)
                         ****************************************************/
                         if(room[id][param] == params[param])
                             {
-                                if(filtered[param] == undefined) { filtered[param] = []; }
+                                if(filtered[param] === undefined) { filtered[param] = []; }
                                 
                                 /************************************
                                 * Add parameter if it doesn't exist
@@ -2412,7 +2427,7 @@ function filter(params)
                                         filtered[param].splice( filtered[param].indexOf(params[param]), 1 );
                                     }
                                 
-                                if($('#user_div_'+id)) { $('#user_div_'+id).toggle() };
+                                if($('#user_div_'+id)) { $('#user_div_'+id).toggle(); }
                             }
                     }
             }
@@ -2424,7 +2439,7 @@ function toggle_proxy()
         
         session.proxy();
         
-        room_view.button['proxy'].css('background-color', session._proxy ? 'rgb(100, 100, 100)' : 'white');
+        room_view.button.proxy.css('background-color', session._proxy ? 'rgb(100, 100, 100)' : 'white');
     }
 
 function next_room()
@@ -2484,6 +2499,12 @@ function signal_handler(msg)
     {
         console.log(msg);
         
+        var id;
+        var stat;
+        var child, n, c;
+        
+        var i;
+        
         
         /***********************
         * Parse xml characters
@@ -2506,7 +2527,7 @@ function signal_handler(msg)
                 
                 if(xml.name == 'CONNECT')
                     {
-                        var id = xml.attr.id;
+                        id = xml.attr.id;
                         
                         //console.log('connected', id);
                         
@@ -2514,13 +2535,13 @@ function signal_handler(msg)
                     }
                 else if(xml.name == 'UINFO')
                     {
-                        var {n, c, id, ihash, name} = xml.attr;
+                        //var {n, c, id, ihash, name} = xml.attr;
                     }
                 else if(xml.name == 'COUNT')
                     {
                         if(session.room() != 'main')
                             {
-                                var [n, c] = [xml.attr.n, xml.attr.c];
+                                [n, c] = [xml.attr.n, xml.attr.c];
                                 
                                 document.title = LANGUAGE == 'EN'
                                     ? ( 'Monachat '
@@ -2539,14 +2560,14 @@ function signal_handler(msg)
                                 /*******************************
                                 * Refresh and update main_view
                                 *******************************/
-                                for(var i = 0; i < xml.children.length; i++)
+                                for(i = 0; i < xml.children.length; i++)
                                     {
-                                        var child = xml.children[i];
-                                        var {n, c} = child.attr;
+                                        child = xml.children[i];
+                                        [n, c] = [child.attr.n, child.attr.c];
                                         
                                         main[n] = c;
                                         
-                                        if(c != 0) { refresh_main(); }
+                                        if(c !== 0) { refresh_main(); }
                                     }
                             }
                     }
@@ -2554,10 +2575,10 @@ function signal_handler(msg)
                     {
                         if(session.room() != 'main') { format_log('room', [session.room()]); }
                         
-                        for(var i = 0; i < xml.children.length; i++)
+                        for(i = 0; i < xml.children.length; i++)
                             {
-                                var child = xml.children[i];
-                                var id    = child.attr.id;
+                                child = xml.children[i];
+                                id = child.attr.id;
                                 
                                 /**********************************************************
                                 * Add user to both user and room list and share reference
@@ -2578,7 +2599,7 @@ function signal_handler(msg)
                     }
                 else if(xml.name == 'ENTER')
                     {
-                        var id = xml.attr.id;
+                        id = xml.attr.id;
                         
                         user[id] = new User(xml);
                         room[id] = user[id];
@@ -2601,7 +2622,7 @@ function signal_handler(msg)
                     }
                 else if(xml.name == 'USER')
                     {
-                        var {id} = xml.attr;
+                        id = xml.attr.id;
                         
                         user[id] = new User(xml);
                         room[id] = user[id];
@@ -2615,7 +2636,7 @@ function signal_handler(msg)
                     }
                 else if(xml.name == 'EXIT')
                     {
-                        var {id} = xml.attr;
+                        id = xml.attr.id;
                         
                         //console.log('exit', xml.attr);
                         
@@ -2644,13 +2665,13 @@ function signal_handler(msg)
                     }
                 else if(xml.name == 'SET')
                     {
-                        var id = xml.attr.id;
+                        id = xml.attr.id;
                         
                         
                         /***********************
                         * It moves three times
                         ***********************/
-                        if(xml.attr.x != undefined)
+                        if(xml.attr.x !== undefined)
                             {
                                 var x = xml.attr.x;
                                 
@@ -2669,7 +2690,7 @@ function signal_handler(msg)
                                             }
                                     }
                             }
-                        if(xml.attr.y != undefined)
+                        if(xml.attr.y !== undefined)
                             {
                                 var y = xml.attr.y;
                                 
@@ -2681,7 +2702,7 @@ function signal_handler(msg)
                                         if(is_stalked(id)) { session.y(xml.attr.y); }
                                     }
                             }
-                        if(xml.attr.scl != undefined)
+                        if(xml.attr.scl !== undefined)
                             {
                                 if(is_stalked(id) && xml.attr.scl != user[id].scl)
                                     {
@@ -2692,9 +2713,9 @@ function signal_handler(msg)
                                 move_div(id);
                             }
                         
-                        if(xml.attr.stat != undefined)
+                        if(xml.attr.stat !== undefined)
                             {
-                                var {stat} = xml.attr;
+                                stat = xml.attr.stat;
                                 if(stat == user[id].stat) { return; }
                                 
                                 
@@ -2728,7 +2749,7 @@ function signal_handler(msg)
                     }
                 else if(xml.name == 'IG')
                     {
-                        var {id, ihash, stat} = xml.attr;
+                        [id, ihash, stat] = [xml.attr.id, xml.attr.ihash, xml.attr.stat];
                         
                         format_log('ig', [id, ihash, stat]);
                         //console.log('ig', xml);
@@ -2743,13 +2764,13 @@ function signal_handler(msg)
                     }
                 else if(xml.name == 'COM')
                     {
-                        var {id, cmt} = xml.attr;
+                        [id, cmt] = [xml.attr.id, xml.attr.cmt];
                         
                         console.log('Comment:', cmt);
                         
                         if(!is_muted(id) && !is_filtered(id))
                             {
-                                if(config['show_comments']) { add_comment_div(id, cmt); }
+                                if(config.show_comments) { add_comment_div(id, cmt); }
                                 format_log('com', [id, cmt]);
                                 
                                 if(SOUND_ON) { play('./assets/sound/comment.wav'); }
@@ -2775,7 +2796,7 @@ function signal_handler(msg)
                 /***********************************
                 * Send the signal too all the bots
                 ***********************************/
-                for(var i = 0; i < bots.length; i++)
+                for(i = 0; i < bots.length; i++)
                     {
                         bots[i].signal_handler(msg);
                     }
@@ -2785,6 +2806,14 @@ function signal_handler(msg)
 function command_handler(com)
     {
         com = com.split(' ');
+        
+        var id;
+        var name;
+        var index;
+        var options;
+        
+        var i;
+        let x;
         
         var full_arg = com.slice(1).join(' ');
         
@@ -2803,7 +2832,7 @@ function command_handler(com)
         else if(com[0] == 'scl')         { session.scl();                       }
         else if(com[0] == 'ignore')      { ignore(com[1]);                      }
         else if(com[0] == 'reenter')     { session.reenter();                   }
-        else if(com[0] == 'site')        { session.site(com[1])                 }
+        else if(com[0] == 'site')        { session.site(com[1]);                }
         else if(com[0] == 'timeout')     { session.timeout(com[1]);             }
         else if(com[0] == 'comment')     { session.comment(com.slice(1).join(' ')); }
         else if(com[0] == 'enqueuecomment') { session.enqueue_comment(com.slice(1).join(' '));  }
@@ -2840,23 +2869,43 @@ function command_handler(com)
                 if(com.length == 1)
                     {
                         filtered = {};
-                        $('.user_div').show()
+                        $('.user_div').show();
                         
                         return;
                     }
 
                 var params = {};
                 
-                for(var i = 1; i < com.length; i +=2)
+                for(i = 1; i < com.length; i +=2)
                     {
                         params[com[i]] = com[i+1];
                     }
                 
                 filter(params);
             }
+        else if(com[0] == 'filterlog')
+            {
+                if(com[1] === undefined) { $('.log_div_el').show(); }
+                
+                var name_regex = new RegExp( '^' + com[1] );
+                
+                var selection = $('.log_div_el')
+                    .children('.log_cmt_user')
+                    .filter( (i, user_div) => user_div.textContent.match(name_regex) );
+                
+                if(selection.length > 0)
+                    {
+                        $('.log_div_el').hide();
+                        selection.parent().show();
+                    }
+                else
+                    {
+                        $('.log_div_el').show();
+                    }
+            }
         else if(com[0] == 'lookat')
             {
-                var id = com[1];
+                id = com[1];
                 if( !user[id] ) { return; }
                 
                 session._scl = user[id].x < session.x() ? -100 : 100;
@@ -2883,21 +2932,21 @@ function command_handler(com)
             }
         else if(com[0] == 'keeplooking')
             {
-                var id = com[1];
+                id = com[1];
                 if( !user[id] ) { return; }
                 
                 KEEP_LOOKING_ID = id;
             }
         else if(com[0] == 'getclose')
             {
-                var id = com[1];
+                id = com[1];
                 if(!user[id]) { return; }
                 
                 var target_x = user[id].x;
                 var step     = 20;
                 var diff     = step * ( parseFloat(session.x) < target_x ? 1 : -1 );
                 
-                for(let x = parseFloat(session.x()), i = 0; Math.abs(x - target_x) > step; x += diff, i++)
+                for(x = parseFloat(session.x()), i = 0; Math.abs(x - target_x) > step; x += diff, i++)
                     {
                         console.log(x, target_x);
                         //setTimeout( () => session.x(x), i*500 );
@@ -2943,10 +2992,10 @@ function command_handler(com)
             }
         else if(com[0] == 'addname')
             {
-                var [undefined, id, name] = com;
-                var {ihash} = user[id];
+                [undefined, id, name] = com;
+                var ihash = user[id].ihash;
         
-                if(trip_list[ihash] == undefined)
+                if(trip_list[ihash] === undefined)
                     {
                         trip_list[ihash] = [name];
                         save_trip();
@@ -2962,25 +3011,25 @@ function command_handler(com)
             }
         else if(com[0] == 'new')
             {
-                var options = { n: 1, room: session.room(), prof: session.get_data(), transparent: false };
+                options = { n: 1, room: session.room(), prof: session.get_data(), transparent: false };
                 
                 if(com.includes('n'))
                     {
-                        var index = com.indexOf('n');
+                        index = com.indexOf('n');
                         if(!com[index+1]) { return; }
                         
                         options.n = com[index+1];
                     }
                 if(com.includes('room'))
                     {
-                        var index = com.indexOf('room');
+                        index = com.indexOf('room');
                         if(!com[index+1]) { return; }
                         
                         options.room = com[index+1];
                     }
                 if(com.includes(n))
                     {
-                        var index = com.indexOf('prof');
+                        index = com.indexOf('prof');
                         if(!com[index+1]) { return; }
                         
                         options.prof = config.profiles[ com[index+1] ];
@@ -2999,10 +3048,10 @@ function command_handler(com)
             }
         else if(com[0] == 'slave')
             {
-                var options = { n: 1, room: session.room(), prof: session.get_data(), slave: true };
+                options = { n: 1, room: session.room(), prof: session.get_data(), slave: true };
                 var n = com[1] || 1;
                 
-                for(var i = 0; i < n; i++) { new_instance(options); }
+                for(i = 0; i < n; i++) { new_instance(options); }
             }
         else if(com[0] == 'reloadbots')
             {
@@ -3019,7 +3068,7 @@ function command_handler(com)
             }
         else if(com[0] == 'exit' || com[0] == 'kill')
             {
-                if(config['save_log_on_exit'])
+                if(config.save_log_on_exit)
                     {
                         save_log();
                     }
@@ -3040,7 +3089,7 @@ function command_handler(com)
 
 function process_arguments()
     {
-        if(ARGV.length % 2 != 0)
+        if(ARGV.length % 2 !== 0)
             {
                 console.log('Error: Odd number of arguments.');
                 process.exit();
@@ -3066,6 +3115,10 @@ function process_arguments()
 var prev_x, prev_y;
 window.onload = function()
 {
+    var character;
+    
+    let i;
+    
     /*************************
     * Set room view elements
     *************************/
@@ -3082,7 +3135,7 @@ window.onload = function()
     
     
     room_view.button['log']        = $('#log_button');
-    room_view.button['log_window'] = $('#log_window_button')
+    room_view.button['log_window'] = $('#log_window_button');
     room_view.button['save']       = $('#save_log_button');
     room_view.button['data']       = $('#data_button');
     room_view.button['users']      = $('#users_button');
@@ -3271,34 +3324,34 @@ window.onload = function()
                 }
         });
     
-    room_view.button['log']    .on('click', () => room_view.log.toggle()                );
-    room_view.button['save']   .on('click', () => save_log()                            );
-    room_view.button['reenter'].on('click', () => session.reenter()                     );
-    room_view.button['users']  .on('click', () => show_users_dropdown()                 );
-    room_view.button['proxy']  .on('click', () => toggle_proxy()                        );
-    room_view.button['relogin'].on('click', () => relogin()                             );
-    room_view.button['config'] .on('click', () => room_view.dropdown['config'].toggle() );
-    room_view.button['stat'].on('click', function()
+    room_view.button.log    .on('click', () => room_view.log.toggle()                );
+    room_view.button.save   .on('click', () => save_log()                            );
+    room_view.button.reenter.on('click', () => session.reenter()                     );
+    room_view.button.users  .on('click', () => show_users_dropdown()                 );
+    room_view.button.proxy  .on('click', () => toggle_proxy()                        );
+    room_view.button.relogin.on('click', () => relogin()                             );
+    room_view.button.config .on('click', () => room_view.dropdown.config.toggle()    );
+    room_view.button.stat.on('click', function()
         {
             $('#stat_dropdown_input').val(session.stat());
-            room_view.dropdown['stat'].toggle();
+            room_view.dropdown.stat.toggle();
         });
-    room_view.button['new'].on('click', function()
+    room_view.button.new.on('click', function()
         {
             refresh_new_menu();
             room_view.new_menu.el.toggle();
         });
-    room_view.button['log_window'].on('click', function()
+    room_view.button.log_window.on('click', function()
         {
             ipcRenderer.send('toggle_log_window');
         });
-    room_view.button['back']   .on('click', function()
+    room_view.button.back.on('click', function()
         {
             change_room('main');
             
             if(GET_ALL_MAIN) { setTimeout(() => session.reenter(), 1000); }
         });
-    room_view.button['data'].on('click', function()
+    room_view.button.data.on('click', function()
         {
             if(room_view.data.el.css('display') != 'none')
                 {
@@ -3312,68 +3365,68 @@ window.onload = function()
                 }
         });
 
-    room_view.button['config_login'].on('click', function()
+    room_view.button.config_login.on('click', function()
         {
-            if(config_menu['login'].css('display') == 'none')
+            if(config_menu.login.css('display') == 'none')
                 {
                     $('.config_menu').hide();
                     show_config_login_menu();
                 }
             else
                 {
-                    config_menu['login'].hide();
+                    config_menu.login.hide();
                 }
 
-            room_view.dropdown['config'].hide();
+            room_view.dropdown.config.hide();
         });
-    room_view.button['config_trigger'].on('click', function()
+    room_view.button.config_trigger.on('click', function()
         {
             var list = '';
-            for(var i = 0; i < config['popup_trigger'].length; i++)
+            for(var i = 0; i < config.popup_trigger.length; i++)
                 {
-                    list += config['popup_trigger'][i] + '\n';
+                    list += config.popup_trigger[i] + '\n';
                 }
 
             $('#config_trigger_list').val(list);
 
-            if(config_menu['trigger'].css('display') == 'none')
+            if(config_menu.trigger.css('display') == 'none')
                 {
                     $('.config_menu').hide();
-                    config_menu['trigger'].show();
+                    config_menu.trigger.show();
                 }
             else
                 {
-                    config_menu['trigger'].hide();
+                    config_menu.trigger.hide();
                 }
 
-            room_view.dropdown['config'].hide();
+            room_view.dropdown.config.hide();
         });
-    room_view.button['config_client'].on('click', function()
+    room_view.button.config_client.on('click', function()
         {
-            config_menu['sound']            .val(config['sound']);
-            config_menu['comment_speed']    .val(config['comment_speed']);
-            config_menu['x_y_mode']         .val(config['x_y_mode']);
-            config_menu['show_comments']    .val(config['show_comments']);
-            config_menu['background']       .val(config['background']);
-            config_menu['data_background']  .val(config['user_data_background']);
-            config_menu['load_content']     .val(config['load_content']);
-            config_menu['get_all_main']     .val(config['get_all_main']);
-            config_menu['save_log_on_exit'] .val(config['save_log_on_exit']);
+            config_menu.sound            .val(config.sound);
+            config_menu.comment_speed    .val(config.comment_speed);
+            config_menu.x_y_mode         .val(config.x_y_mode);
+            config_menu.show_comments    .val(config.show_comments);
+            config_menu.background       .val(config.background);
+            config_menu.data_background  .val(config.user_data_background);
+            config_menu.load_content     .val(config.load_content);
+            config_menu.get_all_main     .val(config.get_all_main);
+            config_menu.save_log_on_exit .val(config.save_log_on_exit);
             
             
-            if(config_menu['client'].css('display') == 'none')
+            if(config_menu.client.css('display') == 'none')
                 {
                     $('.config_menu').hide();
-                    config_menu['client'].show();
+                    config_menu.client.show();
                 }
             else
                 {
-                    config_menu['client'].hide();
+                    config_menu.client.hide();
                 }
             
-            room_view.dropdown['config'].hide();
+            room_view.dropdown.config.hide();
         });
-    room_view.button['config_bots'].on('click', function()
+    room_view.button.config_bots.on('click', function()
         {
             var child = $('.bot_list_checkbox');
             
@@ -3383,17 +3436,17 @@ window.onload = function()
                 }
 
             
-            if(config_menu['bots'].css('display') == 'none')
+            if(config_menu.bots.css('display') == 'none')
                 {
                     $('.config_menu').hide();
-                    config_menu['bots'].show();
+                    config_menu.bots.show();
                 }
             else
                 {
-                    config_menu['bots'].hide();
+                    config_menu.bots.hide();
                 }
             
-            room_view.dropdown['config'].hide();
+            room_view.dropdown.config.hide();
         });
     room_view.el[0].ondragover = function(e){ e.preventDefault(); };
     room_view.el[0].ondrop     = function(e)
@@ -3412,20 +3465,20 @@ window.onload = function()
     ************************/
     $('#config_menu_trigger_cancel_button').on('click', function()
         {
-            config_menu['trigger'].toggle();
+            config_menu.trigger.toggle();
         });
     $('#config_menu_trigger_accept_button').on('click', function()
         {
-            var list = $('#config_trigger_list').val().split('\n').filter( (line) => line != '' );
+            var list = $('#config_trigger_list').val().split('\n').filter( (line) => line !== '' );
             
-            config['popup_trigger'] = list;
+            config.popup_trigger = list;
             
             if(list.length > 0)
                 {
                     save_config();
                 }
             
-            config_menu['trigger'].toggle();
+            config_menu.trigger.toggle();
         });
     $('#config_menu_client_add_config').on('click', function()
         {
@@ -3459,15 +3512,15 @@ window.onload = function()
         });
     $('#config_menu_client_accept_button').on('click', function()
         {
-            config['sound']                = config_menu['sound']           .val() == 'true';
-            config['comment_speed']        = config_menu['comment_speed']   .val();
-            config['x_y_mode']             = config_menu['x_y_mode']        .val();
-            config['show_comments']        = config_menu['show_comments']   .val() == 'true';
-            config['background']           = config_menu['background']      .val();
-            config['user_data_background'] = config_menu['data_background'] .val() == 'true';
-            config['load_content']         = config_menu['load_content']    .val() == 'true';
-            config['get_all_main']         = config_menu['get_all_main']    .val() == 'true';
-            config['save_log_on_exit']     = config_menu['save_log_on_exit'].val() == 'true';
+            config.sound                = config_menu.sound           .val() == 'true';
+            config.comment_speed        = config_menu.comment_speed   .val();
+            config.x_y_mode             = config_menu.x_y_mode        .val();
+            config.show_comments        = config_menu.show_comments   .val() == 'true';
+            config.background           = config_menu.background      .val();
+            config.user_data_background = config_menu.data_background .val() == 'true';
+            config.load_content         = config_menu.load_content    .val() == 'true';
+            config.get_all_main         = config_menu.get_all_main    .val() == 'true';
+            config.save_log_on_exit     = config_menu.save_log_on_exit.val() == 'true';
             
             save_config();
             
@@ -3490,7 +3543,7 @@ window.onload = function()
                 }
         });
     
-    room_view.data['character_arrow'].on('click', function()
+    room_view.data.character_arrow.on('click', function()
         {
             if(character_menu.css('display') != 'none') { character_menu.hide(); return; }
             
@@ -3504,7 +3557,7 @@ window.onload = function()
             
                     $(img_el).one('load', function()
                         {
-                            var {_r, _g, _b} = room_view.data['color_picker'].spectrum('get');
+                            var {_r, _g, _b} = room_view.data.color_picker.spectrum('get');
                             
                             change_character_color(this, _r, _g, _b);
                         });
@@ -3513,7 +3566,7 @@ window.onload = function()
                         .addClass('character_menu_img')
                         .on('click', function()
                             {
-                                room_view.data['character'].val(character);
+                                room_view.data.character.val(character);
                                 character_menu.hide();
                             });
                     
@@ -3526,7 +3579,7 @@ window.onload = function()
                 .css('height', '270px')
                 .toggle();
         });
-    room_view.data['color_picker'].on('change', function()
+    room_view.data.color_picker.on('change', function()
         {
             if(character_menu.css('display') == 'none') { return; }
             
@@ -3539,7 +3592,7 @@ window.onload = function()
                     
                     $(imgs[i]).one('load', function()
                         {
-                            var {_r, _g, _b} = room_view.data['color_picker'].spectrum('get');
+                            var {_r, _g, _b} = room_view.data.color_picker.spectrum('get');
                             
                             change_character_color(this, _r, _g, _b);
                         });
@@ -3547,26 +3600,26 @@ window.onload = function()
                     $(imgs[i]).attr('src', './assets/character/' + character + '.png')
                         .on('click', function()
                             {
-                                room_view.data['character'].val(character);
+                                room_view.data.character.val(character);
                                 character_menu.hide();
                             });
                 }
         });
-    room_view.data['accept'].on('click', function()
+    room_view.data.accept.on('click', function()
         {
-            var {_r, _g, _b} = room_view.data['color_picker'].spectrum('get');
+            var {_r, _g, _b} = room_view.data.color_picker.spectrum('get');
             
             session.set_data
                 ({
-                    name:      room_view.data['name'].val(),
-                    character: room_view.data['character'].val(),
-                    stat:      room_view.data['stat'].val(),
-                    trip:      room_view.data['trip'].val(),
+                    name:      room_view.data.name.val(),
+                    character: room_view.data.character.val(),
+                    stat:      room_view.data.stat.val(),
+                    trip:      room_view.data.trip.val(),
                     r:         parseInt(_r),
                     g:         parseInt(_g),
                     b:         parseInt(_b),
-                    x:         room_view.data['x'].val(),
-                    y:         room_view.data['y'].val(),
+                    x:         room_view.data.x.val(),
+                    y:         room_view.data.y.val(),
                     scl:       session.get_scl()
                 });
             
@@ -3579,13 +3632,13 @@ window.onload = function()
 
     character_menu = $('#character_menu');
     
-    room_view.new_menu['accept'].on('click', function(e)
+    room_view.new_menu.accept.on('click', function(e)
         {
-            var profile = room_view.new_menu['profile'].val();
-            var room    = room_view.new_menu['room'].val();
-            var n       = room_view.new_menu['n'].val();
-            var site    = room_view.new_menu['site'].val();
-            var timeout = room_view.new_menu['timeout'].val();
+            var profile = room_view.new_menu.profile.val();
+            var room    = room_view.new_menu.room.val();
+            var n       = room_view.new_menu.n.val();
+            var site    = room_view.new_menu.site.val();
+            var timeout = room_view.new_menu.timeout.val();
             
             new_instance
                 ({
@@ -3601,33 +3654,33 @@ window.onload = function()
     /**************
     * Config menu
     **************/
-    config_menu['login_cancel'].on('click', function()
+    config_menu.login_cancel.on('click', function()
         {
             config_menu.login.toggle();
         });
-    config_menu['login_accept'].on('click', function()
+    config_menu.login_accept.on('click', function()
         {
-            var rgb = config_menu['rgb'].val().match(/(\d+) (\d+) (\d+)/);
+            var rgb = config_menu.rgb.val().match(/(\d+) (\d+) (\d+)/);
             if(!rgb) { return; }
             
             var [r, g, b] = rgb.splice(1, 4);
             
             
-            config.name     　= config_menu['name'].val();
-            config.character = config_menu['character'].val();
-            config.stat     　= config_menu['stat'].val();
-            config.trip     　= config_menu['trip'].val();
+            config.name     　= config_menu.name.val();
+            config.character = config_menu.character.val();
+            config.stat     　= config_menu.stat.val();
+            config.trip     　= config_menu.trip.val();
             config.r         = parseInt(r);
             config.g         = parseInt(g);
             config.b         = parseInt(b);
-            config.x        　= config_menu['x'].val();
-            config.y        　= config_menu['y'].val();
-            config.scl      　= config_menu['scl'].val();
-            config.room     　= config_menu['room'].val();
-            config.server   　= config_menu['server'].val();
-            config.proxy    　= config_menu['proxy'].val() == "false" ? false : true;
-            config.timeout  　= config_menu['timeout'].val();
-            config.site     　= config_menu['site'].val();
+            config.x        　= config_menu.x.val();
+            config.y        　= config_menu.y.val();
+            config.scl      　= config_menu.scl.val();
+            config.room     　= config_menu.room.val();
+            config.server   　= config_menu.server.val();
+            config.proxy    　= config_menu.proxy.val() == "false" ? false : true;
+            config.timeout  　= config_menu.timeout.val();
+            config.site     　= config_menu.site.val();
             
             save_config();
             
@@ -3635,7 +3688,7 @@ window.onload = function()
             config_menu.login.toggle();
         });
     
-    config_menu['bots_accept'].on( 'click', () => config_menu['bots'].hide() );
+    config_menu.bots_accept.on( 'click', () => config_menu.bots.hide() );
 
     
     /**************************
@@ -3643,7 +3696,7 @@ window.onload = function()
     **************************/
     room_view.input.on('keydown', function(e)
         {
-            if(e.key == 'Enter' && e.target.value != '')
+            if(e.key == 'Enter' && e.target.value !== '')
                 {
                     var text = e.target.value;
                     
@@ -3657,7 +3710,7 @@ window.onload = function()
                                     if(bots[i].is_on())
                                         {
                                             var ret = bots[i].command_handler(com);
-                                            if(ret == undefined) { exists = true; }
+                                            if(ret === undefined) { exists = true; }
                                         }
                                 }
 
@@ -3688,7 +3741,7 @@ window.onload = function()
                 }
             else if(e.key == 'ArrowUp')
                 {
-                    if(prev_input.length != 0 && prev_input_n < prev_input.length)
+                    if(prev_input.length !== 0 && prev_input_n < prev_input.length)
                         {
                             prev_input_n++;
                             
@@ -3697,7 +3750,7 @@ window.onload = function()
                 }
             else if(e.key == 'ArrowDown')
                 {
-                    if(prev_input.length != 0 && prev_input_n > 0)
+                    if(prev_input.length !== 0 && prev_input_n > 0)
                         {
                             prev_input_n--;
                             
@@ -3714,22 +3767,22 @@ window.onload = function()
     /*******************
     * Main view events
     *******************/
-    main_view.button['reenter'].on('click', function() { session.reenter(); });
-    main_view.button['relogin'].on('click', function() { session.relogin(); });
+    main_view.button.reenter.on('click', function() { session.reenter(); });
+    main_view.button.relogin.on('click', function() { session.relogin(); });
     
-    main_view.data['color_picker'].on('change', function()
+    main_view.data.color_picker.on('change', function()
         {
-            main_view.data['character_img'].one('load', function()
+            main_view.data.character_img.one('load', function()
                 {
-                    var {_r, _g, _b} = main_view.data['color_picker'].spectrum('get');
+                    var {_r, _g, _b} = main_view.data.color_picker.spectrum('get');
                     
                     change_character_color(this, _r, _g, _b);
                 });
 
             
-            main_view.data['character_img'].attr('src', './assets/character/'+session.character()+'.png');
+            main_view.data.character_img.attr('src', './assets/character/'+session.character()+'.png');
         });
-    room_view.data['color_picker'].on('change', function()
+    room_view.data.color_picker.on('change', function()
         {
             if(character_menu.css('display') == 'none') { return; }
             
@@ -3742,7 +3795,7 @@ window.onload = function()
                     
                     $(imgs[i]).one('load', function()
                         {
-                            var {_r, _g, _b} = room_view.data['color_picker'].spectrum('get');
+                            var {_r, _g, _b} = room_view.data.color_picker.spectrum('get');
                             
                             change_character_color(this, _r, _g, _b);
                         });
@@ -3750,29 +3803,29 @@ window.onload = function()
                     $(imgs[i]).attr('src', './assets/character/' + character + '.png')
                         .on('click', function()
                             {
-                                room_view.data['character'].val(character);
+                                room_view.data.character.val(character);
                                 character_menu.hide();
                             });
                 }
         });
     
-    main_view.data['character'].on('keyup', function()
+    main_view.data.character.on('keyup', function()
         {
-            var character = main_view.data['character'].val();
+            var character = main_view.data.character.val();
             if(fs.existsSync('./assets/character/'+character+'.png'))
                 {
-                    main_view.data['character_img'].one('load', function()
+                    main_view.data.character_img.one('load', function()
                         {
-                            var {_r, _g, _b} = main_view.data['color_picker'].spectrum('get');
+                            var {_r, _g, _b} = main_view.data.color_picker.spectrum('get');
                             
                             change_character_color(this, _r, _g, _b);
                         });
 
-                    main_view.data['character_img'].attr('src', './assets/character/'+character+'.png');
-                };
+                    main_view.data.character_img.attr('src', './assets/character/'+character+'.png');
+                }
         });
 
-    main_view.data['character_arrow'].on('click', function()
+    main_view.data.character_arrow.on('click', function()
         {
             if(character_menu.css('display') != 'none') { character_menu.hide(); return; }
             
@@ -3786,7 +3839,7 @@ window.onload = function()
             
                     $(img_el).one('load', function()
                         {
-                            var {_r, _g, _b} = main_view.data['color_picker'].spectrum('get');
+                            var {_r, _g, _b} = main_view.data.color_picker.spectrum('get');
                             
                             change_character_color(this, _r, _g, _b);
                         });
@@ -3795,8 +3848,8 @@ window.onload = function()
                         .addClass('character_menu_img')
                         .on('click', function()
                             {
-                                main_view.data['character'].val(character);
-                                main_view.data['character'].trigger('keyup'); //to change the character image
+                                main_view.data.character.val(character);
+                                main_view.data.character.trigger('keyup'); //to change the character image
                                 
                                 character_menu.hide();
                             });
@@ -3811,7 +3864,7 @@ window.onload = function()
                 .toggle();
         });
 
-    main_view['server'].on('change', function(e)
+    main_view.server.on('change', function(e)
         {
             main = {};
             refresh_main();
@@ -3820,11 +3873,11 @@ window.onload = function()
             
             if(GET_ALL_MAIN) { setTimeout(() => session.reenter(), 1000); }
         });
-    main_view['room'].on('keydown', function(e)
+    main_view.room.on('keydown', function(e)
         {
             if(e.key == 'Enter')
                 {
-                    change_room(main_view['room'].val());
+                    change_room( main_view.room.val() );
                     loader_small.hide();
                 }
         });
@@ -3841,7 +3894,7 @@ window.onload = function()
         );
     
     
-    room_view.data['color_picker'].spectrum
+    room_view.data.color_picker.spectrum
         ({
             color          : 'black',
             showInput      : true,
@@ -3850,7 +3903,7 @@ window.onload = function()
             palette        : COLOR_LIST
         });
     
-    main_view.data['color_picker'].spectrum
+    main_view.data.color_picker.spectrum
         ({
             color          : 'black',
             showInput      : true,
@@ -3864,14 +3917,14 @@ window.onload = function()
     * Add character_menu_div
     *************************/
     var sorted_n = [];
-    for(var character in character_list)
+    for(character in character_list)
         {
             sorted_n.push(character);
         }
     
     sorted_n.sort((a, b) => character_list[a].n - character_list[b].n);
     
-    for(var i = 0; i < sorted_n.length; i++)
+    for(i = 0; i < sorted_n.length; i++)
         {
             var div_el = $(document.createElement('DIV'))
                 .addClass('character_menu_div')
@@ -3889,7 +3942,7 @@ window.onload = function()
         .addClass('stat_dropdown_row')
         .css('display', 'table-row')[0];
     
-    room_view.dropdown['stat'].append(row);
+    room_view.dropdown.stat.append(row);
     
     for(let i = 0; i < DEFAULT_STAT.length; i++)
         {
@@ -3901,7 +3954,7 @@ window.onload = function()
                     {
                         session.stat(DEFAULT_STAT[i]);
                         
-                        room_view.dropdown['stat'].toggle();
+                        room_view.dropdown.stat.toggle();
                     })[0];
             
             if($(row).children().length == 2)
@@ -3910,7 +3963,7 @@ window.onload = function()
                         .addClass('stat_dropdown_row')
                         .css('display', 'table-row')[0];
                     
-                    room_view.dropdown['stat'].append(row);
+                    room_view.dropdown.stat.append(row);
                 }
             
             $(row).append(text_el);
@@ -4013,8 +4066,8 @@ window.onload = function()
     /****************************************************************
     * Set login button background if it is initialized with a proxy
     ****************************************************************/
-    POPUP_ENABLED = config['popup'];
-    if(login_data['proxy']) { room_view.button['proxy'].css('background-color', 'rgb(100, 100, 100)'); }
+    POPUP_ENABLED = config.popup;
+    if(login_data.proxy) { room_view.button.proxy.css('background-color', 'rgb(100, 100, 100)'); }
     
     
     IS_TRANSPARENT = config.transparent || ARGV.includes('transparent');
@@ -4084,11 +4137,11 @@ window.onload = function()
             
             refresh_data_menu(main_view.data);
             
-            var character = main_view.data['character'].val();
+            character = main_view.data.character.val();
             if(fs.existsSync('./assets/character/'+character+'.png'))
                 {
-                    main_view.data['character_img'].attr('src', './assets/character/'+character+'.png');
-                };
+                    main_view.data.character_img.attr('src', './assets/character/'+character+'.png');
+                }
             
             main_view.el.show();
             
@@ -4098,4 +4151,4 @@ window.onload = function()
         {
             main_view.el.hide();
         }
-}
+};

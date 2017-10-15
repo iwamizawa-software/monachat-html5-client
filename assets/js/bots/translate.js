@@ -146,7 +146,8 @@ function signal_handler(msg)
                 else if(xml.name == 'COM')
                     {
                         var {id, cmt} = xml.attr;
-                        if(is_ignored(id) && is_muted(id)) { return; }
+                        
+                        if(is_ignored(id) || is_muted(id)) { return; }
                         
                         if(id != session.id() && this.trans_com)
                             {
@@ -170,7 +171,7 @@ function command_handler(com)
             {
                 translate(com[1], 'ja', com[2], false);
             }
-        else if(com[0] == 'transcom')
+        else if(com[0] == 'translate')
             {
                 if(com[1] == undefined) { this.trans_com = false; }
                 

@@ -31,7 +31,7 @@ const PROXY_SITES =
 
 function Monachat(data, callback)
     {
-        if(data == undefined) { data = {}; }
+        if(data === undefined) { data = {}; }
         
         
         this.client;
@@ -203,14 +203,14 @@ function reconnect(s)
         clearInterval(this.ping_timer_id);
         
         
-        if(clear_screen != undefined) { clear_screen(); }
-        if(loader       != undefined) { loader.show();  }
+        if(clear_screen !== undefined) { clear_screen(); }
+        if(loader       !== undefined) { loader.show();  }
         
         
         /*************
         * Pause bots
         *************/
-        if(bots != undefined)
+        if(bots !== undefined)
             {
                 for(var i = 0; i < bots.length; i++)
                     {
@@ -218,7 +218,7 @@ function reconnect(s)
                     }
             }
         
-        if(this.client != undefined)
+        if(this.client !== undefined)
             {
                 this.client.end();
                 this.client.destroy();
@@ -226,7 +226,7 @@ function reconnect(s)
         
         if(this._proxy)
             {
-                if(this._site == 1 && config && config['download_always']) { this.proxy_list = []; }
+                if(this._site == 1 && config && config.download_always) { this.proxy_list = []; }
                 this.connect();
             }
         else
@@ -246,7 +246,7 @@ function connect_normal()
             {
                 host: ADDR,
                 port: this._port
-            }
+            };
         
         this.client = net.connect( options, function()
             {
@@ -274,13 +274,13 @@ function connect_normal()
                 ******************************/
                 that.set_client_events();
                 
-                if(loader != undefined) { loader.hide(); }
+                if(loader !== undefined) { loader.hide(); }
 
 
                 /*********************
                 * Resume paused bots
                 *********************/
-                if(bots != undefined)
+                if(bots !== undefined)
                     {
                         for(var i = 0; i < bots.length; i++)
                             {
@@ -291,9 +291,9 @@ function connect_normal()
                             }
                     }
 
-                if(PID != undefined && PID != 'MASTER')
+                if(PID !== undefined && PID != 'MASTER')
                     {
-                        if(send_slave_id != undefined) { send_slave_id(); }
+                        if(send_slave_id !== undefined) { send_slave_id(); }
                     }
             });
     }
@@ -302,7 +302,7 @@ function check_proxy_list()
     {
         var that = this;
         
-        if(this.proxy_list.length == 0)
+        if(this.proxy_list.length === 0)
             {
                 console.log('Downloading proxy list...');
                 
@@ -313,7 +313,7 @@ function check_proxy_list()
                         
                         success: function(json, data, xhr)
                             {
-                                if(Object.keys(json).length == 0)
+                                if(Object.keys(json).length === 0)
                                     {
                                         that.download_proxy_list();
                                     }
@@ -402,13 +402,13 @@ function connect_proxy()
                         that.set_client_events();
                         
                         
-                        if(loader != undefined) { loader.hide(); }
+                        if(loader !== undefined) { loader.hide(); }
 
 
                         /*********************
                         * Resume paused bots
                         *********************/
-                        if(bots != undefined)
+                        if(bots !== undefined)
                             {
                                 for(var i = 0; i < bots.length; i++)
                                     {
@@ -419,9 +419,9 @@ function connect_proxy()
                                     }
                             }
 
-                        if(PID != undefined && PID != 'MASTER')
+                        if(PID !== undefined && PID != 'MASTER')
                             {
-                                if(send_slave_id != undefined) { send_slave_id(); }
+                                if(send_slave_id !== undefined) { send_slave_id(); }
                             }
                     }
             });
@@ -433,7 +433,7 @@ function set_client_events()
         
         this.client.on('data', function(data)
             {
-                if(loader != undefined) { loader.hide(); }
+                if(loader !== undefined) { loader.hide(); }
                 
                 //console.log('SOCKET', data);
                 //console.log('LAST', data[data.length-1], data[data.length-1] == '\0');
@@ -446,7 +446,7 @@ function set_client_events()
                         prev_data += data;
                         return;
                     }
-                if(prev_data != '')
+                if(prev_data !== '')
                     {
                         data = prev_data + data;
                         prev_data = '';
@@ -454,14 +454,16 @@ function set_client_events()
                 
                 
                 data = data.split('\0')
-                    .filter( (msg) => msg != '' );
+                    .filter( (msg) => msg !== '' ); ////
                 
                 
                 for(let i = 0; i < data.length; i++)
                     {
+                        data[i] = data[i].replace(/["]{2,}/g, '"');
+                        
                         data[i] = data[i].match(/.*?(<.+>|\+connect id=\d+)/);
                         
-                        if(data[i] != undefined)
+                        if(data[i] !== undefined)
                             {
                                 that.callback(data[i][1]);
                             }
@@ -487,7 +489,7 @@ function set_client_events()
                             {
                                 that.proxy = true;
                                 
-                                if(log != undefined)
+                                if(log !== undefined)
                                     {
                                         var error = log_text_el
                                             (
@@ -593,7 +595,7 @@ function download_proxy_list()
                                 
                                 
                                 that.connect_proxy();
-                            })
+                            });
                     });
             }
     }
@@ -620,7 +622,7 @@ function ping_proxies(n)
                             }
                         else
                             {
-                                that.proxy_list[i]['ping'] = ping;
+                                that.proxy_list[i].ping = ping;
                                 console.log(addr+':'+port+' : '+ping[1]);
                             }
                     });
@@ -636,7 +638,7 @@ function _enter_room()
     {
         if(this._anonymous) { return this._enter_room_anonymous(); }
         
-        console.log('trip:"'+this._trip+'"', this._trip == '');
+        //console.log('trip:"'+this._trip+'"', this._trip === '');
         
         var msg =
             '<ENTER '
@@ -645,7 +647,7 @@ function _enter_room()
             + 'type="'   + this._character                  + '" '
             + 'name="'   + this._name                       + '" '
             + 'x="'      + this._x                          + '" '
-            + (this._trip == '' ? '' : ('trip="' + this._trip + '" '))
+            + (this._trip === '' ? '' : ('trip="' + this._trip + '" '))
             + 'attrib="yes" '
             + 'y="'      + this._y                          + '" '
             + 'r="'      + reverse_rgb_scale(this._r)       + '" '
@@ -671,36 +673,36 @@ function _exit_room()
         this.send('<EXIT no="' + this._id + '" />\0');
     }
 
-function room(room)
+function room(n)
     {
-        if(room == undefined)
+        if(n === undefined)
             {
                 return this._room;
             }
         else
             {
-                this._room = room;
+                this._room = n;
                 
                 this._exit_room();
                 this._room == 'main' ? this._enter_main() : this._enter_room();
             }
     }
 
-function server(server)
+function server(str)
     {
-        if(server == undefined)
+        if(str === undefined)
             {
                 return this._server;
             }
         else
             {
-                if(SERVER_LIST[server] == undefined)
+                if(SERVER_LIST[str] === undefined)
                     {
                         return false;
                     }
                 else
                     {
-                        var [server_room, port] = SERVER_LIST[server];
+                        var [server_room, port] = SERVER_LIST[str];
                         
                         this._server = server_room;
                         this._port   = port;
@@ -742,113 +744,113 @@ function reenter()
         this._room == 'main' ? this._enter_main() : this._enter_room();
     }
 
-function name(name)
+function name(str)
     {
-        if(name == undefined)
+        if(str === undefined)
             {
                 return this._name;
             }
         else
             {
-                this._name = name.substr(0, 20);
+                this._name = str.substr(0, 20);
                 
                 this.reenter();
             }
     }
 
-function id(id)
+function id(n)
     {
-        if(id == undefined)
+        if(n === undefined)
             {
                 return this._id;
             }
         else
             {
-                this._id = id;
+                this._id = n;
             }
     }
 
-function character(character)
+function character(str)
     {
-        if(character == undefined)
+        if(str === undefined)
             {
                 return this._character;
             }
         else
             {
-                this._character = character;
+                this._character = str;
                 this.reenter();
             }
     }
 
-function stat(stat)
+function stat(str)
     {
-        if(stat == undefined)
+        if(str === undefined)
             {
                 return this._stat;
             }
         else
             {
-                this._stat = stat.substr(0, 20);
+                this._stat = str.substr(0, 20);
                 this._send_stat();
             }
     }
 
-function trip(trip)
+function trip(str)
     {
-        if(trip == undefined)
+        if(str === undefined)
             {
                 return this._trip;
             }
         else
             {
-                this._trip = trip;
+                this._trip = str;
                 this.reenter();
             }
     }
 
-function r(r)
+function r(n)
     {
-        if(r == undefined)
+        if(n === undefined)
             {
                 return this._r;
             }
         else
             {
-                this._r = r;
+                this._r = n;
                 this.reenter();
             }
     }
 
-function g(g)
+function g(n)
     {
-        if(g == undefined)
+        if(n === undefined)
             {
                 return this._g;
             }
         else
             {
-                this._g = g;
+                this._g = n;
                 this.reenter();
             }
     }
 
-function b(b)
+function b(n)
     {
-        if(b == undefined)
+        if(n === undefined)
             {
                 return this._b;
             }
         else
             {
-                this._b = b;
+                this._b = n;
                 this.reenter();
             }
     }
 
 function rgb(r, g, b)
     {
-        if(r == undefined)
+        if(r === undefined)
             {
                 return [this._r, this._g, this._b];
             }
@@ -862,28 +864,28 @@ function rgb(r, g, b)
             }
     }
 
-function x(x)
+function x(n)
     {
-        if(x == undefined)
+        if(n === undefined)
             {
                 return this._x;
             }
         else
             {
-                this._x = x;
+                this._x = n;
                 this._send_x_y_scl();
             }
     }
 
-function y(y)
+function y(n)
     {
-        if(y == undefined)
+        if(n === undefined)
             {
                 return this._y;
             }
         else
             {
-                this._y = y;
+                this._y = n;
                 this._send_x_y_scl();
             }
     }
@@ -966,7 +968,7 @@ function proxy()
 
 function site(n)
     {
-        if(n == undefined)
+        if(n === undefined)
             {
                 return this._site;
             }
@@ -976,15 +978,15 @@ function site(n)
             }    
     }
 
-function timeout(timeout)
+function timeout(s)
     {
-        if(timeout == undefined)
+        if(s === undefined)
             {
                 return this._timeout;
             }
         else
             {
-                this._timeout = timeout;
+                this._timeout = s;
             }
     }
 
@@ -992,7 +994,7 @@ function ignore(ihash)
     {
         var stat;
         
-        if(this._ignored[ihash] == undefined)
+        if(this._ignored[ihash] === undefined)
             {
                 stat = 'on';
                 this._ignored[ihash] = true;
@@ -1038,7 +1040,7 @@ function send(msg)
                 
                 this.client.write(msg);
             }
-        else if(format_log != undefined && msg != '<NOP >\0')
+        else if(format_log !== undefined && msg != '<NOP >\0')
             {
                 clearTimeout(this.ping_timer_id);
                 format_log('error', ['Client is disconnected.']);
@@ -1065,7 +1067,7 @@ function enqueue_comment(cmt)
         cmt = parse_special_characters(cmt)
             .match(/.{1,50}/g);
         
-        var dequeue = this._comment_queue.length == 0;
+        var dequeue = this._comment_queue.length === 0;
         
         for(var i = 0; i < cmt.length; i++)
             {
@@ -1090,7 +1092,7 @@ function _dequeue_comment()
                 
                 
                 this.CAN_COMMENT = false;
-                setTimeout( function() { that.CAN_COMMENT = true }, that.COMMENT_SPACE );
+                setTimeout( function() { that.CAN_COMMENT = true; }, that.COMMENT_SPACE );
             }
         
         /***************************************
@@ -1123,7 +1125,7 @@ function set_default()
                 x        : x,
                 y        : y,
                 scl      : scl
-            })
+            });
     }
 
 function nanashi()
@@ -1168,7 +1170,7 @@ function anonymous()
 
 function copy(data)
     {
-        if(data == undefined)
+        if(data === undefined)
             {
                 return false;
             }
@@ -1179,14 +1181,14 @@ function copy(data)
                         name     : data.name,
                         character: data.character,
                         stat     : data.stat,
-                        trip     : data.trip == '' ? '' : data.trip,
+                        trip     : data.trip === '' ? '' : data.trip,
                         r        : data.r,
                         g        : data.g,
                         b        : data.b,
                         x        : data.x,
                         y        : data.y,
                         scl      : data.scl
-                    })
+                    });
             }
     }
 
@@ -1194,7 +1196,7 @@ function random(country)
     {
         var that = this;
         
-        if(country == undefined) { country = 'japan'; }
+        if(country === undefined) { country = 'japan'; }
         
         
         /************
@@ -1255,6 +1257,7 @@ function random(country)
         $.get(url, function(data)
             {
                 var name = '';
+                var first, last;
                 
                 if( country == 'japan' )
                     {
@@ -1264,12 +1267,12 @@ function random(country)
                         var kana     = data.match(/<td class="pron">(.+?)<\/td>/)[1];
                 
                         match = fullname.match(/(.+?)\s+(.+)/);
-                        var first = match[1];
-                        var last = match[2];
+                        first = match[1];
+                        last = match[2];
                         
                         match = kana.match(/(.+?)\s+(.+)/);
                         var kanafirst = match[1];
-                        var kanalast = match[2]
+                        var kanalast = match[2];
                 
                         fullname.trim();
                         kana.trim();
@@ -1304,9 +1307,9 @@ function random(country)
                 else
                     {
                         name = data.match(/<span class="name">\s+?<.+?>(.+?)<span class="middlename">(.+?)<\/span>(.+?)<\/a>/);
-                        var first  = name[1];
-                        var middle = name[2];
-                        var last   = name[3];
+                        first  = name[1];
+                        last   = name[3];
+                        //var middle = name[2];
                         
                         //Remove spaces
                         first.trim();//replace(/\s/g, '');
