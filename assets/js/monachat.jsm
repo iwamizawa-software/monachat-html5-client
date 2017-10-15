@@ -459,7 +459,7 @@ function set_client_events()
                 
                 for(let i = 0; i < data.length; i++)
                     {
-                        data[i] = data[i].replace(/["]{2,}/g, '"');
+                        data[i] = data[i].replace(/["]{3,}/g, '"');
                         
                         data[i] = data[i].match(/.*?(<.+>|\+connect id=\d+)/);
                         

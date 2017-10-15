@@ -2623,7 +2623,7 @@ function signal_handler(msg)
                 else if(xml.name == 'USER')
                     {
                         id = xml.attr.id;
-                        
+                        alert('user');
                         user[id] = new User(xml);
                         room[id] = user[id];
                         add_trip(id);
