@@ -4,8 +4,7 @@
     "version": "1.0.0-beta",
     "author": "Alvaro Fernandez (nishinishi, American man...)",
     "repository": "https://github.com/nishinishi9999/monachat-html5-client",
-    "main": "main.js",
-    
+    "main": "./app/main.js",
     "dependencies": {
         "jquery": ">=3.2.1",
         "socks": ">=1.1.10",
@@ -18,8 +17,7 @@
     "devDependencies": {
         "electron": ">= 1.6.2"
     },
-    
-     "scripts": {
+    "scripts": {
         "start": "electron .",
         "package-win": "electron-packager . --arch=x64 --platform=win32 --electron-version=1.6.2"
     },
