@@ -971,8 +971,9 @@ function format_log(type, args)
                     {
                         for(i = 0; i < config.popup_trigger.length; i++)
                             {
-                                if(cmt.match(config.popup_trigger[i]))
+                                if(cmt.match( config.popup_trigger[i] ))
                                     {
+                                        console.log(config.popup_trigger);
                                         popup
                                             (
                                                 format_user_data(id, 3) + ' :',

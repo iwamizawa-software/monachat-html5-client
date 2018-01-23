@@ -141,6 +141,9 @@ ipcMain.on('open_user_context_menu', function(e, args)
     });
 ipcMain.on('popup', function(e, args)
     {
+        console.log('POPUP');
+        console.log(args);
+        
         notifier.notify
             ({
                 'title': args.title,
