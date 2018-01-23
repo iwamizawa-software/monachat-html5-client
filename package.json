@@ -7,15 +7,17 @@
     "main": "./app/main.js",
     "dependencies": {
         "jquery": ">=3.2.1",
-        "socks": ">=1.1.10",
-        "xmldoc": ">=1.0.0",
         "jsonfile": ">=2.4.0",
-        "node-notifier": ">=5.1.2",
+        "node-notifier": "^5.2.1",
+        "request": ">=2.81.0",
+        "socks": ">=1.1.10",
         "spectrum-colorpicker": ">=1.8.0",
-        "request": ">=2.81.0"
+        "xmldoc": ">=1.0.0"
     },
     "devDependencies": {
-        "electron": ">= 1.6.2"
+        "electron": ">= 1.6.2",
+        "html-entities": "^1.2.1",
+        "validator": "^9.1.2"
     },
     "scripts": {
         "start": "electron .",
