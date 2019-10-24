@@ -54,7 +54,7 @@ function upload_file(path)
         request.post
             (
                 {
-                    url: 'https://anonfile.com/api/upload',
+                    url: 'https://api.anonfile.com/upload',
                     formData: { 'file': file }
                 },
                 
