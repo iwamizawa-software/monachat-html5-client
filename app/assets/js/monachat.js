@@ -1466,7 +1466,7 @@ function append_div(id)
                 var user_data = $(document.createElement('TEXT'))
                     .addClass('user_data')
                     .html(
-                            (user[id].name || 'nanashi')
+                            (user[id].name || 'nanashi').replace(/[<>"'&]/g, function (s) { return '&#' + String.fromCharCode(s.charCodeAt(0)) + ';'})
                             + '<br>' + WHITE_TRIP_SYM
                             + user[id].ihash.substr(-6)
                             + (user[id].trip === '' ? '' : ('<br>' + BLACK_TRIP_SYM + user[id].trip))
